@@ -65,6 +65,42 @@
 **Rationale:** All 140 agent definitions are indexed at session start. 105 were irrelevant to an Android app (web frameworks, ML, cloud infra, PowerShell). Smaller set = less noise in agent routing, fewer wasted tokens.
 **Context:** User asked to remove unnecessary bloat after full catalog was installed.
 
-**Decision:** OpenAI Codex CLI for Phase 1–2 boilerplate
-**Rationale:** Codex runs headless in a sandboxed context — ideal for isolated, pattern-fill tasks (Room entities, DAOs, ViewModel shells). Claude Code retains ownership of wiring, DI, architecture decisions.
+**Decision:** OpenAI Codex CLI for Phase 1-2 boilerplate
+**Rationale:** Codex runs headless in a sandboxed context -- ideal for isolated, pattern-fill tasks (Room entities, DAOs, ViewModel shells). Claude Code retains ownership of wiring, DI, architecture decisions.
 **Context:** `codex-cli 0.118.0` already installed globally. User referenced Codex intro video.
+
+---
+
+## Session 2026-04-12-005 -- 2026-04-12
+
+**Decision:** Nav is 4 tabs + FAB, no dedicated Log tab
+**Rationale:** A Log tab only contains a number pad and save button -- wasted real estate. FAB persists across all tabs, making logging one tap from anywhere.
+**Context:** grill-me question 3.
+
+**Decision:** Home screen uses always-full layout with motivating empty states
+**Rationale:** Empty states with copy ("Log 7 days to unlock your trend") set expectations and motivate logging. Data-gated reveal makes the screen look half-built on day 1.
+**Context:** grill-me question 5.
+
+**Decision:** Pro = 4.99 EUR one-time, contextual discovery only, no persistent CTA
+**Rationale:** App marketed as free. Donations are primary revenue. Pro discovered when advanced users stumble into power features. No aggressive upsell is core to the brand.
+**Context:** grill-me questions 12-13. Inspired by Zero's model.
+
+**Decision:** 12 Zero-inspired badges (not 8)
+**Rationale:** Zero uses streaks + volume milestones + resilience badges. 12 covers the full user lifecycle including maintenance mode (Steady State) and comeback behaviour. More badges = longer engagement.
+**Context:** grill-me question 15, Zero research.
+
+**Decision:** BadgeObserver reactive pattern (RFC #24)
+**Rationale:** Calling BadgeEngine from WeightRepository.insert() is imperative and untested. Reactive combine() over Room Flows is cleaner -- write path stays pure, distinctUntilChanged() handles the no-change case.
+**Context:** improve-codebase-architecture friction point 1.
+
+**Decision:** GoalStateMachine explicit FSM (RFC #26)
+**Rationale:** Without an explicit FSM, goal side effects (celebration, maintenance mode write) are silently buried in HomeViewModel. Sealed GoalState + transition functions make the state machine testable and enforce valid transitions.
+**Context:** improve-codebase-architecture friction point 3.
+
+**Decision:** SortedEntries wrapper type + named Repository ordering methods (RFC #28)
+**Rationale:** getAllEntries() has no ordering guarantee. Future callers (Trends, sparkline, CSV export) all assume sorted data. SortedEntries makes the contract compile-time visible. Named methods (getEntriesAscending/Descending) eliminate ambiguity.
+**Context:** improve-codebase-architecture friction point 5.
+
+**Decision:** HomeDataAggregator pure Kotlin object (RFC #29)
+**Rationale:** HomeViewModel with 5 direct dependencies becomes a god class. HomeDataAggregator owns the combine() logic, ViewModel gets one dependency, both are independently testable.
+**Context:** improve-codebase-architecture friction point 6.

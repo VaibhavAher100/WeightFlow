@@ -226,16 +226,55 @@ Codex is a headless coding agent that runs sandboxed tasks in parallel with Clau
 
 ---
 
+## GitHub Repo
+
+- URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
+- Rename before launch (current name is temporary)
+- PRD: issue #1 | Slice issues: #2-#23 | Architecture RFCs: #24-#29
+
+---
+
+## Architecture RFCs (implement during Phase 1-2)
+
+These are locked design decisions from the improve-codebase-architecture session. Implement them when building the relevant modules -- do not skip.
+
+| RFC | Issue | What it decides |
+|-----|-------|----------------|
+| BadgeObserver | #24 | Reactive combine() over Room Flows, not imperative on insert |
+| CsvImporter | #25 | Single entry point, CsvFormat enum surfaced in ParseResult |
+| GoalStateMachine | #26 | Sealed FSM with transition functions, rehydrated on cold start |
+| StoredWeight + HomeUiStateMapper | #27 | @JvmInline value class for Room + single conversion point in ViewModel |
+| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() |
+| HomeDataAggregator | #29 | ViewModel gets one dependency instead of five |
+
+---
+
+## Pre-Written Failing Tests (71 total)
+
+All live in `app/src/test/java/com/weightflow/domain/`. Run `./gradlew testDebugUnitTest` after Android Studio creates the project -- all 71 should fail. That is the correct starting state.
+
+| File | Tests | Module |
+|------|-------|--------|
+| `WeightConverterTest.kt` | 15 | WeightConverter |
+| `GoalProgressCalculatorTest.kt` | 14 | GoalProgressCalculator |
+| `BadgeEngineTest.kt` | 22 | BadgeEngine (all 12 badges) |
+| `CsvParserTest.kt` | 12 | All 4 CSV parsers |
+| `CsvExporterTest.kt` | 8 | CsvExporter |
+
+TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
+
+---
+
 ## Phases & Status
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 0 | Infrastructure (env, agents × 140, skills × 18, conventions, strategy) | ✅ Complete |
-| 1 | Foundation (Android project + Room + DataStore + NavGraph) | ⏳ Plan ready — needs Android Studio |
-| 2 | All 6 screens + ViewModels + Vico charts | ⏳ Plan ready — blocked on Phase 1 |
-| 3 | Onboarding + polish + empty/error states | 🔲 Needs brainstorm |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | 🔲 Needs planning |
-| 5 | Firebase sync + AdMob + iOS via KMP | 🔲 Needs planning |
+| 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
+| 1 | Foundation (Android project + Room + DataStore + NavGraph) | Plan ready, needs Android Studio |
+| 2 | All 6 screens + ViewModels + Vico charts | Plan ready, blocked on Phase 1 |
+| 3 | Onboarding + polish + empty/error states | Needs brainstorm |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
+| 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
 ---
 
