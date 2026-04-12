@@ -1,0 +1,27 @@
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.keystore
+!debug.keystore
+local.properties
+
+# Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# Google Services
+google-services.json
+
+# Logs / temp
+*.log
+/tmp
+.superpowers/
+
+# Claude context (project-local, not for sharing)
+.claude/settings.local.json
