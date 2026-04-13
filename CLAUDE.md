@@ -95,6 +95,7 @@ AGP 9.1.0 changed how Kotlin integrates. These are non-obvious and will cost an 
 | `kotlinOptions` not available | "Unresolved reference 'kotlinOptions'" | Not needed — removed; JVM target controlled via `compileOptions` |
 | `R.array.com_google_android_gms_fonts_certs` unresolved | "Unresolved reference 'array'" when using `ui-text-google-fonts` | Create `res/values/font_certs.xml` manually — the AAR does not auto-bundle certs in this build config |
 | `java` not in shell PATH | "JAVA_HOME is not set" | Use `JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"` prefix |
+| Vico docs describe v2/v3 API | "Unresolved reference 'cartesian'" — `CartesianChartHost`, `lineSeries`, `rememberCartesianChart` don't exist in 1.13.1 | Correct 1.13.1 imports: `vico.compose.chart.Chart`, `vico.compose.chart.line.lineChart`, `vico.compose.axis.vertical.rememberStartAxis`, `vico.compose.axis.horizontal.rememberBottomAxis`, `vico.core.entry.ChartEntryModelProducer`, `vico.core.entry.FloatEntry` |
 
 ---
 
@@ -317,8 +318,8 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 |-------|-------------|--------|
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
-| 2 | All 6 screens + ViewModels + Vico charts | **In progress** — 6 VMs done (141 tests), Vico + OnboardingScreen + onboarding gate remain |
-| 3 | Onboarding + polish + empty/error states | Needs brainstorm |
+| 2 | All 6 screens + ViewModels + Vico charts | **Complete** — 141 tests GREEN, Vico wired, OnboardingScreen + gate done |
+| 3 | Polish + empty/error states + Crashlytics + accessibility | **Next — needs brainstorm** |
 | 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
@@ -349,7 +350,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 3. **Room migrations**: Every schema change needs a Migration object. Never skip.
 4. **COPPA**: Age gate (13+) required in onboarding.
 5. **APK budget**: Keep final download under 15MB. Use AAB not APK for Play Store.
-6. **Crashlytics**: Add in Phase 1, not later.
+6. **Crashlytics**: Add at the START of Phase 3 — before first device test.
 7. **GitHub Actions**: `.github/workflows/android.yml` is already set up. Tests run on every push.
 
 ---

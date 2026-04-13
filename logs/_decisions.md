@@ -184,3 +184,17 @@
 **Decision:** ViewModel test pattern — `awaitRealState()` helper to skip `stateIn` initial Loading
 **Rationale:** `stateIn(WhileSubscribed, initialValue = Loading)` always emits Loading as first item before upstream coroutine runs with StandardTestDispatcher. All ViewModel tests use the helper to skip it. Pattern locked for Phase 2/3 consistency.
 **Context:** HomeViewModelTest had 9/11 failures on first run — all ClassCastExceptions from Loading being cast to Empty/HasData.
+
+## Session 2026-04-13-004 — 2026-04-13
+
+**Decision:** Vico 1.13.1 API — use source JARs for older library versions, not docs tools
+**Rationale:** context7 and most internet docs describe Vico v2/v3 (`CartesianChartHost`, `CartesianChartModelProducer`, `lineSeries`). These are non-existent in 1.13.1. Correct API: `Chart` composable + `ChartEntryModelProducer.setEntriesSuspending()` + `FloatEntry(x, y)`.
+**Context:** Compile failed with "Unresolved reference 'cartesian'" on first attempt. Reading the source JAR directly from `~/.gradle/caches` revealed the actual 1.13.1 package structure.
+
+**Decision:** Onboarding gate `initialValue = true` in MainActivity
+**Rationale:** Prevents brief flash of OnboardingScreen while DataStore cold-starts on an existing user's device. New users see a momentary ShellScreen loading spinner instead — acceptable since it shows a loading indicator anyway.
+**Context:** `collectAsStateWithLifecycle` requires an `initialValue`; `false` would incorrectly show onboarding to all users on every cold start for ~200ms.
+
+**Decision:** OnboardingViewModel constructed in `MainActivity.onCreate`, not via ViewModelFactory
+**Rationale:** Matches project's manual DI pattern. The ViewModel is activity-scoped and onboarding is a one-shot flow; no benefit to ViewModelFactory complexity without Hilt.
+**Context:** Project uses `WeightFlowApp` as DI root. All VMs in NavGraph are constructed via `vmFactory` lambda; MainActivity follows same pattern.

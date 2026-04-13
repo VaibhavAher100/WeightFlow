@@ -15,12 +15,20 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.FloatEntry
 
 @Composable
 fun TrendsScreen(viewModel: TrendsViewModel) {
@@ -99,6 +107,15 @@ private fun EmptyView() {
 
 @Composable
 private fun ChartView(state: TrendsUiState.HasData) {
+    val modelProducer = remember { ChartEntryModelProducer() }
+
+    LaunchedEffect(state.chartPoints) {
+        val entries = state.chartPoints.mapIndexed { index, point ->
+            FloatEntry(x = index.toFloat(), y = point.displayValue)
+        }
+        modelProducer.setEntriesSuspending(entries).await()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,11 +137,14 @@ private fun ChartView(state: TrendsUiState.HasData) {
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "${state.chartPoints.size} data points",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+        Chart(
+            chart = lineChart(),
+            chartModelProducer = modelProducer,
+            startAxis = rememberStartAxis(),
+            bottomAxis = rememberBottomAxis(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
         )
-        // Vico chart will be wired in a follow-up step
     }
 }
