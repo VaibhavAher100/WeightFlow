@@ -62,6 +62,7 @@ WeightFlow/
 | Tests | Unit (JVM) + Instrumented (Room DAOs + Repositories) — mockk 1.13.12 + turbine 1.1.0 |
 | AGP | 9.1.0 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — see Build Gotchas below) |
 | Room | **2.7.0** (upgraded from 2.6.1 — 2.6.1 is not KSP2-compatible with Kotlin 2.x) |
+| Fonts | `ui-text-google-fonts` (Compose BOM) — Bebas Neue (display/headline) + Outfit (body/label) via GMS provider; `res/values/font_certs.xml` must exist (not auto-bundled) |
 
 ---
 
@@ -92,6 +93,7 @@ AGP 9.1.0 changed how Kotlin integrates. These are non-obvious and will cost an 
 | `@Delete`/`@Upsert` + `suspend` Unit return | Same KSP2 jvm signature V error | Return `Int`/`Long` from these methods — also better API (rows affected / row id) |
 | XML theme needs AppCompat | Resource link fails with MDC theme | Use `Theme.AppCompat.DayNight.NoActionBar` — AppCompat is transitive via `activity-compose` |
 | `kotlinOptions` not available | "Unresolved reference 'kotlinOptions'" | Not needed — removed; JVM target controlled via `compileOptions` |
+| `R.array.com_google_android_gms_fonts_certs` unresolved | "Unresolved reference 'array'" when using `ui-text-google-fonts` | Create `res/values/font_certs.xml` manually — the AAR does not auto-bundle certs in this build config |
 | `java` not in shell PATH | "JAVA_HOME is not set" | Use `JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"` prefix |
 
 ---
@@ -301,8 +303,8 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
-| 1 | Foundation (Android project + Room + DataStore + NavGraph) | In progress — domain + data + repository layers done; theme + NavGraph remaining |
-| 2 | All 6 screens + ViewModels + Vico charts | Plan ready, blocked on Phase 1 |
+| 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
+| 2 | All 6 screens + ViewModels + Vico charts | **In progress** — next session |
 | 3 | Onboarding + polish + empty/error states | Needs brainstorm |
 | 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |

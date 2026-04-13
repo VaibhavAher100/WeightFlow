@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-13-001
+last_session: 2026-04-13-002
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -30,6 +30,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - Room **2.7.0** (upgraded from 2.6.1 — not KSP2-compatible) | KSP 2.1.20-1.0.31
 - DataStore 1.1.1 | Navigation Compose 2.8.9
 - Vico 1.13.1 charts | Manual DI (no Hilt) | StateFlow
+- Google Fonts: `ui-text-google-fonts` (Compose BOM) — Bebas Neue + Outfit via GMS provider
 - Test: JUnit 4.13.2 + mockk 1.13.12 + turbine 1.1.0 + kotlinx-coroutines-test 1.8.1
 - CI: GitHub Actions (tests + lint + build on every push)
 
@@ -38,13 +39,13 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
-| 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | In progress |
-| 2 | All 6 screens + ViewModels + Vico | Plan ready, blocked on Phase 1 |
+| 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | **Complete** |
+| 2 | All 6 screens + ViewModels + Vico | In progress — next |
 | 3 | Onboarding + polish + empty/error states | Needs brainstorm |
 | 4 | Play Store launch (privacy policy, Crashlytics, signed build, ASO) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
-## Phase 1 Progress
+## Phase 1 Progress — ALL COMPLETE
 
 | TDD Step | Module | Status |
 |----------|--------|--------|
@@ -56,11 +57,12 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | Step 7 | BadgeEngine | GREEN (24 unit tests) |
 | Step 8 | CSV parsers (all 4) | GREEN (12 unit tests) |
 | Step 9 | CsvExporter | GREEN (9 unit tests) |
-| Step 10 | Theme system | Not started |
-| Step 11 | NavGraph shell | Not started |
+| Step 10 | Theme system | **DONE** — `ui/theme/Color.kt` + `Type.kt` + `Theme.kt` |
+| Step 11 | NavGraph shell | **DONE** — `Screen.kt` + `NavGraph.kt` + `ShellScreen.kt` + `MainActivity.kt` |
 
 **Current test count: 74 unit tests passing (BUILD SUCCESSFUL verified 2026-04-13)**
 **Instrumented tests: 37 compile-verified (Steps 4+5+6) — need device/emulator to run**
+**App is launchable — `assembleDebug` produces a working APK with 4-tab nav + FAB**
 
 ## GitHub Repo
 - URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
@@ -102,20 +104,39 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 
 ## Build Configuration (AGP 9.x specific)
 
-- `gradle/libs.versions.toml`: Kotlin 2.1.20, KSP 2.1.20-1.0.31, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0
+- `gradle/libs.versions.toml`: Kotlin 2.1.20, KSP 2.1.20-1.0.31, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, **ui-text-google-fonts (BOM)**
 - `gradle.properties`: `android.disallowKotlinSourceSets=false` (KSP + AGP 9.x compatibility)
 - `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
 - XML theme: `Theme.AppCompat.DayNight.NoActionBar`
 - Room schema export: `app/schemas/` (via `ksp { arg("room.schemaLocation", ...) }`)
+- **font_certs.xml**: GMS downloadable fonts provider certs — must be in `res/values/` (not auto-bundled by `ui-text-google-fonts` in this build config)
 
 ## Implementation Plans
 
 | Plan | File | Status |
 |------|------|--------|
-| Foundation (7 tasks) | `docs/plans/2026-04-11-weightflow-foundation.md` | In progress |
-| All Screens (9 tasks) | `docs/plans/2026-04-11-weightflow-screens.md` | Ready (after Phase 1) |
-| TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | In progress |
+| Foundation (7 tasks) | `docs/plans/2026-04-11-weightflow-foundation.md` | **Complete** |
+| All Screens (9 tasks) | `docs/plans/2026-04-11-weightflow-screens.md` | **Active — Phase 2** |
+| TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | Steps 2-11 complete |
 | Phase 3-5 | TBD | Not yet written |
+
+## UI Layer (Steps 10+11 complete)
+
+All files in `app/src/main/java/com/weightflow/ui/`:
+
+| File | Contents |
+|------|----------|
+| `ui/theme/Color.kt` | 8 palettes (lime/forest/ocean/sunset/rose/violet/gold/ice) + `colorSchemeForPalette(String): ColorScheme` |
+| `ui/theme/Type.kt` | `GoogleFontProvider`, `BebasNeue` + `Outfit` FontFamilies, `WeightFlowTypography` |
+| `ui/theme/Theme.kt` | `WeightFlowTheme(palette, content)` composable |
+| `ui/navigation/Screen.kt` | `sealed class Screen` — Home, Trends, History, Profile, LogEntry |
+| `ui/navigation/NavGraph.kt` | `WeightFlowNavGraph(navController, modifier)` — NavHost + placeholder screens |
+| `ui/shell/ShellScreen.kt` | `ShellScreen()` — Scaffold + 4-tab NavigationBar + FAB (Home only) |
+| `MainActivity.kt` | Single activity — edge-to-edge, collects `themePalette` from DataStore |
+
+Theme palette flow: `UserPrefsDataStore.themePalette: Flow<String>` → `MainActivity.collectAsStateWithLifecycle()` → `WeightFlowTheme(palette)` → `colorSchemeForPalette()` → `MaterialTheme`
+
+Fonts: Runtime download via GMS fonts provider. Falls back to system fonts if unavailable (e.g., no network on first launch).
 
 ## Data Layer (Steps 4+5+6 complete)
 
@@ -181,26 +202,29 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] TDD Step 10: Theme system — `ui/theme/Color.kt` (8 palettes), `Theme.kt` (dynamic MaterialTheme), `Type.kt` (Bebas Neue + Outfit) — no unit tests, manual verification on device
-- [ ] TDD Step 11: NavGraph shell — `Screen.kt`, `NavGraph.kt`, `ShellScreen.kt`, `MainActivity.kt` — 4-tab bottom nav + FAB — no unit tests, manual verification
 - [ ] Wire compliance-auditor agent check before first device build (GDPR checklist)
+- [ ] Back up Android keystore to 3 locations (CRITICAL — before first release build)
+- [ ] Add Firebase Crashlytics (carry forward from Phase 1 — add early Phase 2)
+- [ ] Age gate (13+) in onboarding (COPPA) — Phase 3
 
 ## Critical Before First Build
 - [ ] Back up Android keystore to 3 locations (CRITICAL)
-- [ ] Add Firebase Crashlytics in Phase 1 (not later)
+- [ ] Add Firebase Crashlytics in Phase 1/early Phase 2 (not later)
 - [ ] Age gate (13+) in onboarding (COPPA)
 - [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
 
 ## Next Session Should
-1. TDD Step 10: Theme system
-   - `app/src/main/java/com/weightflow/ui/theme/Color.kt` — 8 accent palettes + neutrals (Lime default #C8FF00, warm dark #0F0E0B)
-   - `app/src/main/java/com/weightflow/ui/theme/Type.kt` — Bebas Neue (numbers) + Outfit (UI text)
-   - `app/src/main/java/com/weightflow/ui/theme/Theme.kt` — dynamic MaterialTheme wrapper that reads themePalette from DataStore
-   - Verification: manual build + visual check on device/emulator
-2. TDD Step 11: NavGraph shell
-   - `app/src/main/java/com/weightflow/ui/navigation/Screen.kt` — sealed class routes
-   - `app/src/main/java/com/weightflow/ui/navigation/NavGraph.kt` — NavHost with 4-tab bottom nav
-   - `app/src/main/java/com/weightflow/ui/shell/ShellScreen.kt` — Scaffold + BottomNavigation stub
-   - `app/src/main/java/com/weightflow/MainActivity.kt` — single activity hosting NavHost
-   - Verification: app launches, tabs switch, FAB visible
-3. After Step 11: Phase 1 is complete → start Phase 2 (screens + ViewModels)
+
+**Phase 2 starts.** Follow TDD order from `docs/plans/2026-04-12-tdd-order.md` Phase 2 section.
+
+1. **HomeViewModel + HomeScreen** (Issue #15) — TDD first:
+   - Write `HomeViewModelTest.kt` BEFORE ViewModel (initial state loading, weight list display, unit conversion via RFC #27 StoredWeight/HomeUiStateMapper, RFC #29 HomeDataAggregator)
+   - Implement `HomeViewModel.kt` → GREEN
+   - Replace `PlaceholderScreen("Home")` in NavGraph with real `HomeScreen`
+   - HomeScreen: hero weight number (Bebas Neue large), recent entries list, empty state with motivation
+
+2. **LogEntryViewModel + LogEntryScreen** (Issue #14) — bottom sheet triggered by FAB
+   - Write `LogEntryViewModelTest.kt` FIRST
+   - Implement ViewModel → replace `PlaceholderScreen("Log Entry")` with real bottom sheet
+
+3. Consider running compliance-auditor agent before device build (GDPR)
