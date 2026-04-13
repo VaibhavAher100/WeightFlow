@@ -1,0 +1,236 @@
+package com.weightflow.ui.logentry
+
+import app.cash.turbine.test
+import com.weightflow.data.UserPrefsDataStore
+import com.weightflow.data.WeightRepository
+import com.weightflow.domain.WeightUnit
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import java.time.LocalDate
+
+/**
+ * TDD: These tests were written BEFORE LogEntryViewModel exists.
+ * Run them — they will all fail. Then implement LogEntryViewModel to make them pass.
+ *
+ * LogEntry is a bottom sheet triggered by the FAB on HomeScreen.
+ * Weight is always stored in kg (RFC #27). User input is in their preferred unit.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class LogEntryViewModelTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private val weightRepository: WeightRepository = mockk()
+    private val userPrefsDataStore: UserPrefsDataStore = mockk()
+    private val unitFlow = MutableStateFlow(WeightUnit.KG)
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher)
+        // weightUnit is a Flow property, not a suspend function → use every
+        every { userPrefsDataStore.weightUnit } returns unitFlow
+        coEvery { weightRepository.addEntry(any(), any(), any()) } returns 1L
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    private fun makeViewModel(): LogEntryViewModel =
+        LogEntryViewModel(weightRepository, userPrefsDataStore)
+
+    // ── Initial state ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `initial state has empty weight input`() = runTest {
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertEquals("", vm.uiState.value.weightInput)
+    }
+
+    @Test
+    fun `initial state date is today`() = runTest {
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertEquals(LocalDate.now(), vm.uiState.value.selectedDate)
+    }
+
+    @Test
+    fun `initial state input is not valid`() = runTest {
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `initial state is not saving`() = runTest {
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isSaving)
+    }
+
+    // ── Weight input validation ───────────────────────────────────────────────
+
+    @Test
+    fun `valid positive weight makes input valid`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("80.5")
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `empty weight makes input invalid`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("80")
+        vm.onWeightInput("")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `zero weight makes input invalid`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("0")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `negative weight makes input invalid`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("-5")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `non-numeric input makes input invalid`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("abc")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.isInputValid)
+    }
+
+    @Test
+    fun `weight input is reflected in uiState`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("75.0")
+        advanceUntilIdle()
+        assertEquals("75.0", vm.uiState.value.weightInput)
+    }
+
+    // ── Date selection ────────────────────────────────────────────────────────
+
+    @Test
+    fun `selected date is updated by onDateSelected`() = runTest {
+        val vm = makeViewModel()
+        val yesterday = LocalDate.now().minusDays(1)
+        vm.onDateSelected(yesterday)
+        advanceUntilIdle()
+        assertEquals(yesterday, vm.uiState.value.selectedDate)
+    }
+
+    // ── Save behaviour ────────────────────────────────────────────────────────
+
+    @Test
+    fun `onSave stores entry in kg when unit is KG`() = runTest {
+        unitFlow.value = WeightUnit.KG
+        val vm = makeViewModel()
+        vm.onWeightInput("80.0")
+        advanceUntilIdle()
+        vm.onSave()
+        advanceUntilIdle()
+        coVerify { weightRepository.addEntry(weightKg = 80.0, timestamp = any(), note = any()) }
+    }
+
+    @Test
+    fun `onSave converts lbs to kg before storing`() = runTest {
+        unitFlow.value = WeightUnit.LBS
+        val vm = makeViewModel()
+        vm.onWeightInput("176.4") // ≈ 80 kg
+        advanceUntilIdle()
+        vm.onSave()
+        advanceUntilIdle()
+        // 176.4 lbs / 2.20462 ≈ 79.97 kg — verify within 0.5 kg tolerance
+        coVerify {
+            weightRepository.addEntry(
+                weightKg = match { kotlin.math.abs(it - 80.0) < 0.5 },
+                timestamp = any(),
+                note = any(),
+            )
+        }
+    }
+
+    @Test
+    fun `onSave emits Saved event`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("80.0")
+        advanceUntilIdle()
+
+        vm.events.test {
+            vm.onSave()
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertTrue("Expected Saved event, got $event", event is LogEntryEvent.Saved)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onSave does nothing when input is invalid`() = runTest {
+        val vm = makeViewModel()
+        // input is empty (invalid)
+        vm.onSave()
+        advanceUntilIdle()
+        coVerify(exactly = 0) { weightRepository.addEntry(any(), any(), any()) }
+    }
+
+    @Test
+    fun `onDismiss emits Dismissed event`() = runTest {
+        val vm = makeViewModel()
+        advanceUntilIdle()
+
+        vm.events.test {
+            vm.onDismiss()
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertTrue("Expected Dismissed event, got $event", event is LogEntryEvent.Dismissed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // ── Unit display ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `uiState reflects kg unit from DataStore`() = runTest {
+        unitFlow.value = WeightUnit.KG
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertEquals(WeightUnit.KG, vm.uiState.value.weightUnit)
+    }
+
+    @Test
+    fun `uiState reflects lbs unit from DataStore`() = runTest {
+        unitFlow.value = WeightUnit.LBS
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        assertEquals(WeightUnit.LBS, vm.uiState.value.weightUnit)
+    }
+}

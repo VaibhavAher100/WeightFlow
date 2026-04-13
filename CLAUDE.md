@@ -270,29 +270,42 @@ These are locked design decisions from the improve-codebase-architecture session
 
 ---
 
-## Tests (74 unit + 37 instrumented — all GREEN/compile-verified)
+## Tests (141 unit + 37 instrumented — all GREEN/compile-verified)
 
-**Unit tests** — `app/src/test/java/com/weightflow/domain/`:
+**Unit tests** — `app/src/test/java/com/weightflow/`:
 
-| File | Tests | Status | Implementation |
-|------|-------|--------|----------------|
-| `WeightConverterTest.kt` | 13 | GREEN | `WeightConverter.kt` + `WeightUnit.kt` |
-| `GoalProgressCalculatorTest.kt` | 15 | GREEN | `GoalProgressCalculator.kt` |
-| `BadgeEngineTest.kt` | 24 | GREEN | `BadgeEngine.kt` |
-| `CsvParserTest.kt` | 12 | GREEN | `CsvParsers.kt` |
-| `CsvExporterTest.kt` | 9 | GREEN | `CsvExporter.kt` |
+| File | Tests | Status |
+|------|-------|--------|
+| `domain/WeightConverterTest.kt` | 13 | GREEN |
+| `domain/GoalProgressCalculatorTest.kt` | 15 | GREEN |
+| `domain/BadgeEngineTest.kt` | 24 | GREEN |
+| `domain/CsvParserTest.kt` | 12 | GREEN |
+| `domain/CsvExporterTest.kt` | 9 | GREEN |
+| `ui/home/HomeViewModelTest.kt` | 11 | GREEN |
+| `ui/logentry/LogEntryViewModelTest.kt` | 18 | GREEN |
+| `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
+| `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
+| `ui/profile/ProfileViewModelTest.kt` | 5 | GREEN |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 17 | GREEN |
+
+**ViewModel test pattern (locked — reuse for all future VMs):**
+- `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
+- `awaitRealState()` turbine helper — skips the initial `Loading` from `stateIn(WhileSubscribed)`
+- `every { repo.flowProp } returns MutableStateFlow(...)` for Flow properties (not `coEvery`)
+- Synchronous VM actions (`onWeightInput`, `onNextStep`): no `advanceUntilIdle()` needed
+- Coroutine-launching actions (`onSave`, `onComplete`): call `advanceUntilIdle()` after
 
 **Instrumented tests** — `app/src/androidTest/java/com/weightflow/data/` (need device/emulator):
 
-| File | Tests | Status | Implementation |
-|------|-------|--------|----------------|
-| `WeightEntryDaoTest.kt` | 7 | Compile-verified | `WeightEntryDao.kt` |
-| `UserProfileDaoTest.kt` | 5 | Compile-verified | `UserProfileDao.kt` |
-| `UserPrefsDataStoreTest.kt` | 7 | Compile-verified | `UserPrefsDataStore.kt` |
-| `WeightRepositoryTest.kt` | 11 | Compile-verified | `WeightRepository.kt` |
-| `UserProfileRepositoryTest.kt` | 6 | Compile-verified | `UserProfileRepository.kt` |
+| File | Tests | Status |
+|------|-------|--------|
+| `WeightEntryDaoTest.kt` | 7 | Compile-verified |
+| `UserProfileDaoTest.kt` | 5 | Compile-verified |
+| `UserPrefsDataStoreTest.kt` | 7 | Compile-verified |
+| `WeightRepositoryTest.kt` | 11 | Compile-verified |
+| `UserProfileRepositoryTest.kt` | 6 | Compile-verified |
 
-Note: `WeightEntry` and `UserProfile` are plain domain data classes. Room entities (`WeightEntryEntity`, `UserProfileEntity`) live in `data/` package — domain stays pure. Data package is flat (`data/`) — no `db/prefs/repository/` subdirs (intentional, decided sessions 006-007).
+Note: `WeightEntry` and `UserProfile` are plain domain data classes. Room entities live in `data/` — domain stays pure. Data package is flat (`data/`) — no subdirs (intentional).
 
 TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 
@@ -304,7 +317,7 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 |-------|-------------|--------|
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
-| 2 | All 6 screens + ViewModels + Vico charts | **In progress** — next session |
+| 2 | All 6 screens + ViewModels + Vico charts | **In progress** — 6 VMs done (141 tests), Vico + OnboardingScreen + onboarding gate remain |
 | 3 | Onboarding + polish + empty/error states | Needs brainstorm |
 | 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
@@ -324,7 +337,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all 74 unit tests still green
+3. Run `./gradlew testDebugUnitTest` — confirm all 141 unit tests still green
 4. THEN start coding
 
 ---

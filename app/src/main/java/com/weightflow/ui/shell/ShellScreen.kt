@@ -1,29 +1,42 @@
 package com.weightflow.ui.shell
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.layout.padding
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.weightflow.WeightFlowApp
+import com.weightflow.ui.logentry.LogEntrySheet
+import com.weightflow.ui.logentry.LogEntryViewModel
 import com.weightflow.ui.navigation.Screen
 import com.weightflow.ui.navigation.WeightFlowNavGraph
+import kotlinx.coroutines.launch
 
 private data class Tab(
     val screen: Screen,
@@ -38,12 +51,25 @@ private val tabs = listOf(
     Tab(Screen.Profile, "Profile", Icons.Filled.Person),
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShellScreen() {
+fun ShellScreen(app: WeightFlowApp) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val onHomeTab = currentDestination?.hierarchy?.any { it.route == Screen.Home.route } == true
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    var showLogEntry by remember { mutableStateOf(false) }
+
+    val logEntryVm: LogEntryViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
+                LogEntryViewModel(app.weightRepository, app.userPrefsDataStore) as T
+        },
+    )
 
     Scaffold(
         bottomBar = {
@@ -71,7 +97,7 @@ fun ShellScreen() {
         floatingActionButton = {
             if (onHomeTab) {
                 FloatingActionButton(
-                    onClick = { navController.navigate(Screen.LogEntry.route) },
+                    onClick = { showLogEntry = true },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
@@ -81,8 +107,25 @@ fun ShellScreen() {
         },
     ) { innerPadding ->
         WeightFlowNavGraph(
+            app = app,
             navController = navController,
             modifier = Modifier.padding(innerPadding),
         )
+
+        if (showLogEntry) {
+            ModalBottomSheet(
+                onDismissRequest = { showLogEntry = false },
+                sheetState = sheetState,
+            ) {
+                LogEntrySheet(
+                    viewModel = logEntryVm,
+                    onDismiss = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            showLogEntry = false
+                        }
+                    },
+                )
+            }
+        }
     }
 }

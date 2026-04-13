@@ -170,3 +170,17 @@
 **Decision:** FAB visible only on Home tab, hidden on Trends/History/Profile
 **Rationale:** Matches locked product decision — no Log tab, weight entry is a contextual action from Home, not a persistent affordance.
 **Context:** Step 11 ShellScreen implementation.
+
+## Session 2026-04-13-003 — 2026-04-13
+
+**Decision:** LogEntry bottom sheet is state-managed in ShellScreen, not a NavGraph destination
+**Rationale:** Navigation-based bottom sheets in Compose Navigation cause awkward background content layering and don't feel native. FAB sets `showLogEntry = true` → `ModalBottomSheet` overlays the Scaffold content.
+**Context:** Phase 2 LogEntry implementation — the original NavGraph had `composable(Screen.LogEntry.route)` but that was replaced.
+
+**Decision:** `HomeDataAggregator` is an interface (not a concrete class)
+**Rationale:** Makes `HomeViewModel` trivially unit-testable via anonymous fake objects. Concrete `HomeDataAggregatorImpl` lives in domain/ but depends on data/ classes — interface sits in domain/ cleanly.
+**Context:** RFC #29 implementation. Discovered when writing HomeViewModelTest that mockking a concrete class is fragile.
+
+**Decision:** ViewModel test pattern — `awaitRealState()` helper to skip `stateIn` initial Loading
+**Rationale:** `stateIn(WhileSubscribed, initialValue = Loading)` always emits Loading as first item before upstream coroutine runs with StandardTestDispatcher. All ViewModel tests use the helper to skip it. Pattern locked for Phase 2/3 consistency.
+**Context:** HomeViewModelTest had 9/11 failures on first run — all ClassCastExceptions from Loading being cast to Empty/HasData.

@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
             val palette by app.userPrefsDataStore.themePalette
                 .collectAsStateWithLifecycle(initialValue = "lime")
             WeightFlowTheme(palette = palette) {
-                ShellScreen()
+                ShellScreen(app = app)
             }
         }
     }
