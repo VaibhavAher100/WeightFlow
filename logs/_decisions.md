@@ -104,3 +104,39 @@
 **Decision:** HomeDataAggregator pure Kotlin object (RFC #29)
 **Rationale:** HomeViewModel with 5 direct dependencies becomes a god class. HomeDataAggregator owns the combine() logic, ViewModel gets one dependency, both are independently testable.
 **Context:** improve-codebase-architecture friction point 6.
+
+---
+
+## Session 2026-04-12-007 -- 2026-04-12
+
+**Decision:** Room upgraded from 2.6.1 → 2.7.0
+**Rationale:** Room 2.6.1 is not compatible with KSP2 (default in KSP 2.1.x). Two bugs manifest: (1) "unexpected jvm signature V" during KSP annotation processing for `@Delete`/`@Upsert suspend fun` with Unit return; (2) generated Java impl has `Continuation<T>` instead of `Continuation<? super T>`, causing `@Override` compile errors. Room 2.7.0 adds full KSP2/K2 compatibility. `ksp.useKSP2=false` is NOT a valid workaround for AGP 9.x (breaks variant resolution).
+**Context:** First Room entities+DAOs built in TDD Step 4.
+
+**Decision:** `@Delete` returns `Int`, `@Upsert` returns `Long`
+**Rationale:** Even after the Room upgrade, these are strictly better APIs — `Int` = rows deleted (useful for error detection), `Long` = inserted row ID (useful for referencing the new row). Unit return is valid but provides no feedback.
+**Context:** Discovered during KSP2 debugging; kept as a deliberate API improvement.
+
+**Decision:** TDD Step 4 complete — Room entities + DAOs pass compiler/KSP validation
+**Rationale:** `connectedAndroidTest` requires a running emulator/device. The test APK built successfully and Room KSP validated all DAO interface contracts at compile time. Tests will be executed on first device connection.
+**Context:** No emulator was running during the session.
+
+---
+
+## Session 2026-04-12-006 -- 2026-04-12
+
+**Decision:** AGP 9.1.0 has built-in Kotlin -- do NOT apply `org.jetbrains.kotlin.android` separately
+**Rationale:** AGP 9.x registers the 'kotlin' Gradle extension internally. Applying the standalone `kotlin-android` plugin causes "Cannot add extension with name 'kotlin'" at configuration time. The Kotlin compiler is already available; only `kotlin-compose` and `ksp` need to be applied on top.
+**Context:** First attempt to wire Kotlin into the project. Error discovered via stacktrace.
+
+**Decision:** `android.disallowKotlinSourceSets=false` required for KSP + AGP 9.x
+**Rationale:** AGP 9.x with built-in Kotlin blocks plugins from adding sources via `kotlin.sourceSets` DSL. KSP uses this legacy API to wire generated source directories. The flag suppresses the error; KSP still functions correctly.
+**Context:** Second configuration error after resolving the kotlin-android conflict.
+
+**Decision:** XML theme switched from MDC to `Theme.AppCompat.DayNight.NoActionBar`
+**Rationale:** Android Studio generated `Theme.MaterialComponents.DayNight.DarkActionBar` which requires `com.google.android.material:material`. We use Compose Material3 only. AppCompat is pulled in transitively by `androidx.activity:activity-compose`, so no extra dependency is needed.
+**Context:** Resource linking failure during first `testDebugUnitTest` run.
+
+**Decision:** `WeightEntry` and `UserProfile` are plain domain data classes (no @Entity yet)
+**Rationale:** Room annotations belong in the data layer, not the domain layer. The domain tests are pure JVM tests with no Android dependencies. Room entities will wrap or extend these types when the data layer is built in TDD Step 4.
+**Context:** Ensuring domain tests stay pure JVM (fast, no emulator needed).
