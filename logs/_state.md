@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-13-003
+last_session: 2026-04-13-004
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -40,24 +40,24 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 |-------|-------------|--------|
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | Complete |
-| 2 | All 6 screens + ViewModels + Vico | **In progress — Vico + Onboarding screens remaining** |
-| 3 | Onboarding + polish + empty/error states | Needs brainstorm |
+| 2 | All 6 screens + ViewModels + Vico | **Complete** |
+| 3 | Onboarding + polish + empty/error states | **Next — needs brainstorm** |
 | 4 | Play Store launch (privacy policy, Crashlytics, signed build, ASO) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
-## Phase 2 Progress
+## Phase 2 Progress — COMPLETE
 
 | Item | Status |
 |------|--------|
 | HomeViewModel + HomeScreen | **DONE** (11 tests) |
 | LogEntryViewModel + LogEntrySheet | **DONE** (18 tests) |
-| TrendsViewModel + TrendsScreen | **DONE** (11 tests) — Vico chart wiring pending |
+| TrendsViewModel + TrendsScreen | **DONE** (11 tests) |
 | HistoryViewModel + HistoryScreen | **DONE** (4 tests) |
 | ProfileViewModel + ProfileScreen | **DONE** (5 tests) |
 | OnboardingViewModel | **DONE** (17 tests) |
-| OnboardingScreen composables (4 steps) | **TODO** — next session |
-| Vico 1.13.1 chart in TrendsScreen | **TODO** — next session |
-| Wire onboarding into MainActivity | **TODO** — check `onboardingComplete` pref |
+| OnboardingScreen composables (4 steps) | **DONE** — AgeGate/Unit/Weight/Goal |
+| Vico 1.13.1 chart in TrendsScreen | **DONE** — `Chart` + `ChartEntryModelProducer` |
+| Wire onboarding into MainActivity | **DONE** — DataStore Flow gate |
 
 ## GitHub Repo
 - URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
@@ -115,7 +115,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | Steps 2-11 + all 6 Phase 2 ViewModels done |
 | Phase 3-5 | TBD | Not yet written |
 
-## UI Layer (Phase 2 complete — screens wired)
+## UI Layer (Phase 2 complete — all screens done)
 
 All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 
@@ -126,12 +126,14 @@ All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 | `ui/shell/` | `ShellScreen.kt` (ModalBottomSheet for LogEntry) |
 | `ui/home/` | `HomeUiState.kt`, `HomeUiStateMapper.kt`, `HomeViewModel.kt`, `HomeScreen.kt` |
 | `ui/logentry/` | `LogEntryUiState.kt`, `LogEntryViewModel.kt`, `LogEntryScreen.kt` |
-| `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (Vico TODO) |
+| `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (Vico `Chart` + `ChartEntryModelProducer`) |
 | `ui/history/` | `HistoryUiState.kt`, `HistoryViewModel.kt`, `HistoryScreen.kt` |
 | `ui/profile/` | `ProfileUiState.kt`, `ProfileViewModel.kt`, `ProfileScreen.kt` |
-| `ui/onboarding/` | `OnboardingUiState.kt`, `OnboardingViewModel.kt` (Screen TODO) |
+| `ui/onboarding/` | `OnboardingUiState.kt`, `OnboardingViewModel.kt`, `OnboardingScreen.kt` |
 
 **LogEntry pattern:** FAB → `showLogEntry = true` in ShellScreen → `ModalBottomSheet` overlays. Not a NavGraph destination.
+
+**Onboarding gate:** `MainActivity` collects `userPrefsDataStore.onboardingComplete` Flow with `initialValue = true` (prevents flash for existing users). Shows `OnboardingScreen` if false, `ShellScreen` if true.
 
 ## Domain Layer (Complete)
 
@@ -230,13 +232,11 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] Wire Vico 1.13.1 line chart into TrendsScreen (replace placeholder ChartView)
-- [ ] Write OnboardingScreen composables (4 steps: AgeGate → Unit → CurrentWeight → Goal)
-- [ ] Wire onboarding into MainActivity (check `onboardingComplete` pref on launch)
+- [ ] Phase 3 brainstorm (empty states, polish, error states, animations) — run `superpowers:brainstorming`
+- [ ] Firebase Crashlytics — add early Phase 3, before first device test
 - [ ] Wire compliance-auditor agent check before first device build (GDPR checklist)
 - [ ] Back up Android keystore to 3 locations (CRITICAL — before first release build)
-- [ ] Add Firebase Crashlytics (carry forward — add early Phase 2 remainder / Phase 3)
-- [ ] Age gate (13+) in onboarding (COPPA) — OnboardingViewModel done, needs Screen
+- [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
 
 ## Critical Before First Build
 - [ ] Back up Android keystore to 3 locations (CRITICAL)
@@ -246,18 +246,19 @@ Three hookify rules in `.claude/`:
 
 ## Next Session Should
 
-**Phase 2 — remaining items:**
+**Phase 3 — start with brainstorm:**
 
-1. **Vico chart in TrendsScreen** (Issue #16 Vico portion)
-   - Wire `Vico 1.13.1` line chart into `TrendsScreen.kt`
-   - Use `ChartPoint.displayValue` + `ChartPoint.timestamp` as x/y
-   - Reference: `gradle/libs.versions.toml` has `vico = "1.13.1"` + `compose-m3` dependency
+1. Run `superpowers:brainstorming` for Phase 3 scope: empty states, error states, polish, animations, accessibility pass, Crashlytics
+2. Add Firebase Crashlytics before first device test
+3. Run `compliance-auditor` agent GDPR checklist before first device build
+4. Plan Phase 3 tasks via `superpowers:writing-plans`
 
-2. **OnboardingScreen composables** (Issue #13)
-   - 4-step pager: AgeGate → Unit → CurrentWeight → Goal
-   - Age gate MUST show "I confirm I am 13 or older" checkbox (COPPA)
-   - Wire `OnboardingViewModel` already done
-
-3. **MainActivity onboarding gate**
-   - Collect `userPrefsDataStore.onboardingComplete`
-   - Show `OnboardingScreen` if false, else `ShellScreen`
+**Vico note for future sessions:**
+Vico 1.13.1 API (correct imports):
+- `com.patrykandpatrick.vico.compose.chart.Chart` (composable)
+- `com.patrykandpatrick.vico.compose.chart.line.lineChart`
+- `com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis`
+- `com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis`
+- `com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer`
+- `com.patrykandpatrick.vico.core.entry.FloatEntry`
+- context7 returns v3 docs (wrong for 1.13.1) — read source JARs from Gradle cache instead
