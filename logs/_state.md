@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-12-005
+last_session: 2026-04-12-007
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -25,8 +25,10 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - Ads: small AdMob banner on free tier, non-core screens only
 
 ## Tech Stack (Locked)
-- Kotlin 2.x + Jetpack Compose BOM 2024.09
-- Room 2.6.1 | DataStore 1.1.1 | Navigation Compose 2.7.7
+- Kotlin 2.1.20 + Jetpack Compose BOM 2025.04.01
+- AGP 9.1.0 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — no kotlin-android plugin)
+- Room **2.7.0** (upgraded from 2.6.1 — not KSP2-compatible) | KSP 2.1.20-1.0.31
+- DataStore 1.1.1 | Navigation Compose 2.8.9
 - Vico 1.13.1 charts | Manual DI (no Hilt) | StateFlow
 - CI: GitHub Actions (tests + lint + build on every push)
 
@@ -35,11 +37,28 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
-| 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | Plan ready, needs Android Studio |
+| 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | In progress |
 | 2 | All 6 screens + ViewModels + Vico | Plan ready, blocked on Phase 1 |
 | 3 | Onboarding + polish + empty/error states | Needs brainstorm |
 | 4 | Play Store launch (privacy policy, Crashlytics, signed build, ASO) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
+
+## Phase 1 Progress
+
+| TDD Step | Module | Status |
+|----------|--------|--------|
+| Step 2 | WeightConverter + WeightUnit | GREEN (13 unit tests) |
+| Step 3 | GoalProgressCalculator | GREEN (15 unit tests) |
+| Step 4 | Room schema + DAOs | GREEN (13 instrumented tests) |
+| Step 5 | DataStore preferences | GREEN (7 instrumented tests) |
+| Step 6 | Repository layer | Not started |
+| Step 7 | BadgeEngine | GREEN (24 unit tests) |
+| Step 8 | CSV parsers (all 4) | GREEN (12 unit tests) |
+| Step 9 | CsvExporter | GREEN (9 unit tests) |
+| Step 10 | Theme system | Not started |
+| Step 11 | NavGraph shell | Not started |
+
+**Current test count: 74 unit + 20 instrumented = 94 total passing**
 
 ## GitHub Repo
 - URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
@@ -76,24 +95,59 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | CsvImporter | #25 | Single entry point, CsvFormat enum in ParseResult |
 | GoalStateMachine | #26 | Explicit sealed FSM with transition functions |
 | StoredWeight + HomeUiStateMapper | #27 | Value class for Room + single conversion point in ViewModel |
-| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() |
+| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() — IMPLEMENTED in WeightEntryDao |
 | HomeDataAggregator | #29 | ViewModel gets one dependency instead of five |
+
+## Build Configuration (AGP 9.x specific)
+
+- `gradle/libs.versions.toml`: Kotlin 2.1.20, KSP 2.1.20-1.0.31, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01
+- `gradle.properties`: `android.disallowKotlinSourceSets=false` (KSP + AGP 9.x compatibility)
+- `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
+- XML theme: `Theme.AppCompat.DayNight.NoActionBar`
+- Room schema export: `app/schemas/` (via `ksp { arg("room.schemaLocation", ...) }`)
 
 ## Implementation Plans
 
 | Plan | File | Status |
 |------|------|--------|
-| Foundation (7 tasks) | `docs/plans/2026-04-11-weightflow-foundation.md` | Ready |
+| Foundation (7 tasks) | `docs/plans/2026-04-11-weightflow-foundation.md` | In progress |
 | All Screens (9 tasks) | `docs/plans/2026-04-11-weightflow-screens.md` | Ready (after Phase 1) |
-| TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | Ready |
+| TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | In progress |
 | Phase 3-5 | TBD | Not yet written |
 
-## Pre-Written Tests (71 failing, waiting for Android project)
-- `app/src/test/java/com/weightflow/domain/WeightConverterTest.kt` (15 tests)
-- `app/src/test/java/com/weightflow/domain/GoalProgressCalculatorTest.kt` (14 tests)
-- `app/src/test/java/com/weightflow/domain/BadgeEngineTest.kt` (22 tests)
-- `app/src/test/java/com/weightflow/domain/CsvParserTest.kt` (12 tests)
-- `app/src/test/java/com/weightflow/domain/CsvExporterTest.kt` (8 tests)
+## Data Layer (Steps 4+5 complete)
+
+All files in `app/src/main/java/com/weightflow/data/`:
+
+| File | Contents |
+|------|----------|
+| `WeightEntryEntity.kt` | `@Entity(tableName = "weight_entries")` — id, timestamp, weightKg, note |
+| `WeightEntryDao.kt` | `insert(): Long`, `delete(): Int`, `getById()`, `getEntriesNewestFirst()`, `getEntriesOldestFirst()`, `getEntriesBetween()` (RFC #28 naming) |
+| `UserProfileEntity.kt` | `@Entity(tableName = "user_profile")` — id=1 always, all profile fields, targetDate as epochDay Long |
+| `UserProfileDao.kt` | `upsert(): Long`, `getProfile(): Flow<UserProfileEntity?>` |
+| `AppDatabase.kt` | `@Database(version=1, exportSchema=true)` — WeightEntryEntity + UserProfileEntity |
+| `UserPrefsDataStore.kt` | Injected `DataStore<Preferences>` — weightUnit/themePalette/onboardingComplete Flows + setters |
+
+Instrumented tests in `app/src/androidTest/java/com/weightflow/data/`:
+- `WeightEntryDaoTest.kt` — 7 tests
+- `UserProfileDaoTest.kt` — 5 tests
+- `UserPrefsDataStoreTest.kt` — 7 tests
+
+## Domain Layer (Complete)
+
+All files in `app/src/main/java/com/weightflow/domain/`:
+
+| File | Contents |
+|------|----------|
+| `WeightUnit.kt` | `enum class WeightUnit { KG, LBS, ST }` |
+| `WeightConverter.kt` | `object WeightConverter` + `data class StonesResult` |
+| `WeightEntry.kt` | `data class WeightEntry` (pure domain) |
+| `UserProfile.kt` | `data class UserProfile` (pure domain) |
+| `GoalProgressCalculator.kt` | `object GoalProgressCalculator` + `DriftDirection` enum + `GoalProgress` data class |
+| `BadgeEngine.kt` | `object BadgeEngine` + `enum class Badge` (12 variants) |
+| `ParseResult.kt` | `sealed class ParseResult` (Success + Error) |
+| `CsvParsers.kt` | `WeightFitParser`, `HappyScaleParser`, `AppleHealthParser`, `GenericCsvParser` |
+| `CsvExporter.kt` | `object CsvExporter` |
 
 ## Environment
 - **Open from:** `C:\Users\vaibh\Desktop\102\WeightFlow\`
@@ -106,10 +160,11 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 
 ## Open Items
 
-- [ ] Create Android Studio project (Empty Activity, package com.weightflow, min SDK 26)
-- [ ] Execute Plan 1 (Foundation) starting with `./gradlew testDebugUnitTest` to verify 71 red tests
-- [ ] Run `compliance-auditor` agent before first build (GDPR checklist)
-- [ ] Run `legal-advisor` agent to draft Privacy Policy (Phase 4)
+- [ ] TDD Step 6: Write `WeightRepositoryTest` + `UserProfileRepositoryTest` FIRST (instrumented, in-memory Room + DataStore), then implement `WeightRepository` + `UserProfileRepository`
+- [ ] TDD Step 10: Theme system — 8 palettes, Lime default (no unit tests, manual verification)
+- [ ] TDD Step 11: NavGraph shell — 4-tab bottom nav + FAB wiring (no unit tests, manual verification)
+- [ ] Wire `AppDatabase` + `UserPrefsDataStore` into Application class (DI root)
+- [ ] Run `compliance-auditor` agent before first build on device (GDPR checklist)
 
 ## Critical Before First Build
 - [ ] Back up Android keystore to 3 locations (CRITICAL)
@@ -118,8 +173,10 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
 
 ## Next Session Should
-1. Open Android Studio -> New Project -> Empty Activity
-   - Package: `com.weightflow`, Min SDK: 26, Language: Kotlin, Build: Gradle KTS
-2. Run `./gradlew testDebugUnitTest` -> verify all 71 tests fail (RED)
-3. Execute issue #2 (Android project setup + CI) following TDD order in `docs/plans/2026-04-12-tdd-order.md`
-4. Use `codex` CLI for Room/DataStore boilerplate in issues #3 and #4
+1. TDD Step 6: Repository layer
+   - Write `WeightRepositoryTest` FIRST (instrumented, in-memory Room)
+   - Write `UserProfileRepositoryTest` FIRST
+   - Then implement `WeightRepository` + `UserProfileRepository`
+   - Reference RFC #28 (named ordering methods) and RFC #29 (HomeDataAggregator prep)
+2. Wire Application class DI root (`WeightFlowApp.kt`)
+3. TDD Steps 10-11: Theme + NavGraph (manual verification, no unit tests)

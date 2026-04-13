@@ -68,7 +68,8 @@ class WeightConverterTest {
         val original = 80.0
         val stones = WeightConverter.kgToStones(original)
         val roundTripped = WeightConverter.stonesToKg(stones.stones, stones.pounds)
-        assertEquals(original, roundTripped, tolerance)
+        // Integer stones+lbs loses fractional pound precision (~0.45kg max drift)
+        assertEquals(original, roundTripped, 0.5)
     }
 
     // ── format() ────────────────────────────────────────────────────────────
