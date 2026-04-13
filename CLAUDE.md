@@ -49,31 +49,50 @@ WeightFlow/
 
 | Decision | Choice |
 |----------|--------|
-| Language | Kotlin 2.x |
-| UI | Jetpack Compose (BOM 2024.09+) |
+| Language | Kotlin 2.1.20 |
+| UI | Jetpack Compose (BOM 2025.04.01) |
 | DI | Manual via `WeightFlowApp.kt` Application class — no Hilt |
 | State | `StateFlow` + `collectAsStateWithLifecycle()` |
-| DB | Room 2.6.1 (offline-first, single source of truth) |
+| DB | Room **2.7.0** with KSP 2.1.20-1.0.31 (offline-first, single source of truth; 2.6.1 not KSP2-compatible) |
 | Prefs | DataStore 1.1.1 via `UserPrefsDataStore` wrapper |
 | Charts | Vico 1.13.1 (`compose-m3`) |
-| Navigation | 5-tab bottom nav: Home · Trends · Log · History · Profile |
+| Navigation | 4-tab bottom nav + FAB: Home · Trends · History · Profile (no Log tab) |
 | Settings | Accessed from Profile — not a 6th tab |
 | Min SDK | API 26 (Android 8.0) |
-| Tests | Unit (JVM) + Instrumented (Room DAOs) |
+| Tests | Unit (JVM) + Instrumented (Room DAOs + Repositories) — mockk 1.13.12 + turbine 1.1.0 |
+| AGP | 9.1.0 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — see Build Gotchas below) |
+| Room | **2.7.0** (upgraded from 2.6.1 — 2.6.1 is not KSP2-compatible with Kotlin 2.x) |
 
 ---
 
 ## Build Commands
 
 ```bash
-# Run from WeightFlow/ after Android Studio project is created
+# Run from WeightFlow/ — prepend JAVA_HOME if java not in PATH
+# JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
 ./gradlew assembleDebug               # build debug APK
-./gradlew testDebugUnitTest           # all unit tests
+./gradlew testDebugUnitTest           # all unit tests (74 currently — verified 2026-04-13)
 ./gradlew connectedAndroidTest        # instrumented tests (needs device/emulator)
-./gradlew testDebugUnitTest --tests "com.weightflow.ui.util.WeightConverterTest"
+./gradlew testDebugUnitTest --tests "com.weightflow.domain.WeightConverterTest"
 ./gradlew lintDebug                   # lint
 ./gradlew assembleRelease             # signed release build (Phase 4)
 ```
+
+---
+
+## AGP 9.x Build Gotchas (CRITICAL — do not re-learn these)
+
+AGP 9.1.0 changed how Kotlin integrates. These are non-obvious and will cost an hour to debug again.
+
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| DO NOT apply `kotlin-android` plugin | "Cannot add extension with name 'kotlin'" at configuration | AGP 9.x has built-in Kotlin. Apply only `kotlin-compose` + `ksp` |
+| KSP source sets conflict | "Using kotlin.sourceSets DSL is not allowed with built-in Kotlin" | Add `android.disallowKotlinSourceSets=false` to `gradle.properties` |
+| Room 2.6.1 + KSP2 | "unexpected jvm signature V" then `@Override` mismatch in generated Java | **Use Room 2.7.0** — 2.6.1 predates KSP2/K2. `ksp.useKSP2=false` breaks AGP 9.x. |
+| `@Delete`/`@Upsert` + `suspend` Unit return | Same KSP2 jvm signature V error | Return `Int`/`Long` from these methods — also better API (rows affected / row id) |
+| XML theme needs AppCompat | Resource link fails with MDC theme | Use `Theme.AppCompat.DayNight.NoActionBar` — AppCompat is transitive via `activity-compose` |
+| `kotlinOptions` not available | "Unresolved reference 'kotlinOptions'" | Not needed — removed; JVM target controlled via `compileOptions` |
+| `java` not in shell PATH | "JAVA_HOME is not set" | Use `JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"` prefix |
 
 ---
 
@@ -249,17 +268,29 @@ These are locked design decisions from the improve-codebase-architecture session
 
 ---
 
-## Pre-Written Failing Tests (71 total)
+## Tests (74 unit + 37 instrumented — all GREEN/compile-verified)
 
-All live in `app/src/test/java/com/weightflow/domain/`. Run `./gradlew testDebugUnitTest` after Android Studio creates the project -- all 71 should fail. That is the correct starting state.
+**Unit tests** — `app/src/test/java/com/weightflow/domain/`:
 
-| File | Tests | Module |
-|------|-------|--------|
-| `WeightConverterTest.kt` | 15 | WeightConverter |
-| `GoalProgressCalculatorTest.kt` | 14 | GoalProgressCalculator |
-| `BadgeEngineTest.kt` | 22 | BadgeEngine (all 12 badges) |
-| `CsvParserTest.kt` | 12 | All 4 CSV parsers |
-| `CsvExporterTest.kt` | 8 | CsvExporter |
+| File | Tests | Status | Implementation |
+|------|-------|--------|----------------|
+| `WeightConverterTest.kt` | 13 | GREEN | `WeightConverter.kt` + `WeightUnit.kt` |
+| `GoalProgressCalculatorTest.kt` | 15 | GREEN | `GoalProgressCalculator.kt` |
+| `BadgeEngineTest.kt` | 24 | GREEN | `BadgeEngine.kt` |
+| `CsvParserTest.kt` | 12 | GREEN | `CsvParsers.kt` |
+| `CsvExporterTest.kt` | 9 | GREEN | `CsvExporter.kt` |
+
+**Instrumented tests** — `app/src/androidTest/java/com/weightflow/data/` (need device/emulator):
+
+| File | Tests | Status | Implementation |
+|------|-------|--------|----------------|
+| `WeightEntryDaoTest.kt` | 7 | Compile-verified | `WeightEntryDao.kt` |
+| `UserProfileDaoTest.kt` | 5 | Compile-verified | `UserProfileDao.kt` |
+| `UserPrefsDataStoreTest.kt` | 7 | Compile-verified | `UserPrefsDataStore.kt` |
+| `WeightRepositoryTest.kt` | 11 | Compile-verified | `WeightRepository.kt` |
+| `UserProfileRepositoryTest.kt` | 6 | Compile-verified | `UserProfileRepository.kt` |
+
+Note: `WeightEntry` and `UserProfile` are plain domain data classes. Room entities (`WeightEntryEntity`, `UserProfileEntity`) live in `data/` package — domain stays pure. Data package is flat (`data/`) — no `db/prefs/repository/` subdirs (intentional, decided sessions 006-007).
 
 TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 
@@ -270,11 +301,29 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
-| 1 | Foundation (Android project + Room + DataStore + NavGraph) | Plan ready, needs Android Studio |
+| 1 | Foundation (Android project + Room + DataStore + NavGraph) | In progress — domain + data + repository layers done; theme + NavGraph remaining |
 | 2 | All 6 screens + ViewModels + Vico charts | Plan ready, blocked on Phase 1 |
 | 3 | Onboarding + polish + empty/error states | Needs brainstorm |
 | 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
+
+---
+
+## Guardrails (Active Hookify Rules)
+
+Three rules in `.claude/hookify.*.local.md` — active immediately, no restart needed:
+
+| Rule file | Event | What it enforces |
+|-----------|-------|-----------------|
+| `hookify.tdd-production-guard.local.md` | file | Writing `app/src/main/java/**/*.kt` → confirm failing test exists first |
+| `hookify.completion-verification.local.md` | stop | Session stop → paste `BUILD SUCCESSFUL` output before any completion claim |
+| `hookify.session-start-plan-check.local.md` | prompt | "continue/next step" → read `logs/_state.md` + TDD plan before coding |
+
+**Session start protocol (enforced by hook):**
+1. Read `logs/_state.md` — confirm current open items
+2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
+3. Run `./gradlew testDebugUnitTest` — confirm all 74 unit tests still green
+4. THEN start coding
 
 ---
 

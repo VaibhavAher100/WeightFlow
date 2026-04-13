@@ -140,3 +140,19 @@
 **Decision:** `WeightEntry` and `UserProfile` are plain domain data classes (no @Entity yet)
 **Rationale:** Room annotations belong in the data layer, not the domain layer. The domain tests are pure JVM tests with no Android dependencies. Room entities will wrap or extend these types when the data layer is built in TDD Step 4.
 **Context:** Ensuring domain tests stay pure JVM (fast, no emulator needed).
+
+---
+
+## Session 2026-04-13-001 — 2026-04-13
+
+**Decision:** Flat `data/` package layout is confirmed and locked
+**Rationale:** Sessions 006-007 chose flat `data/` over the plan's `data/db/prefs/repository/` subdirectory structure. Plan audit verified this was intentional — simpler for a solo project, no real navigation penalty at this scale. Not reverting.
+**Context:** Plan audit during verification-before-completion review.
+
+**Decision:** `turbine` + `mockk` added to test dependencies
+**Rationale:** Both were present in the original foundation plan (`docs/plans/2026-04-11-weightflow-foundation.md`) but were silently dropped when sessions 006-007 configured `build.gradle.kts`. They are required for Phase 2 ViewModel testing — `turbine` for Flow assertions, `mockk` for repository fakes.
+**Context:** Gap found during plan vs reality audit; fixed immediately.
+
+**Decision:** Three hookify guardrails enforced via `.claude/hookify.*.local.md`
+**Rationale:** Silent drift occurred across sessions 006-007 (missing deps, package structure divergence). Automated hooks prevent the three most likely failure modes without requiring manual discipline.
+**Context:** User request: "put guard rails for that" after asking for plan-drift verification.
