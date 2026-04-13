@@ -156,3 +156,17 @@
 **Decision:** Three hookify guardrails enforced via `.claude/hookify.*.local.md`
 **Rationale:** Silent drift occurred across sessions 006-007 (missing deps, package structure divergence). Automated hooks prevent the three most likely failure modes without requiring manual discipline.
 **Context:** User request: "put guard rails for that" after asking for plan-drift verification.
+
+## Session 2026-04-13-002 — 2026-04-13
+
+**Decision:** Google Fonts via `ui-text-google-fonts` for Bebas Neue + Outfit
+**Rationale:** No binary TTF downloads possible in-session; Google Fonts runtime download is production-grade with graceful fallback to system fonts on no-network first launch.
+**Context:** Step 10 theme system implementation.
+
+**Decision:** `font_certs.xml` must be created manually in `res/values/`
+**Rationale:** The `ui-text-google-fonts` AAR did not expose `R.array.com_google_android_gms_fonts_certs` automatically in this AGP 9.x / Compose BOM 2025.04.01 build. Adding the certs XML file directly is the documented Android workaround.
+**Context:** Build failed with "Unresolved reference 'array'" until certs file was added.
+
+**Decision:** FAB visible only on Home tab, hidden on Trends/History/Profile
+**Rationale:** Matches locked product decision — no Log tab, weight entry is a contextual action from Home, not a persistent affordance.
+**Context:** Step 11 ShellScreen implementation.
