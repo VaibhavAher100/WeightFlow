@@ -7,12 +7,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.weightflow.WeightFlowApp
+import com.weightflow.ui.history.HistoryScreen
+import com.weightflow.ui.history.HistoryViewModel
+import com.weightflow.ui.home.HomeScreen
+import com.weightflow.ui.home.HomeViewModel
+import com.weightflow.ui.profile.ProfileScreen
+import com.weightflow.ui.profile.ProfileViewModel
+import com.weightflow.ui.trends.TrendsScreen
+import com.weightflow.ui.trends.TrendsViewModel
 
 @Composable
 fun WeightFlowNavGraph(
+    app: WeightFlowApp,
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
@@ -21,12 +33,38 @@ fun WeightFlowNavGraph(
         startDestination = Screen.Home.route,
         modifier = modifier,
     ) {
-        composable(Screen.Home.route)     { PlaceholderScreen("Home") }
-        composable(Screen.Trends.route)   { PlaceholderScreen("Trends") }
-        composable(Screen.History.route)  { PlaceholderScreen("History") }
-        composable(Screen.Profile.route)  { PlaceholderScreen("Profile") }
-        composable(Screen.LogEntry.route) { PlaceholderScreen("Log Entry") }
+        composable(Screen.Home.route) {
+            val vm: HomeViewModel = viewModel(
+                factory = vmFactory { HomeViewModel(app.homeDataAggregator) },
+            )
+            HomeScreen(vm)
+        }
+        composable(Screen.Trends.route) {
+            val vm: TrendsViewModel = viewModel(
+                factory = vmFactory { TrendsViewModel(app.weightRepository, app.userPrefsDataStore) },
+            )
+            TrendsScreen(vm)
+        }
+        composable(Screen.History.route) {
+            val vm: HistoryViewModel = viewModel(
+                factory = vmFactory { HistoryViewModel(app.weightRepository, app.userPrefsDataStore) },
+            )
+            HistoryScreen(vm)
+        }
+        composable(Screen.Profile.route) {
+            val vm: ProfileViewModel = viewModel(
+                factory = vmFactory { ProfileViewModel(app.userProfileRepository, app.userPrefsDataStore) },
+            )
+            ProfileScreen(vm)
+        }
     }
+}
+
+private inline fun <reified VM : androidx.lifecycle.ViewModel> vmFactory(
+    crossinline create: () -> VM,
+): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T = create() as T
 }
 
 @Composable

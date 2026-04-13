@@ -6,6 +6,7 @@ import com.weightflow.data.AppDatabase
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
 import com.weightflow.data.WeightRepository
+import com.weightflow.domain.HomeDataAggregatorImpl
 
 private val Application.dataStore by preferencesDataStore(name = "user_prefs")
 
@@ -25,5 +26,9 @@ class WeightFlowApp : Application() {
 
     val userPrefsDataStore: UserPrefsDataStore by lazy {
         UserPrefsDataStore(dataStore)
+    }
+
+    val homeDataAggregator: HomeDataAggregatorImpl by lazy {
+        HomeDataAggregatorImpl(weightRepository, userProfileRepository, userPrefsDataStore)
     }
 }
