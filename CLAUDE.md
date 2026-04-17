@@ -49,18 +49,18 @@ WeightFlow/
 
 | Decision | Choice |
 |----------|--------|
-| Language | Kotlin 2.1.20 |
+| Language | Kotlin 2.2.10 |
 | UI | Jetpack Compose (BOM 2025.04.01) |
 | DI | Manual via `WeightFlowApp.kt` Application class — no Hilt |
 | State | `StateFlow` + `collectAsStateWithLifecycle()` |
-| DB | Room **2.7.0** with KSP 2.1.20-1.0.31 (offline-first, single source of truth; 2.6.1 not KSP2-compatible) |
+| DB | Room **2.7.0** with KSP 2.3.2 (offline-first, single source of truth; 2.6.1 not KSP2-compatible) |
 | Prefs | DataStore 1.1.1 via `UserPrefsDataStore` wrapper |
 | Charts | Vico 1.13.1 (`compose-m3`) |
 | Navigation | 4-tab bottom nav + FAB: Home · Trends · History · Profile (no Log tab) |
 | Settings | Accessed from Profile — not a 6th tab |
 | Min SDK | API 26 (Android 8.0) |
 | Tests | Unit (JVM) + Instrumented (Room DAOs + Repositories) — mockk 1.13.12 + turbine 1.1.0 |
-| AGP | 9.1.0 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — see Build Gotchas below) |
+| AGP | 9.1.1 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — see Build Gotchas below) |
 | Room | **2.7.0** (upgraded from 2.6.1 — 2.6.1 is not KSP2-compatible with Kotlin 2.x) |
 | Fonts | `ui-text-google-fonts` (Compose BOM) — Bebas Neue (display/headline) + Outfit (body/label) via GMS provider; `res/values/font_certs.xml` must exist (not auto-bundled) |
 
@@ -72,7 +72,7 @@ WeightFlow/
 # Run from WeightFlow/ — prepend JAVA_HOME if java not in PATH
 # JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
 ./gradlew assembleDebug               # build debug APK
-./gradlew testDebugUnitTest           # all unit tests (74 currently — verified 2026-04-13)
+./gradlew testDebugUnitTest           # all unit tests (166 currently — verified 2026-04-17)
 ./gradlew connectedAndroidTest        # instrumented tests (needs device/emulator)
 ./gradlew testDebugUnitTest --tests "com.weightflow.domain.WeightConverterTest"
 ./gradlew lintDebug                   # lint
@@ -271,7 +271,7 @@ These are locked design decisions from the improve-codebase-architecture session
 
 ---
 
-## Tests (141 unit + 37 instrumented — all GREEN/compile-verified)
+## Tests (166 unit + 37 instrumented — all GREEN/compile-verified)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -280,8 +280,11 @@ These are locked design decisions from the improve-codebase-architecture session
 | `domain/WeightConverterTest.kt` | 13 | GREEN |
 | `domain/GoalProgressCalculatorTest.kt` | 15 | GREEN |
 | `domain/BadgeEngineTest.kt` | 24 | GREEN |
+| `domain/BadgeObserverTest.kt` | 6 | GREEN |
 | `domain/CsvParserTest.kt` | 12 | GREEN |
+| `domain/CsvImporterTest.kt` | 5 | GREEN |
 | `domain/CsvExporterTest.kt` | 9 | GREEN |
+| `domain/GoalStateMachineTest.kt` | 14 | GREEN |
 | `ui/home/HomeViewModelTest.kt` | 11 | GREEN |
 | `ui/logentry/LogEntryViewModelTest.kt` | 18 | GREEN |
 | `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
@@ -318,7 +321,7 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 |-------|-------------|--------|
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
-| 2 | All 6 screens + ViewModels + Vico charts | **Complete** — 141 tests GREEN, Vico wired, OnboardingScreen + gate done |
+| 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs (CsvImporter, GoalStateMachine, BadgeObserver) with ADRs |
 | 3 | Polish + empty/error states + Crashlytics + accessibility | **Next — needs brainstorm** |
 | 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | Needs planning |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
@@ -338,7 +341,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all 141 unit tests still green
+3. Run `./gradlew testDebugUnitTest` — confirm all 166 unit tests still green
 4. THEN start coding
 
 ---
@@ -350,7 +353,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 3. **Room migrations**: Every schema change needs a Migration object. Never skip.
 4. **COPPA**: Age gate (13+) required in onboarding.
 5. **APK budget**: Keep final download under 15MB. Use AAB not APK for Play Store.
-6. **Crashlytics**: Add at the START of Phase 3 — before first device test.
+6. **Crashlytics**: Wire end-to-end at START of Phase 3 with real `google-services.json` — before first device test. Do NOT add partial wiring (dep without config = silent failure).
 7. **GitHub Actions**: `.github/workflows/android.yml` is already set up. Tests run on every push.
 
 ---

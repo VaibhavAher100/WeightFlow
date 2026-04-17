@@ -198,3 +198,21 @@
 **Decision:** OnboardingViewModel constructed in `MainActivity.onCreate`, not via ViewModelFactory
 **Rationale:** Matches project's manual DI pattern. The ViewModel is activity-scoped and onboarding is a one-shot flow; no benefit to ViewModelFactory complexity without Hilt.
 **Context:** Project uses `WeightFlowApp` as DI root. All VMs in NavGraph are constructed via `vmFactory` lambda; MainActivity follows same pattern.
+
+## Session 2026-04-17-002 — 2026-04-17
+
+**Decision:** Remove partial Crashlytics wiring; re-add end-to-end in Phase 3 with real `google-services.json`
+**Rationale:** Silent try-catch on `FirebaseCrashlytics.getInstance()` meant release builds shipped with zero crash telemetry and no visible failure. Partial wiring gives false confidence.
+**Context:** Codex adversarial review flagged as high-severity no-ship issue.
+
+---
+
+**Decision:** Device-to-device transfer stays enabled until user-facing export/import or Firebase sync ships
+**Rationale:** Disabling it before a recovery path exists causes avoidable data loss on phone replacement, contradicting the app's user-first positioning.
+**Context:** Codex adversarial review flagged as high-severity no-ship issue. Device-transfer block will be re-added only when Phase 5 Firebase sync or in-app CSV export UI is complete.
+
+---
+
+**Decision:** `isMinifyEnabled = false` stays until Phase 4
+**Rationale:** Enabling R8 without ProGuard rules for Room + Kotlin serialization would break the release build. Phase 4 task: write rules first, then enable.
+**Context:** Audit finding — deferred deliberately, not an oversight.
