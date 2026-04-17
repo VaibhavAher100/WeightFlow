@@ -3,6 +3,7 @@ package com.weightflow.ui.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +20,8 @@ import com.weightflow.ui.home.HomeScreen
 import com.weightflow.ui.home.HomeViewModel
 import com.weightflow.ui.profile.ProfileScreen
 import com.weightflow.ui.profile.ProfileViewModel
+import com.weightflow.ui.settings.SettingsScreen
+import com.weightflow.ui.settings.SettingsViewModel
 import com.weightflow.ui.trends.TrendsScreen
 import com.weightflow.ui.trends.TrendsViewModel
 
@@ -26,6 +29,7 @@ import com.weightflow.ui.trends.TrendsViewModel
 fun WeightFlowNavGraph(
     app: WeightFlowApp,
     navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -35,9 +39,9 @@ fun WeightFlowNavGraph(
     ) {
         composable(Screen.Home.route) {
             val vm: HomeViewModel = viewModel(
-                factory = vmFactory { HomeViewModel(app.homeDataAggregator) },
+                factory = vmFactory { HomeViewModel(app.homeDataAggregator, app.badgeObserver) },
             )
-            HomeScreen(vm)
+            HomeScreen(vm, snackbarHostState)
         }
         composable(Screen.Trends.route) {
             val vm: TrendsViewModel = viewModel(
@@ -53,9 +57,15 @@ fun WeightFlowNavGraph(
         }
         composable(Screen.Profile.route) {
             val vm: ProfileViewModel = viewModel(
-                factory = vmFactory { ProfileViewModel(app.userProfileRepository, app.userPrefsDataStore) },
+                factory = vmFactory { ProfileViewModel(app.userProfileRepository, app.userPrefsDataStore, app.badgeObserver) },
             )
-            ProfileScreen(vm)
+            ProfileScreen(vm, onSettingsClick = { navController.navigate(Screen.Settings.route) })
+        }
+        composable(Screen.Settings.route) {
+            val vm: SettingsViewModel = viewModel(
+                factory = vmFactory { SettingsViewModel(app.userPrefsDataStore) },
+            )
+            SettingsScreen(vm, onBack = { navController.popBackStack() })
         }
     }
 }

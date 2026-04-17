@@ -3,6 +3,9 @@ plugins {
 //    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    // Uncomment after placing google-services.json in app/ :
+    // alias(libs.plugins.google.services)
+    // alias(libs.plugins.firebase.crashlytics.gradle)
 }
 
 android {
@@ -82,6 +85,14 @@ dependencies {
 
     // Charts
     implementation(libs.vico.compose.m3)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // Firebase — uncomment after placing google-services.json in app/ and enabling plugins
+    // implementation(platform(libs.firebase.bom))
+    // implementation(libs.firebase.crashlytics)
+    // implementation(libs.firebase.analytics)
 
     // Unit tests
     testImplementation(libs.junit)

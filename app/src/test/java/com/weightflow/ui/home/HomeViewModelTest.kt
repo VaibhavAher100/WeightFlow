@@ -1,13 +1,20 @@
 package com.weightflow.ui.home
 
 import app.cash.turbine.test
+import com.weightflow.domain.Badge
+import com.weightflow.domain.BadgeObserver
+import com.weightflow.domain.GoalState
 import com.weightflow.domain.HomeData
 import com.weightflow.domain.HomeDataAggregator
 import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -39,10 +46,15 @@ import java.time.LocalDate
 class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+    private val badgeObserver: BadgeObserver = mockk(relaxed = true)
+    private val newlyUnlockedFlow = MutableSharedFlow<Set<Badge>>(replay = 0)
+    private val allEarnedFlow = MutableStateFlow<Set<Badge>>(emptySet())
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { badgeObserver.newlyUnlockedBadges } returns newlyUnlockedFlow
+        every { badgeObserver.allEarnedBadges } returns allEarnedFlow
     }
 
     @After
@@ -59,6 +71,9 @@ class HomeViewModelTest {
     ): HomeDataAggregator = object : HomeDataAggregator {
         override val homeData = MutableStateFlow(HomeData(entries, profile, unit))
     }
+
+    private fun makeViewModel(aggregator: HomeDataAggregator = fakeAggregator()): HomeViewModel =
+        HomeViewModel(aggregator, badgeObserver)
 
     private fun entryAt(daysAgo: Int, weightKg: Double): WeightEntry = WeightEntry(
         id = daysAgo.toLong(),
@@ -95,7 +110,7 @@ class HomeViewModelTest {
         val aggregator = object : HomeDataAggregator {
             override val homeData = flow<HomeData> { /* never emits */ }
         }
-        val vm = HomeViewModel(aggregator)
+        val vm = HomeViewModel(aggregator, badgeObserver)
         assertEquals(HomeUiState.Loading, vm.uiState.value)
     }
 
@@ -103,7 +118,7 @@ class HomeViewModelTest {
 
     @Test
     fun `emits Empty state when no entries exist`() = runTest {
-        val vm = HomeViewModel(fakeAggregator(entries = emptyList()))
+        val vm = makeViewModel(fakeAggregator(entries = emptyList()))
         vm.uiState.test {
             val state = awaitRealState()
             assertTrue("Expected Empty, got $state", state is HomeUiState.Empty)
@@ -114,7 +129,7 @@ class HomeViewModelTest {
     @Test
     fun `Empty state has null goal display when profile has no goal`() = runTest {
         val profile = baseProfile(goalWeightKg = null)
-        val vm = HomeViewModel(fakeAggregator(profile = profile))
+        val vm = makeViewModel(fakeAggregator(profile = profile))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.Empty
             assertEquals(null, state.goalWeightDisplay)
@@ -125,7 +140,7 @@ class HomeViewModelTest {
     @Test
     fun `Empty state has goal display when profile has a goal in kg`() = runTest {
         val profile = baseProfile(goalWeightKg = 75.0)
-        val vm = HomeViewModel(fakeAggregator(profile = profile))
+        val vm = makeViewModel(fakeAggregator(profile = profile))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.Empty
             assertNotNull(state.goalWeightDisplay)
@@ -142,7 +157,7 @@ class HomeViewModelTest {
     @Test
     fun `emits HasData when entries exist`() = runTest {
         val entry = entryAt(0, 80.0)
-        val vm = HomeViewModel(fakeAggregator(entries = listOf(entry)))
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry)))
         vm.uiState.test {
             val state = awaitRealState()
             assertTrue("Expected HasData, got $state", state is HomeUiState.HasData)
@@ -153,7 +168,7 @@ class HomeViewModelTest {
     @Test
     fun `latest weight displayed as kg with one decimal`() = runTest {
         val entry = entryAt(0, 80.5)
-        val vm = HomeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.KG))
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.KG))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.HasData
             assertEquals("80.5 kg", state.latestWeightDisplay)
@@ -164,7 +179,7 @@ class HomeViewModelTest {
     @Test
     fun `latest weight converted to lbs when unit is LBS`() = runTest {
         val entry = entryAt(0, 100.0)
-        val vm = HomeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.LBS))
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.LBS))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.HasData
             // 100 kg * 2.20462 = 220.462 lbs → "220.5 lbs"
@@ -183,7 +198,7 @@ class HomeViewModelTest {
     @Test
     fun `latest weight converted to stones when unit is ST`() = runTest {
         val entry = entryAt(0, 80.0)
-        val vm = HomeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.ST))
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry), unit = WeightUnit.ST))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.HasData
             // 80 kg ≈ 12st 8lb
@@ -198,7 +213,7 @@ class HomeViewModelTest {
     @Test
     fun `recent entries list contains at most 5 items`() = runTest {
         val entries = (1..10).map { i -> entryAt(i, 80.0 - i) }
-        val vm = HomeViewModel(fakeAggregator(entries = entries))
+        val vm = makeViewModel(fakeAggregator(entries = entries))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.HasData
             assertTrue(
@@ -216,7 +231,7 @@ class HomeViewModelTest {
             entryAt(1, 81.0),
             entryAt(2, 82.0),
         )
-        val vm = HomeViewModel(fakeAggregator(entries = entries))
+        val vm = makeViewModel(fakeAggregator(entries = entries))
         vm.uiState.test {
             val state = awaitRealState() as HomeUiState.HasData
             assertTrue(
@@ -233,7 +248,7 @@ class HomeViewModelTest {
         val aggregator = object : HomeDataAggregator {
             override val homeData = dataFlow
         }
-        val vm = HomeViewModel(aggregator)
+        val vm = HomeViewModel(aggregator, badgeObserver)
 
         vm.uiState.test {
             awaitRealState() // Empty state
@@ -246,5 +261,67 @@ class HomeViewModelTest {
             assertTrue("Expected HasData after update, got $updated", updated is HomeUiState.HasData)
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    // ── Goal state ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `HasData goalState is Active when goal set and not reached`() = runTest {
+        val profile = baseProfile(goalWeightKg = 75.0) // achievedAt = null → Active
+        val entry = entryAt(0, 80.0) // heavier than goal, not reached
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry), profile = profile))
+        vm.uiState.test {
+            val state = awaitRealState() as HomeUiState.HasData
+            assertTrue("Expected GoalState.Active, got ${state.goalState}", state.goalState is GoalState.Active)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `HasData goalState is Achieved when goal reached`() = runTest {
+        val profile = baseProfile(goalWeightKg = 75.0).copy(achievedAt = java.time.LocalDate.now())
+        val entry = entryAt(0, 75.0)
+        val vm = makeViewModel(fakeAggregator(entries = listOf(entry), profile = profile))
+        vm.uiState.test {
+            val state = awaitRealState() as HomeUiState.HasData
+            assertTrue("Expected GoalState.Achieved, got ${state.goalState}", state.goalState is GoalState.Achieved)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // ── Badge events ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `badgeEvents emits when observer has newly unlocked badges`() = runTest {
+        val vm = makeViewModel()
+        vm.badgeEvents.test {
+            advanceUntilIdle() // let init coroutine subscribe
+            newlyUnlockedFlow.emit(setOf(Badge.FIRST_WEIGH_IN))
+            advanceUntilIdle()
+            val emitted = awaitItem()
+            assertEquals(setOf(Badge.FIRST_WEIGH_IN), emitted)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `badgeEvents does not emit when newly unlocked set is empty`() = runTest {
+        val vm = makeViewModel()
+        vm.badgeEvents.test {
+            advanceUntilIdle() // let init coroutine subscribe
+            newlyUnlockedFlow.emit(emptySet())
+            advanceUntilIdle()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onBadgeShown calls markSeen`() = runTest {
+        val vm = makeViewModel()
+        val badges = setOf(Badge.FIRST_WEIGH_IN)
+        vm.onBadgeShown(badges)
+        advanceUntilIdle()
+        coVerify { badgeObserver.markSeen(badges) }
     }
 }
