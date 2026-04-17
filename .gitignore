@@ -18,6 +18,9 @@ local.properties
 # Google Services
 google-services.json
 
+# Git worktrees
+.worktrees/
+
 # Logs / temp
 *.log
 /tmp
