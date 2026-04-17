@@ -23,7 +23,8 @@ class UserProfileRepository(private val dao: UserProfileDao) {
         heightCm = heightCm,
         maintenanceMode = maintenanceMode,
         maintenanceRangeKg = maintenanceRangeKg,
-        maintenanceModeActivatedAt = maintenanceModeActivatedAt
+        maintenanceModeActivatedAt = maintenanceModeActivatedAt,
+        achievedAt = achievedAtEpochDay?.let { LocalDate.ofEpochDay(it) },
     )
 
     private fun UserProfile.toEntity() = UserProfileEntity(
@@ -34,6 +35,7 @@ class UserProfileRepository(private val dao: UserProfileDao) {
         heightCm = heightCm,
         maintenanceMode = maintenanceMode,
         maintenanceRangeKg = maintenanceRangeKg,
-        maintenanceModeActivatedAt = maintenanceModeActivatedAt
+        maintenanceModeActivatedAt = maintenanceModeActivatedAt,
+        achievedAtEpochDay = achievedAt?.toEpochDay(),
     )
 }

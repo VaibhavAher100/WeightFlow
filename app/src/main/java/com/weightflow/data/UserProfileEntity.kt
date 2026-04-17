@@ -16,5 +16,6 @@ data class UserProfileEntity(
     val heightCm: Double?,
     val maintenanceMode: Boolean,
     val maintenanceRangeKg: Double,
-    val maintenanceModeActivatedAt: Long?
+    val maintenanceModeActivatedAt: Long?,
+    val achievedAtEpochDay: Long? = null,
 )
