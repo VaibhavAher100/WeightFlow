@@ -20,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,22 +62,27 @@ private fun RangeSelector(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         TrendsTimeRange.entries.forEach { range ->
+            val label = when (range) {
+                TrendsTimeRange.DAYS_7 -> "7D"
+                TrendsTimeRange.DAYS_30 -> "30D"
+                TrendsTimeRange.DAYS_90 -> "3M"
+                TrendsTimeRange.DAYS_180 -> "6M"
+                TrendsTimeRange.DAYS_365 -> "1Y"
+                TrendsTimeRange.ALL -> "All"
+            }
+            val a11yLabel = when (range) {
+                TrendsTimeRange.DAYS_7 -> "7 days"
+                TrendsTimeRange.DAYS_30 -> "30 days"
+                TrendsTimeRange.DAYS_90 -> "3 months"
+                TrendsTimeRange.DAYS_180 -> "6 months"
+                TrendsTimeRange.DAYS_365 -> "1 year"
+                TrendsTimeRange.ALL -> "All time"
+            }
             FilterChip(
                 selected = range == selected,
                 onClick = { onSelect(range) },
-                label = {
-                    Text(
-                        text = when (range) {
-                            TrendsTimeRange.DAYS_7 -> "7D"
-                            TrendsTimeRange.DAYS_30 -> "30D"
-                            TrendsTimeRange.DAYS_90 -> "3M"
-                            TrendsTimeRange.DAYS_180 -> "6M"
-                            TrendsTimeRange.DAYS_365 -> "1Y"
-                            TrendsTimeRange.ALL -> "All"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                },
+                modifier = Modifier.semantics { contentDescription = a11yLabel },
+                label = { Text(text = label, style = MaterialTheme.typography.labelSmall) },
             )
         }
     }
@@ -84,7 +91,10 @@ private fun RangeSelector(
 @Composable
 private fun LoadingView() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(
+            modifier = Modifier.semantics { contentDescription = "Loading" },
+            color = MaterialTheme.colorScheme.primary,
+        )
     }
 }
 
@@ -144,7 +154,8 @@ private fun ChartView(state: TrendsUiState.HasData) {
             bottomAxis = rememberBottomAxis(),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp),
+                .height(220.dp)
+                .semantics { contentDescription = "Weight trend chart" },
         )
     }
 }

@@ -20,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,7 +34,12 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
         is HistoryUiState.Loading -> Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
-        ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.semantics { contentDescription = "Loading" },
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
 
         is HistoryUiState.Empty -> Box(
             modifier = Modifier
@@ -78,16 +86,23 @@ private fun HistoryRow(
             text = entry.weightDisplay,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.clearAndSetSemantics {},
         )
         Text(
             text = entry.dateDisplay,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clearAndSetSemantics {},
         )
-        IconButton(onClick = onDelete) {
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.semantics {
+                contentDescription = "Delete ${entry.weightDisplay} on ${entry.dateDisplay}"
+            },
+        ) {
             Icon(
                 imageVector = Icons.Filled.Delete,
-                contentDescription = "Delete entry",
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
             )
         }

@@ -1,5 +1,7 @@
 package com.weightflow.ui.home
 
+import com.weightflow.domain.GoalState
+import com.weightflow.domain.GoalStateMachine
 import com.weightflow.domain.HomeData
 import com.weightflow.domain.WeightConverter
 import java.time.Instant
@@ -37,11 +39,15 @@ object HomeUiStateMapper {
                 )
             }
 
+        val goalState = if (data.profile != null) GoalStateMachine.rehydrate(data.profile)
+        else GoalState.NoGoal
+
         return HomeUiState.HasData(
             latestWeightDisplay = WeightConverter.format(latest.weightKg, data.unit),
             weightUnit = data.unit,
             recentEntries = recentEntries,
             goalWeightDisplay = goalDisplay,
+            goalState = goalState,
         )
     }
 
