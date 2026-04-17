@@ -10,5 +10,6 @@ data class UserProfile(
     val heightCm: Double?,
     val maintenanceMode: Boolean,
     val maintenanceRangeKg: Double,
-    val maintenanceModeActivatedAt: Long?
+    val maintenanceModeActivatedAt: Long?,
+    val achievedAt: LocalDate? = null,
 )
