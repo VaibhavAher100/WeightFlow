@@ -3,6 +3,8 @@ package com.weightflow.ui.profile
 import app.cash.turbine.test
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
+import com.weightflow.domain.Badge
+import com.weightflow.domain.BadgeObserver
 import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightUnit
 import io.mockk.coEvery
@@ -35,8 +37,10 @@ class ProfileViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val userProfileRepository: UserProfileRepository = mockk()
     private val userPrefsDataStore: UserPrefsDataStore = mockk()
+    private val badgeObserver: BadgeObserver = mockk(relaxed = true)
     private val profileFlow = MutableStateFlow<UserProfile?>(null)
     private val unitFlow = MutableStateFlow(WeightUnit.KG)
+    private val earnedBadgesFlow = MutableStateFlow<Set<Badge>>(emptySet())
 
     private fun baseProfile() = UserProfile(
         id = 1,
@@ -54,6 +58,7 @@ class ProfileViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { userProfileRepository.getProfile() } returns profileFlow
         every { userPrefsDataStore.weightUnit } returns unitFlow
+        every { badgeObserver.allEarnedBadges } returns earnedBadgesFlow
         coEvery { userProfileRepository.saveProfile(any()) } returns Unit
         coEvery { userPrefsDataStore.setWeightUnit(any()) } returns Unit
     }
@@ -63,7 +68,7 @@ class ProfileViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun makeViewModel() = ProfileViewModel(userProfileRepository, userPrefsDataStore)
+    private fun makeViewModel() = ProfileViewModel(userProfileRepository, userPrefsDataStore, badgeObserver)
 
     private suspend fun app.cash.turbine.TurbineTestContext<ProfileUiState>.awaitRealState(): ProfileUiState {
         val first = awaitItem()
@@ -133,5 +138,31 @@ class ProfileViewModelTest {
         vm.onUnitChanged(WeightUnit.LBS)
         advanceUntilIdle()
         coVerify { userPrefsDataStore.setWeightUnit(WeightUnit.LBS) }
+    }
+
+    // ── Badge integration ─────────────────────────────────────────────────────
+
+    @Test
+    fun `Loaded state includes earned badges from observer`() = runTest {
+        profileFlow.value = baseProfile()
+        earnedBadgesFlow.value = setOf(Badge.FIRST_WEIGH_IN, Badge.GOAL_SET)
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals(setOf(Badge.FIRST_WEIGH_IN, Badge.GOAL_SET), state.earnedBadges)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `earnedBadges is empty when no badges earned`() = runTest {
+        profileFlow.value = baseProfile()
+        earnedBadgesFlow.value = emptySet()
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertTrue(state.earnedBadges.isEmpty())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

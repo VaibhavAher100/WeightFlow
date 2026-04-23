@@ -16,6 +16,17 @@ class WeightFlowApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Phase 4 — Crashlytics activation checklist:
+        //   1. Copy google-services.json to app/
+        //   2. Uncomment plugins in app/build.gradle.kts (google-services + firebase-crashlytics-gradle)
+        //   3. Uncomment Firebase deps in app/build.gradle.kts
+        //   4. Uncomment library aliases in gradle/libs.versions.toml
+        //   5. Replace this comment with: FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        scheduleWeightReminder()
+    }
+
+    private fun scheduleWeightReminder() {
+        com.weightflow.worker.WeightReminderWorker.schedule(this)
     }
 
     val database: AppDatabase by lazy {
