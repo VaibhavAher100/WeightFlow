@@ -225,3 +225,20 @@ private fun icePalette() = darkColorScheme(
     surfaceVariant = Ice.surfaceVariant,
     onSurfaceVariant = Neutral100,
 )
+
+// ─── Design tokens (palette-independent) ────────────────────────────────────
+
+object WFTokens {
+    val Text2 = Color(0xFF8C8A80)
+    val Text3 = Color(0xFF504E47)
+    val Success = Color(0xFF4ED98A)
+    val Danger = Color(0xFFFF6B6B)
+    val Card = Color(0xFF1C1B18)
+    val Elevated = Color(0xFF252420)
+    val Surface2 = Color(0xFF2E2D28)
+    val Border = Color(0x0FFFFFFF)
+
+    fun accentDim(accent: Color) = accent.copy(alpha = 0.10f)
+    fun accentGlow(accent: Color) = accent.copy(alpha = 0.22f)
+    fun accentBorder(accent: Color) = accent.copy(alpha = 0.18f)
+}

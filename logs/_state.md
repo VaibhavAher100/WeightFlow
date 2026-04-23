@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-17-002
+last_session: 2026-04-18-004
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -30,6 +30,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - Room **2.7.0** (upgraded from 2.6.1 — not KSP2-compatible) | KSP 2.3.2
 - DataStore 1.1.1 | Navigation Compose 2.8.9
 - Vico 1.13.1 charts | Manual DI (no Hilt) | StateFlow
+- WorkManager 2.10.1 (active — daily reminder notification)
 - Google Fonts: `ui-text-google-fonts` (Compose BOM) — Bebas Neue + Outfit via GMS provider
 - Test: JUnit 4.13.2 + mockk 1.13.12 + turbine 1.1.0 + kotlinx-coroutines-test 1.8.1
 - CI: GitHub Actions (tests + lint + build on every push)
@@ -40,31 +41,45 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 |-------|-------------|--------|
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | Complete |
-| 2 | All 6 screens + ViewModels + Vico + RFCs #24-26 | **Complete** (166 tests GREEN) |
-| 3 | Polish + empty/error states + accessibility + Crashlytics | **Next — ready for brainstorm** |
-| 4 | Play Store launch (privacy policy, signed build, ASO) | Needs planning |
+| 2 | All 6 screens + ViewModels + Vico + RFCs #24-26 | Complete (166 tests GREEN) |
+| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** (187 tests GREEN) — PR #30 open, UI overhaul in progress |
+| 4 | Play Store launch (privacy policy, signed build, ASO) | **Next** |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
-## Phase 2 Progress — COMPLETE
+## Phase 3 — COMPLETE (UI overhaul complete on main; PR #30 pending merge)
 
 | Item | Status |
 |------|--------|
-| HomeViewModel + HomeScreen | **DONE** (11 tests) |
-| LogEntryViewModel + LogEntrySheet | **DONE** (18 tests) |
-| TrendsViewModel + TrendsScreen | **DONE** (11 tests) |
-| HistoryViewModel + HistoryScreen | **DONE** (4 tests) |
-| ProfileViewModel + ProfileScreen | **DONE** (5 tests) |
-| OnboardingViewModel | **DONE** (17 tests) |
-| OnboardingScreen composables (4 steps) | **DONE** — AgeGate/Unit/Weight/Goal |
-| Vico 1.13.1 chart in TrendsScreen | **DONE** — `Chart` + `ChartEntryModelProducer` |
-| Wire onboarding into MainActivity | **DONE** — DataStore Flow gate |
+| Error handling in LogEntryViewModel | **DONE** — try/catch, errorMessage surfaced |
+| Badge snackbar on HomeScreen | **DONE** — SharedFlow + LaunchedEffect |
+| BadgeGrid on ProfileScreen | **DONE** — FlowRow with earned/unearned states |
+| GoalState banners on HomeScreen | **DONE** — Achieved + Maintenance banners |
+| Settings screen | **DONE** (in `.worktrees/phase3/`, not yet merged — PR #30 open) |
+| Accessibility pass | **DONE** — merged semantics, TalkBack labels, loading descs, chart desc |
+| WorkManager daily reminder | **DONE** — `WeightReminderWorker`, POST_NOTIFICATIONS guarded |
+| Crashlytics scaffold | **DONE** — deps commented, activation checklist in WeightFlowApp |
+| 185+ unit tests GREEN | **DONE** — 187 after ProfileViewModelTest expanded |
+| Lint clean | **DONE** |
+| assembleDebug successful | **DONE** |
+| PR #30 created | **DONE** — `feature/phase3-polish` → `main` (Settings + snackbar not yet in main) |
+| ShellScreen UI overhaul | **DONE** (session 2026-04-18-002) |
+| HomeScreen UI overhaul | **DONE** (session 2026-04-18-002) |
+| TrendsScreen UI overhaul | **DONE** (session 2026-04-18-002) |
+| HistoryScreen UI overhaul | **DONE** (session 2026-04-18-003) |
+| ProfileScreen UI overhaul | **DONE** (session 2026-04-18-003) — BadgeObserver + WeightRepository wired |
+| LogEntry sheet UI overhaul | **DONE** (session 2026-04-18-004) — BasicTextField Bebas Neue 72sp, +/- buttons, unit indicator, accent Save |
+| OnboardingScreen UI overhaul | **DONE** (session 2026-04-18-004) — branding header, step dots, styled step cards |
 
 ## GitHub Repo
 - URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
 - Rename before launch (name is temporary)
-- PRD: issue #1
-- Slice issues: #2-#23
-- Architecture RFCs: #24-#29
+- PRD: issue #1 | Slice issues: #2-#23 | Architecture RFCs: #24-#29
+- **PR #30 open:** Phase 3 polish — awaiting manual device testing before merge
+
+## Git — IMPORTANT
+- **No Claude co-authorship ever.** No `Co-Authored-By: Claude` or Anthropic traces in any commit.
+- Full history was rewritten 2026-04-17 — all prior Claude co-author lines removed.
+- Always write commit messages manually. No co-author trailers.
 
 ## Key Product Decisions (Locked, from grill-me 2026-04-12)
 
@@ -85,6 +100,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | RTL | RTL-safe from Phase 2 (start/end semantics) |
 | Repo | Private now, rename before launch |
 | Weight storage | Always kg internally, unit conversion is display-only |
+| Settings | Accessed from Profile — not a 6th tab |
 
 ## Architecture RFCs (all implemented)
 
@@ -94,101 +110,60 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | CsvImporter | #25 | Single entry point, CsvFormat enum in ParseResult — **IMPLEMENTED** |
 | GoalStateMachine | #26 | Explicit sealed FSM with transition functions — **IMPLEMENTED** |
 | StoredWeight + HomeUiStateMapper | #27 | Value class for Room + single conversion point in ViewModel — **IMPLEMENTED** |
-| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() — **IMPLEMENTED** in WeightEntryDao + WeightRepository |
+| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() — **IMPLEMENTED** |
 | HomeDataAggregator | #29 | ViewModel gets one dependency instead of five — **IMPLEMENTED** |
 
 ## Build Configuration (AGP 9.x specific)
 
-- `gradle/libs.versions.toml`: Kotlin 2.2.10, KSP 2.3.2, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, **ui-text-google-fonts (BOM)**
-- Firebase versions present in `[versions]` block (for Phase 3 wiring) — library aliases removed until `google-services.json` is added
+- `gradle/libs.versions.toml`: Kotlin 2.2.10, KSP 2.3.2, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, WorkManager 2.10.1
+- Firebase versions in `[versions]` block + library aliases commented — activate after adding `google-services.json`
 - `gradle.properties`: `android.disallowKotlinSourceSets=false` (KSP + AGP 9.x compatibility)
 - `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
 - XML theme: `Theme.AppCompat.DayNight.NoActionBar`
-- Room schema export: `app/schemas/` (via `ksp { arg("room.schemaLocation", ...) }`) — currently at **schema v2** (added `achievedAtEpochDay` to `user_profile`)
-- **font_certs.xml**: GMS downloadable fonts provider certs — must be in `res/values/` (not auto-bundled by `ui-text-google-fonts` in this build config)
-- `isMinifyEnabled = false` in release — **intentional until Phase 4**; ProGuard rules needed before enabling
+- Room schema export: `app/schemas/` — currently at **schema v2** (`achievedAtEpochDay` on `user_profile`)
+- `isMinifyEnabled = false` in release — intentional until Phase 4; ProGuard rules needed before enabling
+- `POST_NOTIFICATIONS` permission in `AndroidManifest.xml` (required for WorkManager notification on API 33+)
 
 ## Backup / Privacy Configuration
 
 - `app/src/main/res/xml/backup_rules.xml` — API 30 and below: all DB + DataStore excluded from cloud backup
-- `app/src/main/res/xml/data_extraction_rules.xml` — API 31+: cloud backup excluded; **device-transfer enabled** (re-enabled 2026-04-17; disable only when Phase 5 export/sync ships)
-- `android:allowBackup="true"` in manifest — required to reference `fullBackupContent`; effective backup is zero due to exclusion rules
+- `app/src/main/res/xml/data_extraction_rules.xml` — API 31+: cloud backup excluded; device-transfer enabled
+- `android:allowBackup="true"` in manifest — required to reference `fullBackupContent`
 
-## Implementation Plans
-
-| Plan | File | Status |
-|------|------|--------|
-| Foundation (7 tasks) | `docs/plans/2026-04-11-weightflow-foundation.md` | Complete |
-| All Screens (9 tasks) | `docs/plans/2026-04-11-weightflow-screens.md` | Complete |
-| TDD execution order | `docs/plans/2026-04-12-tdd-order.md` | All steps done |
-| Phase 3 | TBD | Not yet written — needs brainstorm first |
-
-## UI Layer (Phase 2 complete — all screens done)
+## UI Layer (main branch — post overhaul sessions)
 
 All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 
+| Package | Files | Overhaul Status |
+|---------|-------|-----------------|
+| `ui/theme/` | `Color.kt` (+WFTokens), `Type.kt`, `Theme.kt` | DONE |
+| `ui/navigation/` | `Screen.kt`, `NavGraph.kt` (+BadgeObserver/WeightRepo to ProfileVM) | DONE |
+| `ui/shell/` | `ShellScreen.kt` (styled nav bar) | DONE |
+| `ui/home/` | `HomeUiState.kt`, `HomeUiStateMapper.kt`, `HomeViewModel.kt`, `HomeScreen.kt` (full overhaul) | DONE |
+| `ui/logentry/` | `LogEntryUiState.kt`, `LogEntryViewModel.kt`, `LogEntryScreen.kt` | PENDING overhaul |
+| `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (full overhaul) | DONE |
+| `ui/history/` | `HistoryUiState.kt` (+delta fields), `HistoryViewModel.kt` (+delta compute), `HistoryScreen.kt` (full overhaul) | DONE |
+| `ui/profile/` | `ProfileUiState.kt` (+8 fields), `ProfileViewModel.kt` (+BadgeObserver/WeightRepo), `ProfileScreen.kt` (full overhaul) | DONE |
+| `ui/onboarding/` | `OnboardingUiState.kt`, `OnboardingViewModel.kt`, `OnboardingScreen.kt` | PENDING overhaul |
+| `ui/settings/` | In `.worktrees/phase3/` only — not in main | NOT IN MAIN |
+
+**Note:** Settings screen files (`SettingsUiState.kt`, `SettingsViewModel.kt`, `SettingsScreen.kt`, `SettingsViewModelTest.kt`) exist only in `.worktrees/phase3/` (PR #30). Not available in main branch.
+
+## Worker Layer (Phase 3 new)
+
 | Package | Files |
 |---------|-------|
-| `ui/theme/` | `Color.kt`, `Type.kt`, `Theme.kt` |
-| `ui/navigation/` | `Screen.kt`, `NavGraph.kt` (all 4 tabs wired with real VMs via `vmFactory`) |
-| `ui/shell/` | `ShellScreen.kt` (ModalBottomSheet for LogEntry) |
-| `ui/home/` | `HomeUiState.kt`, `HomeUiStateMapper.kt`, `HomeViewModel.kt`, `HomeScreen.kt` |
-| `ui/logentry/` | `LogEntryUiState.kt`, `LogEntryViewModel.kt`, `LogEntryScreen.kt` |
-| `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (Vico `Chart` + `ChartEntryModelProducer`) |
-| `ui/history/` | `HistoryUiState.kt`, `HistoryViewModel.kt`, `HistoryScreen.kt` |
-| `ui/profile/` | `ProfileUiState.kt`, `ProfileViewModel.kt`, `ProfileScreen.kt` |
-| `ui/onboarding/` | `OnboardingUiState.kt`, `OnboardingViewModel.kt`, `OnboardingScreen.kt` |
-
-**LogEntry pattern:** FAB → `showLogEntry = true` in ShellScreen → `ModalBottomSheet` overlays. Not a NavGraph destination.
-
-**Onboarding gate:** `MainActivity` collects `userPrefsDataStore.onboardingComplete` Flow with `initialValue = true` (prevents flash for existing users). Shows `OnboardingScreen` if false, `ShellScreen` if true.
+| `worker/` | `WeightReminderWorker.kt` — daily notification, `ExistingPeriodicWorkPolicy.KEEP` |
 
 ## Domain Layer (Complete)
 
-All files in `app/src/main/java/com/weightflow/domain/`:
-
-| File | Contents |
-|------|----------|
-| `WeightUnit.kt` | `enum class WeightUnit { KG, LBS, ST }` |
-| `WeightConverter.kt` | `object WeightConverter` + `data class StonesResult` |
-| `WeightEntry.kt` | `data class WeightEntry` (pure domain) |
-| `UserProfile.kt` | `data class UserProfile` (pure domain, includes `achievedAt: LocalDate?`) |
-| `GoalProgressCalculator.kt` | `object GoalProgressCalculator` + `DriftDirection` enum + `GoalProgress` data class |
-| `BadgeEngine.kt` | `object BadgeEngine` + `enum class Badge` (12 variants) |
-| `ParseResult.kt` | `sealed class ParseResult` (Success + Error, `format: CsvFormat?` on Success) |
-| `CsvFormat.kt` | `enum class CsvFormat` (WEIGHT_FIT, HAPPY_SCALE, APPLE_HEALTH, GENERIC) |
-| `CsvParsers.kt` | `WeightFitParser`, `HappyScaleParser`, `AppleHealthParser`, `GenericCsvParser` |
-| `CsvImporter.kt` | `object CsvImporter` — single entry point, auto-detects format — RFC #25 |
-| `CsvExporter.kt` | `object CsvExporter` |
-| `StoredWeight.kt` | `@JvmInline value class StoredWeight(val kg: Double)` — RFC #27 |
-| `HomeData.kt` | `data class HomeData(entries, profile, unit)` — RFC #29 aggregate |
-| `HomeDataAggregator.kt` | interface + `HomeDataAggregatorImpl` using `combine()` — RFC #29 |
-| `GoalState.kt` | `sealed class GoalState` (NoGoal, Active, Achieved, Maintenance) — RFC #26 |
-| `GoalStateMachine.kt` | `object GoalStateMachine` — rehydrate + 5 transition functions + persistence — RFC #26 |
-| `BadgeObserver.kt` | `interface BadgeObserver` + `BadgeObserverImpl` using `combine()` — RFC #24 |
+All files in `app/src/main/java/com/weightflow/domain/` — unchanged from Phase 2.
 
 ## Data Layer (Complete)
 
-All files in `app/src/main/java/com/weightflow/data/` (flat package):
+All files in `app/src/main/java/com/weightflow/data/` — unchanged from Phase 2.
 
-| File | Contents |
-|------|----------|
-| `WeightEntryEntity.kt` | `@Entity(tableName = "weight_entries")` |
-| `WeightEntryDao.kt` | `insert():Long`, `delete():Int`, `getById()`, `getEntriesNewestFirst()`, `getEntriesOldestFirst()`, `getEntriesBetween()` |
-| `UserProfileEntity.kt` | `@Entity(tableName = "user_profile")` — id=1 always; includes `achievedAtEpochDay: Long?` |
-| `UserProfileDao.kt` | `upsert():Long`, `getProfile():Flow<UserProfileEntity?>` |
-| `AppDatabase.kt` | `@Database(version=2, exportSchema=true)` + singleton + `MIGRATION_1_2` |
-| `UserPrefsDataStore.kt` | weightUnit/themePalette/onboardingComplete/seenBadges Flows + setters |
-| `WeightRepository.kt` | Wraps WeightEntryDao; RFC #28 named ordering methods |
-| `UserProfileRepository.kt` | Wraps UserProfileDao; LocalDate↔Long conversion |
-
-## Application Layer
-
-| File | Contents |
-|------|----------|
-| `WeightFlowApp.kt` | Manual DI root — lazy: `database`, `weightRepository`, `userProfileRepository`, `userPrefsDataStore`, `homeDataAggregator`, `badgeObserver` |
-
-## Tests (**166 unit tests — all GREEN, BUILD SUCCESSFUL 2026-04-17**)
+## Tests (**187 unit tests — all GREEN, BUILD SUCCESSFUL 2026-04-18**)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -202,13 +177,16 @@ All files in `app/src/main/java/com/weightflow/data/` (flat package):
 | `domain/CsvImporterTest.kt` | 5 | GREEN |
 | `domain/CsvExporterTest.kt` | 9 | GREEN |
 | `domain/GoalStateMachineTest.kt` | 14 | GREEN |
-| `ui/home/HomeViewModelTest.kt` | 11 | GREEN |
-| `ui/logentry/LogEntryViewModelTest.kt` | 18 | GREEN |
+| `ui/home/HomeViewModelTest.kt` | 18 | GREEN |
+| `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
 | `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
 | `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
-| `ui/profile/ProfileViewModelTest.kt` | 5 | GREEN |
+| `ui/profile/ProfileViewModelTest.kt` | 9 | GREEN (+2 new: earnedBadges, totalEntriesCount) |
 | `ui/onboarding/OnboardingViewModelTest.kt` | 17 | GREEN |
-| **TOTAL** | **166** | **0 failures** |
+| `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
+| **TOTAL** | **187** | **0 failures** |
+
+**Note:** `SettingsViewModelTest.kt` (3 tests) is in `.worktrees/phase3/` only — not in main branch test count.
 
 **Instrumented tests** — `app/src/androidTest/java/com/weightflow/data/` (need device/emulator):
 
@@ -220,6 +198,17 @@ All files in `app/src/main/java/com/weightflow/data/` (flat package):
 | `WeightRepositoryTest.kt` | 11 | Compile-verified |
 | `UserProfileRepositoryTest.kt` | 6 | Compile-verified |
 
+## ViewModel Test Patterns (Locked)
+
+- **Dispatcher:** `StandardTestDispatcher()` + `Dispatchers.setMain` in `@Before`
+- **stateIn initial skip:** `awaitRealState()` — consumes the Loading item before asserting real state
+- **Settings-style VMs (no Loading state):** use `expectMostRecentItem()` after `advanceUntilIdle()` — StateFlow deduplicates, so no second emission when initial == default
+- **Fake aggregator:** anonymous object implementing interface — no mockk needed for pure Flow tests
+- **mockk for repos:** `every { repo.flowProp } returns MutableStateFlow(...)` (not `coEvery`)
+- **Synchronous VM actions** (`onWeightInput`, `onNextStep`): no `advanceUntilIdle()` needed
+- **Coroutine-launching actions** (`onSave`, `onComplete`): call `advanceUntilIdle()` after
+- **4-flow combine VMs (ProfileViewModel):** mock all 4 flows in `@Before`; test each field independently
+
 ## Guardrails (Active)
 
 Three hookify rules in `.claude/`:
@@ -228,14 +217,6 @@ Three hookify rules in `.claude/`:
 | `hookify.tdd-production-guard.local.md` | file | Warns before any `app/src/main/java/**/*.kt` write — confirms failing test exists first |
 | `hookify.completion-verification.local.md` | stop | Checklist on session stop — requires `BUILD SUCCESSFUL` evidence |
 | `hookify.session-start-plan-check.local.md` | prompt | Triggers on "continue/next step" — requires reading `_state.md` + TDD plan |
-
-## ViewModel Test Patterns (Locked — reuse in Phase 3)
-
-- **Dispatcher:** `StandardTestDispatcher()` + `Dispatchers.setMain` in `@Before`
-- **stateIn initial skip:** `awaitRealState()` — consumes the Loading item before asserting real state
-- **Fake aggregator:** anonymous object implementing interface — no mockk needed for pure Flow tests
-- **mockk for repos:** `every { repo.flowProp } returns MutableStateFlow(...)` (not `coEvery`)
-- **Synchronous VM actions** (`onWeightInput`, `onNextStep`): no `advanceUntilIdle()` needed; coroutine-launching actions (`onSave`, `onComplete`) need it
 
 ## Environment
 - **Open from:** `C:\Users\vaibh\Desktop\102\WeightFlow\`
@@ -248,17 +229,17 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] Phase 3 brainstorm — run `superpowers:brainstorming` (empty states, error states, polish, animations, accessibility, Crashlytics, Vico upgrade decision)
-- [ ] Phase 3 plan — `superpowers:writing-plans` after brainstorm
-- [ ] Firebase Crashlytics — wire properly with `google-services.json` early Phase 3 (before first device test)
+- [ ] Merge PR #30 after manual device testing (badge toast, goal banner, TalkBack)
+- [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available (Phase 4 gate)
 - [ ] Run `compliance-auditor` agent GDPR/COPPA checklist before first device build
 - [ ] Back up Android keystore to 3 locations (CRITICAL — before first release build)
 - [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
+- [ ] Phase 4 brainstorm: signed build, Play Store listing, ASO, privacy policy
 
 ## Critical Before First Build
 - [ ] Back up Android keystore to 3 locations (CRITICAL)
-- [ ] Add Firebase Crashlytics properly in early Phase 3 (needs `google-services.json`)
-- [ ] Age gate (13+) in onboarding screen (COPPA) — ViewModel gate implemented
+- [ ] Add Firebase Crashlytics properly — needs `google-services.json` (checklist in WeightFlowApp.kt)
+- [ ] Age gate (13+) in onboarding — ViewModel gate implemented ✓
 - [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
 
 ## Phase 4 Reminders (don't forget)
@@ -266,22 +247,47 @@ Three hookify rules in `.claude/`:
 - AAB not APK for Play Store submission
 - APK budget: keep final download under 15MB
 
+## UI Overhaul Status (2026-04-18, screen-by-screen)
+
+| Screen | Status |
+|--------|--------|
+| ShellScreen (nav bar) | DONE |
+| HomeScreen | DONE |
+| TrendsScreen | DONE |
+| HistoryScreen | DONE |
+| ProfileScreen | DONE |
+| LogEntry sheet | **DONE** (session 2026-04-18-004) |
+| OnboardingScreen | **DONE** (session 2026-04-18-004) |
+
 ## Next Session Should
 
-**Phase 3 — start with brainstorm:**
+1. Merge PR #30 after manual device testing (badge toast, goal banner, TalkBack)
+2. Begin Phase 4 planning — signed build, Play Store listing, ASO, privacy policy live URL
+3. Wire Firebase Crashlytics once `google-services.json` available
+4. Back up Android keystore to 3 locations (CRITICAL before first release build)
 
-1. Run `superpowers:brainstorming` for Phase 3 scope: empty states, error states, polish, animations, accessibility pass, Crashlytics
-2. Plan Phase 3 tasks via `superpowers:writing-plans`
-3. Add Firebase Crashlytics (proper end-to-end wiring with `google-services.json`)
-4. Run `compliance-auditor` agent GDPR/COPPA checklist before first device test
-5. Decide Vico upgrade (3.x rewrite of TrendsScreen) vs. stay locked at 1.13.1 — during brainstorm
-
-**Vico note for future sessions:**
-Vico 1.13.1 API (correct imports — context7 returns v3 docs which are WRONG):
-- `com.patrykandpatrick.vico.compose.chart.Chart` (composable)
+## Vico Note (for future sessions)
+Vico 1.13.1 API — context7 returns v3 docs which are WRONG. Use these imports:
+- `com.patrykandpatrick.vico.compose.chart.Chart`
 - `com.patrykandpatrick.vico.compose.chart.line.lineChart`
 - `com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis`
 - `com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis`
 - `com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer`
 - `com.patrykandpatrick.vico.core.entry.FloatEntry`
-- Read source JARs from Gradle cache instead of context7 for Vico 1.13.1
+
+## HistoryScreen Design Notes (locked 2026-04-18)
+- Layout: flat list with `border-bottom` dividers — NOT cards per entry
+- Date column: fixed 38dp, Bebas Neue day number (24sp) + abbreviated day name (9sp uppercase)
+- Weight: display font (Bebas Neue) 22sp full display string (e.g. "82.4 kg")
+- Today row: `accentDim` background highlight
+- Delta chip: 6dp radius (rectangular), green/red/gray for down/up/same
+- Month sticky headers: 10sp bold, letter-spacing 1.5sp, Text3 color
+- Decorative search bar at top (non-functional, matches mockup aesthetic)
+
+## ProfileScreen Design Notes (locked 2026-04-18)
+- Avatar: 64dp, 20dp corners, linear gradient (accent → accent 30%), initials in onPrimary
+- Streak row: 🔥 emoji + Bebas Neue number in Success color + "day streak" label
+- Goal showcase: accent border, 3-column trio (start/current/goal) + progress bar + summary label
+- Body stats 2×2 grid: Height / BMI / Logged / Streak — BMI cell uses accent border when available
+- Badge row: horizontal LazyRow, all 12 badges, earned = accentDim bg + accentBorder, locked = Card bg
+- ProfileViewModel now requires 4 deps: UserProfileRepository, UserPrefsDataStore, WeightRepository, BadgeObserver

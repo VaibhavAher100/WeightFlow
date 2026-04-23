@@ -1,6 +1,10 @@
 package com.weightflow.ui.onboarding
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,12 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,10 +28,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.theme.WFTokens
 
 @Composable
 fun OnboardingScreen(
@@ -33,11 +44,13 @@ fun OnboardingScreen(
     onFinished: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val accent = MaterialTheme.colorScheme.primary
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is OnboardingEvent.Finished -> onFinished()
+                is OnboardingEvent.Finished    -> onFinished()
                 is OnboardingEvent.AgeDeclined -> { /* stay on screen */ }
             }
         }
@@ -46,34 +59,62 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .imePadding()
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 24.dp),
     ) {
-        Column {
-            StepIndicator(currentStep = uiState.currentStep)
-            Spacer(modifier = Modifier.height(32.dp))
-            when (uiState.currentStep) {
-                OnboardingStep.AGE_GATE -> AgeGateStep(
-                    ageConfirmed = uiState.ageConfirmed,
-                    onAgeConfirmed = viewModel::onAgeConfirmed,
-                )
-                OnboardingStep.UNIT -> UnitStep(
-                    selected = uiState.selectedUnit,
-                    onSelect = viewModel::onUnitSelected,
-                )
-                OnboardingStep.CURRENT_WEIGHT -> WeightStep(
-                    unit = uiState.selectedUnit,
-                    input = uiState.weightInput,
-                    onInput = viewModel::onWeightInput,
-                )
-                OnboardingStep.GOAL -> GoalStep(
-                    unit = uiState.selectedUnit,
-                    input = uiState.goalInput,
-                    onInput = viewModel::onGoalInput,
-                )
-            }
+        Spacer(Modifier.height(56.dp))
+
+        // Branding
+        Text(
+            text = "WEIGHTFLOW",
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            fontSize = 48.sp,
+            color = accent,
+            letterSpacing = 4.sp,
+        )
+        Text(
+            text = "TRACK · REFLECT · IMPROVE",
+            fontSize = 9.sp,
+            letterSpacing = 2.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = WFTokens.Text3,
+        )
+
+        Spacer(Modifier.height(40.dp))
+
+        StepDots(currentStep = uiState.currentStep, accent = accent)
+
+        Spacer(Modifier.height(32.dp))
+
+        when (uiState.currentStep) {
+            OnboardingStep.AGE_GATE      -> AgeGateStep(
+                ageConfirmed = uiState.ageConfirmed,
+                onAgeConfirmed = viewModel::onAgeConfirmed,
+                accent = accent,
+                onPrimary = onPrimary,
+            )
+            OnboardingStep.UNIT          -> UnitStep(
+                selected = uiState.selectedUnit,
+                onSelect = viewModel::onUnitSelected,
+                accent = accent,
+                onPrimary = onPrimary,
+            )
+            OnboardingStep.CURRENT_WEIGHT -> WeightStep(
+                unit = uiState.selectedUnit,
+                input = uiState.weightInput,
+                onInput = viewModel::onWeightInput,
+                accent = accent,
+            )
+            OnboardingStep.GOAL          -> GoalStep(
+                unit = uiState.selectedUnit,
+                input = uiState.goalInput,
+                onInput = viewModel::onGoalInput,
+                accent = accent,
+            )
         }
+
+        Spacer(Modifier.weight(1f))
 
         BottomBar(
             currentStep = uiState.currentStep,
@@ -81,19 +122,38 @@ fun OnboardingScreen(
             onBack = viewModel::onBack,
             onNext = viewModel::onNextStep,
             onComplete = viewModel::onComplete,
+            accent = accent,
+            onPrimary = onPrimary,
         )
+
+        Spacer(Modifier.height(32.dp))
     }
 }
 
+// ── Step indicator dots ───────────────────────────────────────────────────────
+
 @Composable
-private fun StepIndicator(currentStep: OnboardingStep) {
+private fun StepDots(currentStep: OnboardingStep, accent: Color) {
     val steps = OnboardingStep.entries
-    val current = steps.indexOf(currentStep) + 1
-    Text(
-        text = "Step $current of ${steps.size}",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-    )
+    val currentIdx = steps.indexOf(currentStep)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        steps.forEachIndexed { idx, _ ->
+            val isActive = idx == currentIdx
+            val isPast = idx < currentIdx
+            Box(
+                modifier = Modifier
+                    .size(width = if (isActive) 24.dp else 8.dp, height = 8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(
+                        when {
+                            isActive -> accent
+                            isPast   -> accent.copy(alpha = 0.4f)
+                            else     -> WFTokens.Text3.copy(alpha = 0.3f)
+                        },
+                    ),
+            )
+        }
+    }
 }
 
 // ── Step 1: Age Gate (COPPA) ──────────────────────────────────────────────────
@@ -102,27 +162,62 @@ private fun StepIndicator(currentStep: OnboardingStep) {
 private fun AgeGateStep(
     ageConfirmed: Boolean,
     onAgeConfirmed: (Boolean) -> Unit,
+    accent: Color,
+    onPrimary: Color,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column {
         Text(
-            text = "Welcome to WeightFlow",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "WELCOME.",
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 52.sp,
         )
+        Spacer(Modifier.height(10.dp))
         Text(
-            text = "Your data stays on your device. No subscriptions. No cloud required.",
+            text = "Your data stays on your device.\nNo subscriptions. No cloud required.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = WFTokens.Text2,
+            lineHeight = 22.sp,
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
+
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(WFTokens.Card)
+                .border(
+                    1.dp,
+                    if (ageConfirmed) WFTokens.accentBorder(accent) else WFTokens.Border,
+                    RoundedCornerShape(16.dp),
+                )
+                .clickable { onAgeConfirmed(!ageConfirmed) }
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Checkbox(
-                checked = ageConfirmed,
-                onCheckedChange = onAgeConfirmed,
-            )
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (ageConfirmed) accent else WFTokens.Elevated)
+                    .border(
+                        1.dp,
+                        if (ageConfirmed) accent else WFTokens.Border,
+                        RoundedCornerShape(6.dp),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (ageConfirmed) {
+                    Text(
+                        text = "✓",
+                        fontSize = 14.sp,
+                        color = onPrimary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
             Text(
                 text = "I confirm I am 13 years of age or older",
                 style = MaterialTheme.typography.bodyMedium,
@@ -139,34 +234,67 @@ private fun AgeGateStep(
 private fun UnitStep(
     selected: WeightUnit,
     onSelect: (WeightUnit) -> Unit,
+    accent: Color,
+    onPrimary: Color,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column {
         Text(
-            text = "Choose your unit",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "YOUR UNIT",
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 52.sp,
         )
+        Spacer(Modifier.height(10.dp))
         Text(
-            text = "You can change this later in Settings.",
+            text = "Can be changed in Settings anytime.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = WFTokens.Text2,
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Spacer(Modifier.height(28.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             WeightUnit.entries.forEach { unit ->
-                FilterChip(
-                    selected = unit == selected,
-                    onClick = { onSelect(unit) },
-                    label = {
-                        Text(
-                            text = when (unit) {
-                                WeightUnit.KG -> "kg"
-                                WeightUnit.LBS -> "lbs"
-                                WeightUnit.ST -> "st"
-                            },
+                val isSelected = unit == selected
+                val (fullName, shortName) = when (unit) {
+                    WeightUnit.KG  -> "Kilograms" to "kg"
+                    WeightUnit.LBS -> "Pounds" to "lbs"
+                    WeightUnit.ST  -> "Stone" to "st"
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isSelected) WFTokens.accentDim(accent) else WFTokens.Card)
+                        .border(
+                            1.dp,
+                            if (isSelected) WFTokens.accentBorder(accent) else WFTokens.Border,
+                            RoundedCornerShape(16.dp),
                         )
-                    },
-                )
+                        .clickable { onSelect(unit) }
+                        .padding(horizontal = 18.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = fullName,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isSelected) MaterialTheme.colorScheme.onSurface else WFTokens.Text2,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isSelected) accent else WFTokens.Elevated)
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = shortName,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) onPrimary else WFTokens.Text3,
+                        )
+                    }
+                }
             }
         }
     }
@@ -179,25 +307,41 @@ private fun WeightStep(
     unit: WeightUnit,
     input: String,
     onInput: (String) -> Unit,
+    accent: Color,
 ) {
     val unitLabel = when (unit) {
-        WeightUnit.KG -> "kg"
+        WeightUnit.KG  -> "kg"
         WeightUnit.LBS -> "lbs"
-        WeightUnit.ST -> "st"
+        WeightUnit.ST  -> "st"
     }
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column {
         Text(
-            text = "What's your current weight?",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "CURRENT\nWEIGHT",
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 50.sp,
         )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = "Stored in kg internally, displayed in $unitLabel.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = WFTokens.Text2,
+        )
+        Spacer(Modifier.height(28.dp))
         OutlinedTextField(
             value = input,
             onValueChange = onInput,
             label = { Text("Weight in $unitLabel") },
+            suffix = { Text(unitLabel, color = WFTokens.Text2) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accent,
+                unfocusedBorderColor = WFTokens.Border,
+            ),
         )
     }
 }
@@ -209,30 +353,41 @@ private fun GoalStep(
     unit: WeightUnit,
     input: String,
     onInput: (String) -> Unit,
+    accent: Color,
 ) {
     val unitLabel = when (unit) {
-        WeightUnit.KG -> "kg"
+        WeightUnit.KG  -> "kg"
         WeightUnit.LBS -> "lbs"
-        WeightUnit.ST -> "st"
+        WeightUnit.ST  -> "st"
     }
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column {
         Text(
-            text = "Set a goal weight",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "YOUR GOAL",
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 52.sp,
         )
+        Spacer(Modifier.height(10.dp))
         Text(
-            text = "Optional — you can skip this and set it later.",
+            text = "Optional — skip this and set it later in Profile.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = WFTokens.Text2,
         )
+        Spacer(Modifier.height(28.dp))
         OutlinedTextField(
             value = input,
             onValueChange = onInput,
             label = { Text("Goal weight in $unitLabel (optional)") },
+            suffix = { Text(unitLabel, color = WFTokens.Text2) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accent,
+                unfocusedBorderColor = WFTokens.Border,
+            ),
         )
     }
 }
@@ -246,6 +401,8 @@ private fun BottomBar(
     onBack: () -> Unit,
     onNext: () -> Unit,
     onComplete: () -> Unit,
+    accent: Color,
+    onPrimary: Color,
 ) {
     val isFirst = currentStep == OnboardingStep.AGE_GATE
     val isLast = currentStep == OnboardingStep.GOAL
@@ -257,17 +414,29 @@ private fun BottomBar(
     ) {
         if (!isFirst) {
             TextButton(onClick = onBack) {
-                Text("Back")
+                Text("← Back", color = WFTokens.Text2)
             }
         } else {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
         }
 
         Button(
             onClick = if (isLast) onComplete else onNext,
             enabled = canAdvance,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = accent,
+                contentColor = onPrimary,
+                disabledContainerColor = WFTokens.Elevated,
+                disabledContentColor = WFTokens.Text3,
+            ),
+            modifier = Modifier.height(48.dp),
         ) {
-            Text(if (isLast) "Get started" else "Next")
+            Text(
+                text = if (isLast) "GET STARTED →" else "Next →",
+                fontWeight = FontWeight.Bold,
+                letterSpacing = if (isLast) 1.5.sp else 0.sp,
+            )
         }
     }
 }

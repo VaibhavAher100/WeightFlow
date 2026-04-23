@@ -3,7 +3,11 @@ package com.weightflow.ui.profile
 import app.cash.turbine.test
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
+import com.weightflow.data.WeightRepository
+import com.weightflow.domain.Badge
+import com.weightflow.domain.BadgeObserver
 import com.weightflow.domain.UserProfile
+import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,19 +28,19 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 
-/**
- * TDD: Written BEFORE ProfileViewModel exists.
- *
- * ProfileViewModel drives the Profile tab: display name, goal, unit preference, theme.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val userProfileRepository: UserProfileRepository = mockk()
     private val userPrefsDataStore: UserPrefsDataStore = mockk()
+    private val weightRepository: WeightRepository = mockk()
+    private val badgeObserver: BadgeObserver = mockk()
+
     private val profileFlow = MutableStateFlow<UserProfile?>(null)
     private val unitFlow = MutableStateFlow(WeightUnit.KG)
+    private val entriesFlow = MutableStateFlow<List<WeightEntry>>(emptyList())
+    private val badgesFlow = MutableStateFlow<Set<Badge>>(emptySet())
 
     private fun baseProfile() = UserProfile(
         id = 1,
@@ -54,6 +58,8 @@ class ProfileViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { userProfileRepository.getProfile() } returns profileFlow
         every { userPrefsDataStore.weightUnit } returns unitFlow
+        every { weightRepository.getEntriesNewestFirst() } returns entriesFlow
+        every { badgeObserver.allEarnedBadges } returns badgesFlow
         coEvery { userProfileRepository.saveProfile(any()) } returns Unit
         coEvery { userPrefsDataStore.setWeightUnit(any()) } returns Unit
     }
@@ -63,7 +69,9 @@ class ProfileViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun makeViewModel() = ProfileViewModel(userProfileRepository, userPrefsDataStore)
+    private fun makeViewModel() = ProfileViewModel(
+        userProfileRepository, userPrefsDataStore, weightRepository, badgeObserver,
+    )
 
     private suspend fun app.cash.turbine.TurbineTestContext<ProfileUiState>.awaitRealState(): ProfileUiState {
         val first = awaitItem()
@@ -121,6 +129,33 @@ class ProfileViewModelTest {
         vm.uiState.test {
             val state = awaitRealState() as ProfileUiState.Loaded
             assertEquals(WeightUnit.LBS, state.weightUnit)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Loaded state contains earned badges`() = runTest {
+        profileFlow.value = baseProfile()
+        badgesFlow.value = setOf(Badge.FIRST_WEIGH_IN, Badge.GOAL_SET)
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals(setOf(Badge.FIRST_WEIGH_IN, Badge.GOAL_SET), state.earnedBadges)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Loaded state contains total entries count`() = runTest {
+        profileFlow.value = baseProfile()
+        entriesFlow.value = listOf(
+            WeightEntry(id = 1, timestamp = 1_000_000L, weightKg = 82.0, note = ""),
+            WeightEntry(id = 2, timestamp = 2_000_000L, weightKg = 81.0, note = ""),
+        )
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals(2, state.totalEntriesCount)
             cancelAndIgnoreRemainingEvents()
         }
     }

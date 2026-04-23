@@ -216,3 +216,71 @@
 **Decision:** `isMinifyEnabled = false` stays until Phase 4
 **Rationale:** Enabling R8 without ProGuard rules for Room + Kotlin serialization would break the release build. Phase 4 task: write rules first, then enable.
 **Context:** Audit finding — deferred deliberately, not an oversight.
+
+## Session 2026-04-17-004 — 2026-04-17
+
+**Decision:** No Claude co-authorship in any commit, PR, or file — permanent rule
+**Rationale:** User explicitly requires zero trace of Claude/Anthropic in the project. Full history was rewritten to remove all prior `Co-Authored-By: Claude` lines.
+**Context:** User gave one-time permission to rewrite history + force-push. All future commits must be written without any co-author trailer.
+
+---
+
+**Decision:** `expectMostRecentItem()` for SettingsViewModel tests instead of `awaitRealState()` skip-pattern
+**Rationale:** `StateFlow` deduplicates equal values. When combine emits the same value as the `stateIn` initial value, no second emission occurs — so `awaitRealState()` (which awaits a second item to skip the default) deadlocks. `expectMostRecentItem()` after `advanceUntilIdle()` is correct for VMs with no Loading state.
+**Context:** SettingsViewModelTest had one failing test after the duplicate-overload fix. Root cause was StateFlow deduplication, not a test-setup issue.
+
+---
+
+**Decision:** WorkManager wired actively; Crashlytics scaffolded-but-commented
+**Rationale:** WorkManager requires no external config file — safe to activate immediately. Firebase Crashlytics requires `google-services.json` before any dep is active; partial wiring causes silent build failures.
+**Context:** Phase 3 completion. Crashlytics activation checklist now lives in `WeightFlowApp.kt`.
+
+## Session 2026-04-18-002 — 2026-04-18
+
+**Decision:** Remove Vico chart axes (startAxis/bottomAxis = null) — show MIN/MAX/AVG/CHANGE as stat cards below chart instead
+**Rationale:** Default Vico axis labels generated ugly decimals (71.11, 62.22…) from auto-dividing the Y range. Removing axes and showing explicit stat cards below the chart card is cleaner and matches the mockup better than trying to format internal Vico axis labels.
+**Context:** TrendsScreen redesign. Vico 1.13.1 axis formatter API uncertain — stat card approach avoids import risk and gives more information.
+
+---
+
+**Decision:** Use `WFTokens` design tokens directly in all screen composables, not Material3 semantic tokens
+**Rationale:** Material3 semantic tokens (surfaceVariant, onSurfaceVariant, primaryContainer) don't map cleanly to the "Athlete's Journal" warm-dark palette. Direct use of `WFTokens.Card`, `WFTokens.Text2`, `WFTokens.Text3`, `WFTokens.Border`, `WFTokens.Success`, `WFTokens.Danger` gives exact visual match to mockup across all 8 themes.
+**Context:** Root cause of the mockup gap — screens were using Material defaults instead of project tokens.
+
+## Session 2026-04-18-003 — 2026-04-18
+
+**Decision:** HistoryScreen uses flat list with border-bottom dividers (not card-per-entry) with a fixed 38dp date column
+**Rationale:** The mockup CSS (`.hist-item`) uses `border-bottom: 1px solid var(--border)` and a fixed-width date column with `Bebas Neue` day number. First implementation incorrectly used card-per-row. Comparing against the mockup revealed 6 gaps — the flat divider layout is fundamentally different from cards.
+**Context:** User asked to check UI against mockup before declaring screens done. Comparison of `app-design.html` CSS for `.hist-item`, `.hi-date`, `.hi-day-n` classes.
+
+---
+
+**Decision:** Delta chip in HistoryScreen uses 6dp border radius (rectangular), not 20dp (pill)
+**Rationale:** Mockup CSS: `.hi-d { border-radius: 6px }`. The HomeScreen DeltaPill uses 20dp pill shape — these are different components. HistoryScreen chip is intentionally more compact and rectangular.
+**Context:** Mockup comparison revealed shape mismatch in first implementation.
+
+---
+
+**Decision:** ProfileViewModel extended to 4 dependencies (UserProfileRepository, UserPrefsDataStore, WeightRepository, BadgeObserver)
+**Rationale:** Phase 3 spec (`_state.md`) indicated `+earnedBadges` and `+BadgeObserver` were planned. Additionally, goal progress %, streak, BMI, start/current weight, and entries count all require WeightRepository access. All computation kept in VM — screen stays pure display.
+**Context:** ProfileScreen redesign needed data the original 2-dep VM couldn't provide. RFC #24 (BadgeObserver) was already implemented — wiring it to ProfileViewModel completes the reactive badge display chain.
+
+---
+
+## Session 2026-04-18-004 — 2026-04-18
+
+**Decision:** LogEntry unit toggle is display-only in the sheet UI.
+**Rationale:** LogEntryViewModel reads unit from DataStore but exposes no `onUnitSelected` method. Adding one would require a new test (per TDD guardrail). Since unit is configured in Onboarding and Settings, displaying the active unit without change affordance is correct — the sheet is a focused log entry tool.
+**Context:** LogEntrySheet UI overhaul. Mockup shows a segmented unit toggle; adapted as a read-only indicator showing which unit is active.
+
+---
+
+**Decision:** OnboardingScreen uses pill-style step dots with animated width instead of "Step N of 4" text.
+**Rationale:** Visual progress is clearer than text. Active step = 24dp wide accent pill, past = accent 40% alpha 8dp dot, future = grey 30% alpha 8dp dot. No mockup existed for Onboarding — designed from scratch following Athlete's Journal token patterns.
+**Context:** Onboarding UI overhaul. The step dot pattern is consistent with how other screens use accent + Text3 for active/inactive states.
+
+---
+
+**Decision:** LogEntry weight input uses `BasicTextField` with Bebas Neue 72sp and +/− step buttons.
+**Rationale:** Combines keyboard entry (tap number, type) with touch-based increment/decrement. No separate hidden field needed. The `decorationBox` shows "0.0" placeholder when empty. No VM changes required — both modes call `viewModel.onWeightInput(string)`.
+**Context:** Mockup Phone 3 shows pure +/− controls with no keyboard. Hybrid approach preserves keyboard fallback while matching the visual design.

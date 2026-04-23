@@ -29,12 +29,27 @@ class HistoryViewModel(
     ) { entries, unit ->
         if (entries.isEmpty()) return@combine HistoryUiState.Empty
 
-        val displayList = entries.map { entry ->
+        val displayList = entries.mapIndexed { i, entry ->
+            val olderEntry = entries.getOrNull(i + 1)
+            val deltaKg = olderEntry?.let { entry.weightKg - it.weightKg }
+            val deltaDisplay = deltaKg?.let { delta ->
+                val absKg = kotlin.math.abs(delta)
+                when (unit) {
+                    WeightUnit.KG  -> "%.1f kg".format(absKg)
+                    WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(absKg))
+                    WeightUnit.ST  -> {
+                        val r = WeightConverter.kgToStones(absKg)
+                        "${r.stones}st ${r.pounds}lb"
+                    }
+                }
+            }
             HistoryEntryDisplay(
                 id = entry.id,
                 weightDisplay = WeightConverter.format(entry.weightKg, unit),
                 dateDisplay = formatDate(entry.timestamp),
                 timestamp = entry.timestamp,
+                deltaDisplay = deltaDisplay,
+                deltaIsDown = deltaKg?.let { it < 0 },
             )
         }
         HistoryUiState.HasData(entries = displayList, weightUnit = unit)
