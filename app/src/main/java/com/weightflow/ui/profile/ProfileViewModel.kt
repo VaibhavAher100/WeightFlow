@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
+import com.weightflow.domain.BadgeObserver
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,12 +16,14 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val userProfileRepository: UserProfileRepository,
     private val userPrefsDataStore: UserPrefsDataStore,
+    private val badgeObserver: BadgeObserver,
 ) : ViewModel() {
 
     val uiState: StateFlow<ProfileUiState> = combine(
         userProfileRepository.getProfile(),
         userPrefsDataStore.weightUnit,
-    ) { profile, unit ->
+        badgeObserver.allEarnedBadges,
+    ) { profile, unit, earned ->
         if (profile == null) return@combine ProfileUiState.NoProfile
 
         ProfileUiState.Loaded(
@@ -31,6 +34,7 @@ class ProfileViewModel(
             heightCm = profile.heightCm,
             weightUnit = unit,
             maintenanceMode = profile.maintenanceMode,
+            earnedBadges = earned,
         )
     }.stateIn(
         scope = viewModelScope,

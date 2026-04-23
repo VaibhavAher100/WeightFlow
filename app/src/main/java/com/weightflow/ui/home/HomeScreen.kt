@@ -16,19 +16,35 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.weightflow.domain.GoalState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.badgeEvents.collect { badges ->
+            val names = badges.joinToString { it.name.replace("_", " ").lowercase() }
+            snackbarHostState.showSnackbar("Badge unlocked: $names")
+            viewModel.onBadgeShown(badges)
+        }
+    }
+
     HomeContent(uiState = uiState)
 }
 
@@ -49,7 +65,10 @@ private fun LoadingView() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(
+            modifier = Modifier.semantics { contentDescription = "Loading" },
+            color = MaterialTheme.colorScheme.primary,
+        )
     }
 }
 
@@ -97,6 +116,11 @@ private fun DataView(state: HomeUiState.HasData) {
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        when (state.goalState) {
+            is GoalState.Achieved -> item { GoalBanner("You crushed your goal!", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer) }
+            is GoalState.Maintenance -> item { GoalBanner("Maintaining your goal — keep it up!", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer) }
+            else -> {}
+        }
         item {
             HeroWeightCard(state)
         }
@@ -122,6 +146,10 @@ private fun DataView(state: HomeUiState.HasData) {
 
 @Composable
 private fun HeroWeightCard(state: HomeUiState.HasData) {
+    val cardDescription = buildString {
+        append("Current weight: ${state.latestWeightDisplay}")
+        if (state.goalWeightDisplay != null) append(", goal: ${state.goalWeightDisplay}")
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,7 +157,8 @@ private fun HeroWeightCard(state: HomeUiState.HasData) {
                 color = MaterialTheme.colorScheme.primaryContainer,
                 shape = RoundedCornerShape(16.dp),
             )
-            .padding(24.dp),
+            .padding(24.dp)
+            .clearAndSetSemantics { contentDescription = cardDescription },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -152,6 +181,24 @@ private fun HeroWeightCard(state: HomeUiState.HasData) {
 }
 
 @Composable
+private fun GoalBanner(message: String, background: Color, contentColor: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = background, shape = RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.labelLarge,
+            color = contentColor,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
 private fun RecentEntryRow(entry: RecentEntryDisplay) {
     Row(
         modifier = Modifier
@@ -160,7 +207,8 @@ private fun RecentEntryRow(entry: RecentEntryDisplay) {
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(8.dp),
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clearAndSetSemantics { contentDescription = "${entry.weightDisplay} on ${entry.dateDisplay}" },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
