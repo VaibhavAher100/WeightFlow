@@ -64,10 +64,14 @@ class LogEntryViewModel(
             .toEpochMilli()
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true) }
-            weightRepository.addEntry(weightKg = weightKg, timestamp = timestamp)
-            _uiState.update { it.copy(isSaving = false) }
-            _events.emit(LogEntryEvent.Saved)
+            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+            try {
+                weightRepository.addEntry(weightKg = weightKg, timestamp = timestamp)
+                _uiState.update { it.copy(isSaving = false) }
+                _events.emit(LogEntryEvent.Saved)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, errorMessage = "Failed to save — please try again") }
+            }
         }
     }
 

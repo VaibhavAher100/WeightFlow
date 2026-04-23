@@ -22,8 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,8 +45,15 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        viewModel.badgeEvents.collect { badges ->
+            val names = badges.joinToString(", ") { it.name.replace('_', ' ').lowercase().replaceFirstChar { c -> c.uppercase() } }
+            snackbarHostState.showSnackbar("Badge unlocked: $names")
+            viewModel.onBadgeShown(badges)
+        }
+    }
     HomeContent(uiState = uiState)
 }
 
