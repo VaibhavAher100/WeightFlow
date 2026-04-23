@@ -18,6 +18,9 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -68,6 +71,7 @@ fun ShellScreen(app: WeightFlowApp) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var showLogEntry by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val logEntryVm: LogEntryViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -79,6 +83,15 @@ fun ShellScreen(app: WeightFlowApp) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        },
         bottomBar = {
             Column {
                 HorizontalDivider(color = WFTokens.Border, thickness = 1.dp)
@@ -129,6 +142,7 @@ fun ShellScreen(app: WeightFlowApp) {
         WeightFlowNavGraph(
             app = app,
             navController = navController,
+            snackbarHostState = snackbarHostState,
             modifier = Modifier.padding(innerPadding),
         )
 

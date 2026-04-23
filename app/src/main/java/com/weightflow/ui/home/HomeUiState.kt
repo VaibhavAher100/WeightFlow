@@ -1,5 +1,6 @@
 package com.weightflow.ui.home
 
+import com.weightflow.domain.GoalState
 import com.weightflow.domain.WeightUnit
 
 sealed class HomeUiState {
@@ -15,6 +16,7 @@ sealed class HomeUiState {
         val weightUnit: WeightUnit,
         val recentEntries: List<RecentEntryDisplay>,
         val goalWeightDisplay: String?,
+        val goalState: GoalState = GoalState.NoGoal,
         val deltaDisplay: String? = null,
         val deltaIsDown: Boolean? = null,
         val streakDays: Int = 0,

@@ -233,4 +233,28 @@ class LogEntryViewModelTest {
         advanceUntilIdle()
         assertEquals(WeightUnit.LBS, vm.uiState.value.weightUnit)
     }
+
+    // ── Error handling ────────────────────────────────────────────────────────
+
+    @Test
+    fun `onSave with repository exception sets errorMessage`() = runTest {
+        coEvery { weightRepository.addEntry(any(), any(), any()) } throws RuntimeException("DB write failed")
+        val vm = makeViewModel()
+        vm.onWeightInput("80.0")
+        advanceUntilIdle()
+        vm.onSave()
+        advanceUntilIdle()
+        assertEquals("Failed to save — please try again", vm.uiState.value.errorMessage)
+        assertFalse(vm.uiState.value.isSaving)
+    }
+
+    @Test
+    fun `errorMessage is null on successful save`() = runTest {
+        val vm = makeViewModel()
+        vm.onWeightInput("80.0")
+        advanceUntilIdle()
+        vm.onSave()
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.errorMessage)
+    }
 }

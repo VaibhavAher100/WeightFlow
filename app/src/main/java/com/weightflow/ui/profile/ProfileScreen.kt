@@ -38,7 +38,7 @@ import com.weightflow.domain.Badge
 import com.weightflow.ui.theme.WFTokens
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel) {
+fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier
