@@ -7,6 +7,8 @@ data class HistoryEntryDisplay(
     val weightDisplay: String,
     val dateDisplay: String,
     val timestamp: Long,
+    val deltaDisplay: String? = null,
+    val deltaIsDown: Boolean? = null,
 )
 
 sealed class HistoryUiState {

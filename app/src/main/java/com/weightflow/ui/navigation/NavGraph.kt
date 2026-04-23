@@ -53,7 +53,14 @@ fun WeightFlowNavGraph(
         }
         composable(Screen.Profile.route) {
             val vm: ProfileViewModel = viewModel(
-                factory = vmFactory { ProfileViewModel(app.userProfileRepository, app.userPrefsDataStore) },
+                factory = vmFactory {
+                    ProfileViewModel(
+                        app.userProfileRepository,
+                        app.userPrefsDataStore,
+                        app.weightRepository,
+                        app.badgeObserver,
+                    )
+                },
             )
             ProfileScreen(vm)
         }
