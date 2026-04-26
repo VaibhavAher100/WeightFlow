@@ -228,4 +228,16 @@ class OnboardingViewModelTest {
             vm.onNextStep()
         }
     }
+
+    @Test
+    fun `trying to advance from AgeGate without confirmation emits AgeDeclined`() = runTest {
+        val vm = makeViewModel()
+        vm.events.test {
+            vm.onNextStep()
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertTrue("Expected AgeDeclined, got $event", event is OnboardingEvent.AgeDeclined)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }
