@@ -284,3 +284,23 @@
 **Decision:** LogEntry weight input uses `BasicTextField` with Bebas Neue 72sp and +/− step buttons.
 **Rationale:** Combines keyboard entry (tap number, type) with touch-based increment/decrement. No separate hidden field needed. The `decorationBox` shows "0.0" placeholder when empty. No VM changes required — both modes call `viewModel.onWeightInput(string)`.
 **Context:** Mockup Phone 3 shows pure +/− controls with no keyboard. Hybrid approach preserves keyboard fallback while matching the visual design.
+
+---
+
+## Session 2026-04-26-001 — 2026-04-26
+
+**Decision:** Age gate threshold raised globally to 18+ (not region-gated).
+**Rationale:** India DPDP §14 requires verifiable parental consent for users under 18 — stricter than COPPA's 13+. Implementing a region-gate would require locale detection and two code paths. Global 18+ gate is simpler, still legally valid for COPPA (which requires 13+, so 18+ exceeds it), and removes any risk of DPDP non-compliance in India.
+**Context:** Compliance-auditor agent audit (2026-04-26) identified DPDP §14 as a Play Store blocker for India distribution.
+
+---
+
+**Decision:** Year-of-birth TextField replaces binary "I am 13+" checkbox for age gate.
+**Rationale:** FTC guidance states that a binary self-attestation checkbox ("I am 13+") is not a neutral age gate because children quickly learn to tick it. A year-of-birth field calculates actual age and disables the Next button if age < 18 — the gate cannot be bypassed by clicking a checkbox. This satisfies COPPA's requirement for a reasonable mechanism to prevent underage access.
+**Context:** Compliance-auditor audit item #3 identified the checkbox as a COPPA blocker.
+
+---
+
+**Decision:** R8/ProGuard enabled in release with conservative keep rules; signing config reads from local.properties.
+**Rationale:** Phase 3 intentionally deferred R8 until rules could be written. local.properties (git-ignored) is the standard Android convention for keystore credentials — avoids committing secrets while allowing CI to inject values via environment or file injection. Fallback to debug signing allows unsigned release testing without a keystore present.
+**Context:** Phase 4 launch prep — Play Store requires a signed AAB; R8 reduces APK size toward the 15MB budget.
