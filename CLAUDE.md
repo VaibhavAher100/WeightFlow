@@ -272,7 +272,7 @@ These are locked design decisions from the improve-codebase-architecture session
 
 ---
 
-## Tests (188 unit + 37 instrumented — all GREEN/compile-verified)
+## Tests (196 unit + 37 instrumented — all GREEN/compile-verified)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -291,7 +291,7 @@ These are locked design decisions from the improve-codebase-architecture session
 | `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
 | `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
 | `ui/profile/ProfileViewModelTest.kt` | 9 | GREEN |
-| `ui/onboarding/OnboardingViewModelTest.kt` | 18 | GREEN |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
 
 **Note:** `SettingsViewModelTest.kt` (3 tests) exists only in `.worktrees/phase3/` — not in main branch.
