@@ -31,6 +31,8 @@ class WeightRepository(private val dao: WeightEntryDao) {
         return dao.getEntriesBetween(from, to).map { list -> list.map { it.toDomain() } }
     }
 
+    suspend fun deleteAllEntries(): Int = dao.deleteAll()
+
     private fun WeightEntryEntity.toDomain() = WeightEntry(
         id = id,
         timestamp = timestamp,

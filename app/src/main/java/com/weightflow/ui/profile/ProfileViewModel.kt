@@ -83,6 +83,14 @@ class ProfileViewModel(
         }
     }
 
+    fun deleteAllData() {
+        viewModelScope.launch {
+            weightRepository.deleteAllEntries()
+            userProfileRepository.deleteProfile()
+            userPrefsDataStore.clearAllPreferences()
+        }
+    }
+
     private fun computeGoalProgress(
         goalKg: Double?,
         oldestEntry: WeightEntry?,

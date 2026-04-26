@@ -58,4 +58,8 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
             prefs[SEEN_BADGES] = existing + badges.map { it.name }
         }
     }
+
+    suspend fun clearAllPreferences() {
+        dataStore.edit { it.clear() }
+    }
 }

@@ -13,4 +13,7 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profile WHERE id = 1 LIMIT 1")
     fun getProfile(): Flow<UserProfileEntity?>
+
+    @Query("DELETE FROM user_profile")
+    suspend fun deleteAll(): Int
 }

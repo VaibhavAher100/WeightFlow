@@ -20,9 +20,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +47,34 @@ import com.weightflow.ui.theme.WFTokens
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete all data?") },
+            text = {
+                Text(
+                    "This permanently deletes all weight entries, your profile, and preferences from this device. This cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteAllData()
+                    showDeleteDialog = false
+                }) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -65,7 +98,10 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
                 )
             }
 
-            is ProfileUiState.Loaded -> ProfileContent(state = uiState as ProfileUiState.Loaded)
+            is ProfileUiState.Loaded -> ProfileContent(
+                state = uiState as ProfileUiState.Loaded,
+                onDeleteAllData = { showDeleteDialog = true },
+            )
         }
     }
 }
@@ -73,7 +109,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
 // ── Main content ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun ProfileContent(state: ProfileUiState.Loaded) {
+private fun ProfileContent(state: ProfileUiState.Loaded, onDeleteAllData: () -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 32.dp),
@@ -95,6 +131,8 @@ private fun ProfileContent(state: ProfileUiState.Loaded) {
         item { BadgeRow(earnedBadges = state.earnedBadges) }
         item { Spacer(modifier = Modifier.height(16.dp)) }
         item { SupportSection() }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+        item { DeleteDataSection(onDeleteAllData) }
         item { Spacer(modifier = Modifier.height(8.dp)) }
     }
 }
@@ -448,6 +486,43 @@ private fun BadgeItem(badge: Badge, isEarned: Boolean, accent: Color) {
             letterSpacing = 0.3.sp,
             maxLines = 2,
             lineHeight = 11.sp,
+        )
+    }
+}
+
+// ── Delete all data (GDPR Art. 17 / Play Store account deletion requirement) ──
+
+@Composable
+private fun DeleteDataSection(onDeleteAllData: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(WFTokens.Card)
+                .border(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                .clickable(onClick = onDeleteAllData)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Delete all my data",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(text = "→", fontSize = 16.sp, color = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
+        }
+        Text(
+            text = "Permanently removes all entries, profile, and preferences from this device.",
+            fontSize = 10.sp,
+            color = WFTokens.Text3,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
         )
     }
 }

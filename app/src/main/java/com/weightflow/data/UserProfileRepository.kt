@@ -15,6 +15,8 @@ class UserProfileRepository(private val dao: UserProfileDao) {
         dao.upsert(profile.toEntity())
     }
 
+    suspend fun deleteProfile(): Int = dao.deleteAll()
+
     private fun UserProfileEntity.toDomain() = UserProfile(
         id = id,
         displayName = displayName,
