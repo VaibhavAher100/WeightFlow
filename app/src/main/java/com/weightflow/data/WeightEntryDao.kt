@@ -27,4 +27,7 @@ interface WeightEntryDao {
 
     @Query("SELECT * FROM weight_entries WHERE timestamp BETWEEN :fromTimestamp AND :toTimestamp ORDER BY timestamp ASC")
     fun getEntriesBetween(fromTimestamp: Long, toTimestamp: Long): Flow<List<WeightEntryEntity>>
+
+    @Query("DELETE FROM weight_entries")
+    suspend fun deleteAll(): Int
 }

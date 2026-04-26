@@ -62,6 +62,9 @@ class ProfileViewModelTest {
         every { badgeObserver.allEarnedBadges } returns badgesFlow
         coEvery { userProfileRepository.saveProfile(any()) } returns Unit
         coEvery { userPrefsDataStore.setWeightUnit(any()) } returns Unit
+        coEvery { weightRepository.deleteAllEntries() } returns 0
+        coEvery { userProfileRepository.deleteProfile() } returns 0
+        coEvery { userPrefsDataStore.clearAllPreferences() } returns Unit
     }
 
     @After
@@ -168,5 +171,31 @@ class ProfileViewModelTest {
         vm.onUnitChanged(WeightUnit.LBS)
         advanceUntilIdle()
         coVerify { userPrefsDataStore.setWeightUnit(WeightUnit.LBS) }
+    }
+
+    // ── Delete all data (GDPR Art. 17 / Play Store requirement) ──────────────
+
+    @Test
+    fun `deleteAllData calls deleteAllEntries`() = runTest {
+        val vm = makeViewModel()
+        vm.deleteAllData()
+        advanceUntilIdle()
+        coVerify { weightRepository.deleteAllEntries() }
+    }
+
+    @Test
+    fun `deleteAllData calls deleteProfile`() = runTest {
+        val vm = makeViewModel()
+        vm.deleteAllData()
+        advanceUntilIdle()
+        coVerify { userProfileRepository.deleteProfile() }
+    }
+
+    @Test
+    fun `deleteAllData calls clearAllPreferences`() = runTest {
+        val vm = makeViewModel()
+        vm.deleteAllData()
+        advanceUntilIdle()
+        coVerify { userPrefsDataStore.clearAllPreferences() }
     }
 }
