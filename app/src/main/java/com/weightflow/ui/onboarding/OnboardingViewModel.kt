@@ -58,7 +58,10 @@ class OnboardingViewModel(
 
         when (state.currentStep) {
             OnboardingStep.AGE_GATE -> {
-                if (!state.ageConfirmed) return
+                if (!state.ageConfirmed) {
+                    viewModelScope.launch { _events.emit(OnboardingEvent.AgeDeclined) }
+                    return
+                }
                 _uiState.update { it.copy(currentStep = OnboardingStep.UNIT, canAdvance = true) }
             }
             OnboardingStep.UNIT -> {

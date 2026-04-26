@@ -21,11 +21,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,21 +51,36 @@ fun OnboardingScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val accent = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is OnboardingEvent.Finished    -> onFinished()
-                is OnboardingEvent.AgeDeclined -> { /* stay on screen */ }
+                is OnboardingEvent.AgeDeclined ->
+                    snackbarHostState.showSnackbar("You must be 13 or older to use WeightFlow.")
             }
         }
     }
 
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .imePadding()
+            .padding(innerPadding)
             .padding(horizontal = 24.dp),
     ) {
         Spacer(Modifier.height(56.dp))
@@ -128,7 +148,8 @@ fun OnboardingScreen(
 
         Spacer(Modifier.height(32.dp))
     }
-}
+    } // end Scaffold content lambda
+} // OnboardingScreen
 
 // ── Step indicator dots ───────────────────────────────────────────────────────
 
