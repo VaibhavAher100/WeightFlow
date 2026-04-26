@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class OnboardingViewModel(
     private val userProfileRepository: UserProfileRepository,
@@ -27,8 +28,10 @@ class OnboardingViewModel(
     private val _events = MutableSharedFlow<OnboardingEvent>()
     val events: SharedFlow<OnboardingEvent> = _events.asSharedFlow()
 
-    fun onAgeConfirmed(confirmed: Boolean) {
-        _uiState.update { it.copy(ageConfirmed = confirmed, canAdvance = confirmed) }
+    fun onBirthYearInput(year: String) {
+        val age = year.toIntOrNull()?.let { LocalDate.now().year - it }
+        val isOldEnough = age != null && age >= 18
+        _uiState.update { it.copy(birthYearInput = year, canAdvance = isOldEnough) }
     }
 
     fun onUnitSelected(unit: WeightUnit) {
@@ -58,7 +61,8 @@ class OnboardingViewModel(
 
         when (state.currentStep) {
             OnboardingStep.AGE_GATE -> {
-                if (!state.ageConfirmed) {
+                val age = state.birthYearInput.toIntOrNull()?.let { LocalDate.now().year - it }
+                if (age == null || age < 18) {
                     viewModelScope.launch { _events.emit(OnboardingEvent.AgeDeclined) }
                     return
                 }

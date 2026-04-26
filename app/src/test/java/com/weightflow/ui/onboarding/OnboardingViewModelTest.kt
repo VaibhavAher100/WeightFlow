@@ -59,35 +59,51 @@ class OnboardingViewModelTest {
         assertEquals(OnboardingStep.AGE_GATE, vm.uiState.value.currentStep)
     }
 
+    // ── Age gate (COPPA / DPDP — 18+ year-of-birth picker) ───────────────────
+
     @Test
-    fun `initial age confirmation is false`() = runTest {
+    fun `initial birth year input is empty`() = runTest {
         val vm = makeViewModel()
-        assertFalse(vm.uiState.value.ageConfirmed)
+        assertEquals("", vm.uiState.value.birthYearInput)
     }
 
-    // ── Age gate (COPPA) ──────────────────────────────────────────────────────
-
     @Test
-    fun `confirming age sets ageConfirmed to true`() = runTest {
+    fun `entering birth year with age 18+ sets canAdvance true`() = runTest {
         val vm = makeViewModel()
-        vm.onAgeConfirmed(confirmed = true)
+        vm.onBirthYearInput("2000") // 26 years old in 2026
         advanceUntilIdle()
-        assertTrue(vm.uiState.value.ageConfirmed)
+        assertTrue(vm.uiState.value.canAdvance)
     }
 
     @Test
-    fun `advancing from AgeGate without confirmation stays on AgeGate`() = runTest {
+    fun `entering birth year with age under 18 keeps canAdvance false`() = runTest {
         val vm = makeViewModel()
-        // ageConfirmed is false
+        vm.onBirthYearInput("2015") // 11 years old in 2026
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.canAdvance)
+    }
+
+    @Test
+    fun `entering invalid text keeps canAdvance false`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("abc")
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.canAdvance)
+    }
+
+    @Test
+    fun `advancing from AgeGate with age under 18 stays on AgeGate`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("2015")
         vm.onNextStep()
         advanceUntilIdle()
         assertEquals(OnboardingStep.AGE_GATE, vm.uiState.value.currentStep)
     }
 
     @Test
-    fun `advancing from AgeGate after confirmation moves to Unit step`() = runTest {
+    fun `advancing from AgeGate with valid age moves to Unit step`() = runTest {
         val vm = makeViewModel()
-        vm.onAgeConfirmed(confirmed = true)
+        vm.onBirthYearInput("2000")
         vm.onNextStep()
         advanceUntilIdle()
         assertEquals(OnboardingStep.UNIT, vm.uiState.value.currentStep)
@@ -112,7 +128,7 @@ class OnboardingViewModelTest {
     @Test
     fun `advancing from Unit step moves to CurrentWeight`() = runTest {
         val vm = makeViewModel()
-        vm.onAgeConfirmed(true)
+        vm.onBirthYearInput("2000")
         vm.onNextStep()
         advanceUntilIdle()
         vm.onNextStep()
@@ -206,7 +222,7 @@ class OnboardingViewModelTest {
     @Test
     fun `back navigation from Unit returns to AgeGate`() = runTest {
         val vm = makeViewModel()
-        vm.onAgeConfirmed(true)
+        vm.onBirthYearInput("2000")
         vm.onNextStep()
         advanceUntilIdle()
         vm.onBack()
@@ -222,7 +238,7 @@ class OnboardingViewModelTest {
         val targetIndex = steps.indexOf(target)
         if (targetIndex == 0) return
 
-        vm.onAgeConfirmed(true)
+        vm.onBirthYearInput("2000") // age 26 in 2026 — always valid
         vm.onWeightInput("80.0")
         for (i in 0 until targetIndex) {
             vm.onNextStep()
@@ -230,7 +246,20 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `trying to advance from AgeGate without confirmation emits AgeDeclined`() = runTest {
+    fun `trying to advance from AgeGate with underage birth year emits AgeDeclined`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("2015") // age 11
+        vm.events.test {
+            vm.onNextStep()
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertTrue("Expected AgeDeclined, got $event", event is OnboardingEvent.AgeDeclined)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `trying to advance from AgeGate with empty input emits AgeDeclined`() = runTest {
         val vm = makeViewModel()
         vm.events.test {
             vm.onNextStep()
