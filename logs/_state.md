@@ -123,7 +123,9 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | isMinifyEnabled=true + isShrinkResources=true | **DONE** (release build type) |
 | Signing config from local.properties | **DONE** (falls back to debug if KEYSTORE_PATH not set) |
 | Donation links in ProfileScreen | **DONE** (Ko-fi, Liberapay, GitHub Sponsors — update URLs before launch) |
-| Compliance audit (GDPR/COPPA/DPDP) | **Running** (compliance-auditor agent) |
+| COPPA/DPDP: year-of-birth picker (18+ threshold) | **DONE** (OnboardingViewModel + OnboardingScreen) |
+| GDPR Art. 17: Delete all data button | **DONE** (ProfileScreen + ProfileViewModel + DAOs) |
+| Compliance audit (GDPR/COPPA/DPDP) | **DONE** — 9 blockers found, 4 fixed in code, 5 filed as issues #31-34 |
 | Privacy policy live URL | **TODO** — needs GitHub Pages setup |
 | Back up Android keystore | **TODO** — user action, CRITICAL before first release build |
 | Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
@@ -247,11 +249,14 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] Review compliance audit output when agent finishes
-- [ ] Privacy policy live URL (GitHub Pages) — CRITICAL before Play Store submission
+- [ ] #31 — Privacy policy: write + publish to GitHub Pages (Play Store blocker)
+- [ ] #32 — CSV export wired to Settings UI (GDPR Art. 20 portability)
+- [ ] #33 — Medical disclaimer + safe-messaging banner (Play health policy)
+- [ ] #34 — Network Security Config (block cleartext traffic in release)
 - [ ] Back up Android keystore to 3 locations — CRITICAL before first release build
 - [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available
 - [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
+- [ ] Complete Play Data Safety form in Play Console
 - [ ] Play Store listing + ASO (android-aso skill)
 - [ ] AAB build + Play Store internal track upload (android-playstore-setup skill)
 
