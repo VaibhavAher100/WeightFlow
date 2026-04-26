@@ -2,6 +2,7 @@ package com.weightflow.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -91,6 +93,8 @@ private fun ProfileContent(state: ProfileUiState.Loaded) {
             )
         }
         item { BadgeRow(earnedBadges = state.earnedBadges) }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+        item { SupportSection() }
         item { Spacer(modifier = Modifier.height(8.dp)) }
     }
 }
@@ -445,6 +449,68 @@ private fun BadgeItem(badge: Badge, isEarned: Boolean, accent: Color) {
             maxLines = 2,
             lineHeight = 11.sp,
         )
+    }
+}
+
+// ── Support section ───────────────────────────────────────────────────────────
+
+@Composable
+private fun SupportSection() {
+    val uriHandler = LocalUriHandler.current
+    val accent = MaterialTheme.colorScheme.primary
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = "SUPPORT DEVELOPMENT",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.5.sp,
+            color = WFTokens.Text3,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        )
+
+        val links = listOf(
+            Triple("Ko-fi", "☕", "https://ko-fi.com/vaibhavaher"),
+            Triple("Liberapay", "💛", "https://liberapay.com/vaibhavaher"),
+            Triple("GitHub Sponsors", "⭐", "https://github.com/sponsors/VaibhavAher100"),
+        )
+
+        links.forEach { (label, emoji, url) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(WFTokens.Card)
+                    .border(1.dp, WFTokens.Border, RoundedCornerShape(14.dp))
+                    .clickable { uriHandler.openUri(url) }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(text = emoji, fontSize = 18.sp)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+                Text(
+                    text = "→",
+                    fontSize = 16.sp,
+                    color = WFTokens.Text3,
+                )
+            }
+        }
     }
 }
 
