@@ -164,10 +164,10 @@ All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 | `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (full overhaul) | DONE |
 | `ui/history/` | `HistoryUiState.kt` (+delta fields), `HistoryViewModel.kt` (+delta compute), `HistoryScreen.kt` (full overhaul) | DONE |
 | `ui/profile/` | `ProfileUiState.kt` (+8 fields), `ProfileViewModel.kt` (+BadgeObserver/WeightRepo), `ProfileScreen.kt` (full overhaul) | DONE |
-| `ui/onboarding/` | `OnboardingUiState.kt`, `OnboardingViewModel.kt`, `OnboardingScreen.kt` | PENDING overhaul |
-| `ui/settings/` | In `.worktrees/phase3/` only — not in main | NOT IN MAIN |
+| `ui/onboarding/` | `OnboardingUiState.kt` (birthYearInput), `OnboardingViewModel.kt` (year picker, 18+), `OnboardingScreen.kt` (year TextField + Scaffold snackbar) | DONE (2026-04-26) |
+| `ui/settings/` | `SettingsUiState.kt`, `SettingsViewModel.kt`, `SettingsScreen.kt` — merged via PR #30 | IN MAIN (weight unit + theme only; CSV export pending #32) |
 
-**Note:** Settings screen files (`SettingsUiState.kt`, `SettingsViewModel.kt`, `SettingsScreen.kt`, `SettingsViewModelTest.kt`) exist only in `.worktrees/phase3/` (PR #30). Not available in main branch.
+**Note:** `SettingsViewModelTest.kt` (3 tests) was in `.worktrees/phase3/` but merged via PR #30 — now in main.
 
 ## Worker Layer (Phase 3 new)
 
@@ -179,11 +179,16 @@ All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 
 All files in `app/src/main/java/com/weightflow/domain/` — unchanged from Phase 2.
 
-## Data Layer (Complete)
+## Data Layer (Phase 4 additions)
 
-All files in `app/src/main/java/com/weightflow/data/` — unchanged from Phase 2.
+All files in `app/src/main/java/com/weightflow/data/`. Phase 4 additions (2026-04-26):
+- `WeightEntryDao` — `deleteAll(): Int` added
+- `UserProfileDao` — `deleteAll(): Int` added
+- `WeightRepository` — `deleteAllEntries(): Int` added
+- `UserProfileRepository` — `deleteProfile(): Int` added
+- `UserPrefsDataStore` — `clearAllPreferences()` added
 
-## Tests (**187 unit tests — all GREEN, BUILD SUCCESSFUL 2026-04-18**)
+## Tests (**196 unit tests — all GREEN, BUILD SUCCESSFUL 2026-04-26**)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -201,12 +206,12 @@ All files in `app/src/main/java/com/weightflow/data/` — unchanged from Phase 2
 | `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
 | `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
 | `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
-| `ui/profile/ProfileViewModelTest.kt` | 9 | GREEN (+2 new: earnedBadges, totalEntriesCount) |
-| `ui/onboarding/OnboardingViewModelTest.kt` | 17 | GREEN |
+| `ui/profile/ProfileViewModelTest.kt` | 12 | GREEN (+3 deleteAllData GDPR Art. 17) |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN (+5 year-of-birth picker tests) |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
-| **TOTAL** | **187** | **0 failures** |
+| **TOTAL** | **196** | **0 failures** |
 
-**Note:** `SettingsViewModelTest.kt` (3 tests) is in `.worktrees/phase3/` only — not in main branch test count.
+**Note:** `SettingsViewModelTest.kt` (3 tests) merged via PR #30 — now in main (not counted above since already accounted in +196).
 
 **Instrumented tests** — `app/src/androidTest/java/com/weightflow/data/` (need device/emulator):
 
@@ -285,10 +290,12 @@ Three hookify rules in `.claude/`:
 
 ## Next Session Should
 
-1. Merge PR #30 after manual device testing (badge toast, goal banner, TalkBack)
-2. Begin Phase 4 planning — signed build, Play Store listing, ASO, privacy policy live URL
-3. Wire Firebase Crashlytics once `google-services.json` available
-4. Back up Android keystore to 3 locations (CRITICAL before first release build)
+1. **#31** — Write privacy policy + publish to GitHub Pages (`privacy-policy-malik-taiar` skill)
+2. **#32** — Wire CSV export/import to Settings UI (SAF + ActivityResultContracts)
+3. **#33** — Add medical disclaimer to HomeScreen footer + safe-messaging banner on GoalStep
+4. **#34** — Add Network Security Config XML
+5. Generate Android keystore + back up to 3 locations (user action — CRITICAL)
+6. Start Play Store listing + ASO (`android-aso` skill)
 
 ## Vico Note (for future sessions)
 Vico 1.13.1 API — context7 returns v3 docs which are WRONG. Use these imports:

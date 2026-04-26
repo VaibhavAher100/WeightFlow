@@ -290,11 +290,11 @@ These are locked design decisions from the improve-codebase-architecture session
 | `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
 | `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
 | `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
-| `ui/profile/ProfileViewModelTest.kt` | 9 | GREEN |
+| `ui/profile/ProfileViewModelTest.kt` | 12 | GREEN |
 | `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
 
-**Note:** `SettingsViewModelTest.kt` (3 tests) exists only in `.worktrees/phase3/` — not in main branch.
+**Note:** `SettingsViewModelTest.kt` (3 tests) merged via PR #30 — now in main. Not counted above (total already includes them).
 
 **ViewModel test pattern (locked — reuse for all future VMs):**
 - `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
@@ -327,8 +327,8 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
 | 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs implemented |
-| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — 187 tests GREEN, PR #30 open; all 7 screens overhauled (Athlete's Journal aesthetic) |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **Next** |
+| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — 196 tests GREEN, PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — R8 enabled, signing config ready, COPPA/GDPR fixes done (issues #31-34 open) |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
 ---
@@ -346,7 +346,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all 187 unit tests still green
+3. Run `./gradlew testDebugUnitTest` — confirm all 196 unit tests still green
 4. THEN start coding
 
 ---
