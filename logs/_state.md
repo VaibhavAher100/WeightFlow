@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-18-004
+last_session: 2026-04-26-001
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -42,8 +42,8 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | Complete |
 | 2 | All 6 screens + ViewModels + Vico + RFCs #24-26 | Complete (166 tests GREEN) |
-| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** (187 tests GREEN) — PR #30 open, UI overhaul in progress |
-| 4 | Play Store launch (privacy policy, signed build, ASO) | **Next** |
+| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** (188 tests GREEN) — PR #30 merged |
+| 4 | Play Store launch (privacy policy, signed build, ASO) | **In progress** |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
 ## Phase 3 — COMPLETE (UI overhaul complete on main; PR #30 pending merge)
@@ -113,6 +113,23 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() — **IMPLEMENTED** |
 | HomeDataAggregator | #29 | ViewModel gets one dependency instead of five — **IMPLEMENTED** |
 
+## Phase 4 — IN PROGRESS (session 2026-04-26-001)
+
+| Item | Status |
+|------|--------|
+| COPPA age gate — AgeDeclined snackbar | **DONE** (OnboardingScreen Scaffold + snackbar) |
+| POST_NOTIFICATIONS runtime request | **DONE** (MainActivity) |
+| R8/ProGuard rules | **DONE** (proguard-rules.pro — Room, DataStore, Coroutines, WorkManager, Vico, domain/data) |
+| isMinifyEnabled=true + isShrinkResources=true | **DONE** (release build type) |
+| Signing config from local.properties | **DONE** (falls back to debug if KEYSTORE_PATH not set) |
+| Donation links in ProfileScreen | **DONE** (Ko-fi, Liberapay, GitHub Sponsors — update URLs before launch) |
+| Compliance audit (GDPR/COPPA/DPDP) | **Running** (compliance-auditor agent) |
+| Privacy policy live URL | **TODO** — needs GitHub Pages setup |
+| Back up Android keystore | **TODO** — user action, CRITICAL before first release build |
+| Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
+| Play Store listing + ASO | **TODO** |
+| AAB build + upload | **TODO** |
+
 ## Build Configuration (AGP 9.x specific)
 
 - `gradle/libs.versions.toml`: Kotlin 2.2.10, KSP 2.3.2, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, WorkManager 2.10.1
@@ -121,7 +138,8 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
 - XML theme: `Theme.AppCompat.DayNight.NoActionBar`
 - Room schema export: `app/schemas/` — currently at **schema v2** (`achievedAtEpochDay` on `user_profile`)
-- `isMinifyEnabled = false` in release — intentional until Phase 4; ProGuard rules needed before enabling
+- `isMinifyEnabled = true` + `isShrinkResources = true` in release — enabled Phase 4 (2026-04-26); R8 release build verified GREEN
+- Signing config reads from `local.properties` (KEYSTORE_PATH / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD); falls back to debug signing if not set
 - `POST_NOTIFICATIONS` permission in `AndroidManifest.xml` (required for WorkManager notification on API 33+)
 
 ## Backup / Privacy Configuration
@@ -229,12 +247,13 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] Merge PR #30 after manual device testing (badge toast, goal banner, TalkBack)
-- [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available (Phase 4 gate)
-- [ ] Run `compliance-auditor` agent GDPR/COPPA checklist before first device build
-- [ ] Back up Android keystore to 3 locations (CRITICAL — before first release build)
-- [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
-- [ ] Phase 4 brainstorm: signed build, Play Store listing, ASO, privacy policy
+- [ ] Review compliance audit output when agent finishes
+- [ ] Privacy policy live URL (GitHub Pages) — CRITICAL before Play Store submission
+- [ ] Back up Android keystore to 3 locations — CRITICAL before first release build
+- [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available
+- [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
+- [ ] Play Store listing + ASO (android-aso skill)
+- [ ] AAB build + Play Store internal track upload (android-playstore-setup skill)
 
 ## Critical Before First Build
 - [ ] Back up Android keystore to 3 locations (CRITICAL)
