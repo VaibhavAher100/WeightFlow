@@ -109,10 +109,9 @@ fun OnboardingScreen(
 
         when (uiState.currentStep) {
             OnboardingStep.AGE_GATE      -> AgeGateStep(
-                ageConfirmed = uiState.ageConfirmed,
-                onAgeConfirmed = viewModel::onAgeConfirmed,
+                birthYearInput = uiState.birthYearInput,
+                onBirthYearInput = viewModel::onBirthYearInput,
                 accent = accent,
-                onPrimary = onPrimary,
             )
             OnboardingStep.UNIT          -> UnitStep(
                 selected = uiState.selectedUnit,
@@ -177,15 +176,18 @@ private fun StepDots(currentStep: OnboardingStep, accent: Color) {
     }
 }
 
-// ── Step 1: Age Gate (COPPA) ──────────────────────────────────────────────────
+// ── Step 1: Age Gate (COPPA / DPDP — 18+ year-of-birth picker) ───────────────
 
 @Composable
 private fun AgeGateStep(
-    ageConfirmed: Boolean,
-    onAgeConfirmed: (Boolean) -> Unit,
+    birthYearInput: String,
+    onBirthYearInput: (String) -> Unit,
     accent: Color,
-    onPrimary: Color,
 ) {
+    val currentYear = java.time.LocalDate.now().year
+    val age = birthYearInput.toIntOrNull()?.let { currentYear - it }
+    val isUnderage = age != null && age < 18
+
     Column {
         Text(
             text = "WELCOME.",
@@ -203,49 +205,26 @@ private fun AgeGateStep(
         )
         Spacer(Modifier.height(32.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(WFTokens.Card)
-                .border(
-                    1.dp,
-                    if (ageConfirmed) WFTokens.accentBorder(accent) else WFTokens.Border,
-                    RoundedCornerShape(16.dp),
-                )
-                .clickable { onAgeConfirmed(!ageConfirmed) }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(if (ageConfirmed) accent else WFTokens.Elevated)
-                    .border(
-                        1.dp,
-                        if (ageConfirmed) accent else WFTokens.Border,
-                        RoundedCornerShape(6.dp),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (ageConfirmed) {
-                    Text(
-                        text = "✓",
-                        fontSize = 14.sp,
-                        color = onPrimary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            Text(
-                text = "I confirm I am 13 years of age or older",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        OutlinedTextField(
+            value = birthYearInput,
+            onValueChange = { input ->
+                if (input.length <= 4 && input.all { it.isDigit() }) onBirthYearInput(input)
+            },
+            label = { Text("Year of birth") },
+            placeholder = { Text("e.g. 1995") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            isError = isUnderage,
+            supportingText = if (isUnderage) {
+                { Text("You must be 18 or older to use WeightFlow.", color = MaterialTheme.colorScheme.error) }
+            } else null,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accent,
+                unfocusedBorderColor = WFTokens.Border,
+            ),
+        )
     }
 }
 

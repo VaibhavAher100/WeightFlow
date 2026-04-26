@@ -11,7 +11,7 @@ enum class OnboardingStep {
 
 data class OnboardingUiState(
     val currentStep: OnboardingStep = OnboardingStep.AGE_GATE,
-    val ageConfirmed: Boolean = false,
+    val birthYearInput: String = "",
     val selectedUnit: WeightUnit = WeightUnit.KG,
     val weightInput: String = "",
     val goalInput: String = "",
