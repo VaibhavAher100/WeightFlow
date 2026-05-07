@@ -229,16 +229,22 @@ private fun icePalette() = darkColorScheme(
 // ─── Design tokens (palette-independent) ────────────────────────────────────
 
 object WFTokens {
-    val Text2   = Color(0xFF9A9890)   // secondary text — slightly brighter for readability
-    val Text3   = Color(0xFF5C5A52)   // tertiary / disabled text
-    val Success = Color(0xFF4ED98A)
-    val Danger  = Color(0xFFFF6B6B)
-    val Card    = Color(0xFF1A1917)   // card surface — 1 step above background
-    val Elevated = Color(0xFF242320)  // elevated surface (dropdowns, sheets)
-    val Surface2 = Color(0xFF2E2D28)
-    val Border  = Color(0x1FFFFFFF)   // 12% white — visible but not loud (was 6%)
+    // Text
+    val Text2    = Color(0xFF888880)   // secondary — lime-tinted warm gray
+    val Text3    = Color(0xFF4A4A44)   // tertiary / disabled
+    // Surfaces
+    val Card     = Color(0xFF161614)   // card surface
+    val Elevated = Color(0xFF1E1E1C)   // elevated (sheets, dropdowns)
+    val Surface2 = Color(0xFF262624)
+    // Borders
+    val Border   = Color(0x1AFFFFFF)   // 10% white — subtle
+    // Semantic
+    val Success  = Color(0xFF4DFF91)
+    val Danger   = Color(0xFFFF6B6B)
 
-    fun accentDim(accent: Color)    = accent.copy(alpha = 0.10f)
-    fun accentGlow(accent: Color)   = accent.copy(alpha = 0.22f)
-    fun accentBorder(accent: Color) = accent.copy(alpha = 0.20f)
+    // Accent helpers (pass MaterialTheme.colorScheme.primary as accent)
+    fun accentDim(accent: Color)    = accent.copy(alpha = 0.08f)
+    fun accentGlow(accent: Color)   = accent.copy(alpha = 0.15f)
+    fun accentBorder(accent: Color) = accent.copy(alpha = 0.22f)
+    fun accentSoft(accent: Color)   = accent.copy(alpha = 0.10f)
 }
