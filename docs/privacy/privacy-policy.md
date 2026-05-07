@@ -91,9 +91,9 @@ We recommend keeping your device OS and WeightFlow updated to benefit from the l
 
 ## 8. Children's Privacy
 
-WeightFlow is intended for users aged **18 and over**. The app enforces an age gate during onboarding — users born less than 18 years ago cannot proceed.
+WeightFlow is intended for users aged **13 and over** (COPPA minimum). The app enforces a year-of-birth gate during onboarding — users under 13 cannot proceed.
 
-We do not knowingly collect personal data from individuals under 18. If you believe a person under 18 has provided data, contact us at vaibhavaher100@gmail.com and we will assist with deletion.
+We do not knowingly collect personal data from individuals under 13. If you believe a person under 13 has provided data, contact us at vaibhavaher100@gmail.com and we will assist with deletion.
 
 ---
 

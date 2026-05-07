@@ -16,7 +16,7 @@ These Terms constitute a legally binding agreement between you and Vaibhav Aher 
 
 ## 2. Eligibility
 
-You must be at least **18 years old** to use WeightFlow. By using the App, you represent and warrant that you meet this age requirement.
+You must be at least **13 years old** to use WeightFlow. By using the App, you represent and warrant that you meet this age requirement.
 
 ---
 
