@@ -378,3 +378,25 @@
 **Decision:** Typography uses negative letter-spacing on Bebas Neue display text, positive on labels.
 **Rationale:** open-design craft rules: display text ≥48px should use -0.02em to -0.03em tracking (tighter = more premium). ALL-CAPS UI labels need +0.06em-0.1em (more legible at small sizes). Body text = 0 (Outfit reads cleanly without tracking adjustment). Applied: displayLarge -1.5sp, displayMedium -1.0sp, displaySmall -0.5sp; labelSmall +0.8sp.
 **Context:** Research from pbakaus/impeccable and nexu-io/open-design craft/ folder.
+
+## Session 2026-05-08-001 — 2026-05-08
+
+**Decision:** "Zero/Whoop-inspired Ritual Entry" as locked design language for all screens
+**Rationale:** User testing on device revealed the previous UI felt utilitarian and lacking energy. Research into Zero (fasting) and Whoop (fitness tracker) revealed transferable patterns: Zero's single-metric-on-void ceremony, Whoop's number-font/word-font split (Bebas Neue for data, Outfit for labels), Whoop's coaching sentence. Combined with Huashu/Open Design/Impeccable rules (one accent voice, flat-by-default, expo-out motion).
+**Context:** Brainstorming session with visual companion server; multiple mockup iterations per screen before implementation.
+
+**Decision:** Drum-roll WheelPicker replaces keyboard input for weight logging
+**Rationale:** Keyboard entry is functional but cold; drum-roll picker is the premium standard for weight/health apps. More tactile, faster one-handed, enables haptic-per-notch feedback.
+**Context:** Chosen over slider, stepper buttons, and keyboard after visual companion design review.
+
+**Decision:** `WheelPicker` built custom (LazyColumn + rememberSnapFlingBehavior) — no third-party library
+**Rationale:** No maintained Compose drum-picker library exists at the correct API level. LazyColumn + snapFlingBehavior is 60 lines of idiomatic Compose and zero extra dependencies.
+**Context:** Checked available libraries; none compatible with Compose BOM 2025.04.01 + AGP 9.x.
+
+**Decision:** LogEntryViewModel uses `WhileSubscribed(5_000)` + `uiState.launchIn(viewModelScope)` pattern
+**Rationale:** WhileSubscribed is project standard. Tests access `uiState.value` directly (not turbine), so upstream combine needs seeding. launchIn seeds it while respecting the lifecycle.
+**Context:** Code quality review flagged Eagerly deviation; counter-argument accepted that launchIn is the correct pattern.
+
+**Decision:** GoalAchievedScreen is a full-screen state on HomeScreen (not a dialog)
+**Rationale:** Reaching a goal is the highest-value moment — deserves the full canvas. Modals feel dismissible; full-screen communicates achievement weight (Zero/Whoop pattern).
+**Context:** Design spec; user approved in visual companion.

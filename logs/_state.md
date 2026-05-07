@@ -1,5 +1,5 @@
 ---
-last_session: 2026-05-07-002
+last_session: 2026-05-08-001
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -13,7 +13,8 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 
 ## App Identity
 - **Name:** WeightFlow | **Package:** `com.weightflow`
-- **Aesthetic:** "Athlete's Journal" — warm dark (#0F0E0B) + electric lime (#C8FF00)
+- **Aesthetic:** "Athlete's Journal" — warm dark (#0A0A08) + electric lime (#C8FF00)
+- **Design language:** Zero's ceremony + Whoop's authority + WeightFlow's warmth
 - **Fonts:** Bebas Neue (display/numbers, negative tracking) + Outfit (UI body)
 - **Icon:** W mark (weight-trend chart line) in lime on dark — adaptive icon (API 26+)
 - **Position:** Genuinely free weight tracker. No subscription. Data stays on device.
@@ -57,7 +58,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | 4 | Play Store launch (privacy policy, signed build, ASO) | **In progress** |
 | 5 | Firebase sync + iOS via KMP | Needs planning |
 
-## Phase 4 — IN PROGRESS (sessions 2026-04-26-001, 2026-05-07-001, 2026-05-07-002)
+## Phase 4 — IN PROGRESS (sessions 2026-04-26-001, 2026-05-07-001, 2026-05-07-002, 2026-05-08-001)
 
 | Item | Status |
 |------|--------|
@@ -85,8 +86,9 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | BMI context (ProfileScreen) | **DONE** — category, normal range, difference from normal |
 | App icon redesign | **DONE** — W mark vector, lime on dark, adaptive icon |
 | Typography letter-spacing | **DONE** — display negative, label positive, body zero |
-| Settings screen redesign | **DONE** — app-consistent header, card rows, all 8 themes |
-| Color token improvements | **DONE** — Border 6%→12%, Text2 brighter, accentBorder 20% |
+| Settings screen redesign | **DONE** — theme grid with color dots, all 8 themes |
+| Color token improvements | **DONE** — WFTokens warmer, accentSoft helper added |
+| **Full UI/UX overhaul** | **DONE** — Zero/Whoop design language, all 6 screens, 17 commits (2026-05-08) |
 | Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
 | Play Store listing + ASO | **TODO** |
 | AAB build + upload | **TODO** |
@@ -98,23 +100,24 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | Decision | Choice |
 |----------|--------|
 | Nav | Home + Trends + History + Profile + FAB (no Log tab) |
-| Log sheet | Weight + date only (no note field) |
-| Home layout | Always-full with motivating empty states |
-| Onboarding | 4 screens: age gate (13+) → unit → weight → goal |
+| Log sheet | Drum-roll picker (whole + decimal), weight + date only |
+| Home layout | Ritual weight block (64sp) + sparkline + stat cards + goal bar |
+| Onboarding | 4 screens: age gate (13+) → unit → weight → goal, step dots |
 | Age gate | 13+ globally (COPPA minimum). Year-of-birth field, not checkbox. |
 | Charts | Line chart (Vico 1.13.1) + stat cards. Axes removed (ugly decimals). |
 | Time filters | 7D / 30D / 3M / 6M / 1Y / All |
-| Goals | Single active goal → maintenance mode → optional new goal chain |
+| Goals | Single active goal → GoalAchievedScreen → maintenance mode |
 | Badges | 12 (Zero-inspired) |
 | Pro price | 4.99 EUR one-time |
 | Revenue priority | Donations first, Pro second. **No AdMob in v1.0.** |
 | CSV import | WeightFit + Happy Scale + Apple Health + generic |
-| Themes | 8 palettes (Lime default). All shown in Settings. |
+| Themes | 8 palettes (Lime default). Color-dot grid in Settings. |
 | RTL | RTL-safe from Phase 2 (start/end semantics) |
 | Weight storage | Always kg internally, unit conversion is display-only |
 | Settings | Accessed via gear icon in ProfileScreen PageHeader |
 | Reminder | Opt-in via Settings toggle — not auto-scheduled at startup |
 | AdMob | NOT in v1.0. Deferred to Phase 5. |
+| Design language | Zero ceremony + Whoop authority + lime warmth. Locked 2026-05-08. |
 
 ## Architecture RFCs (all implemented)
 
@@ -127,7 +130,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | SortedEntries + named Repository methods #28 | Type-safe ordering contract |
 | HomeDataAggregator #29 | ViewModel gets one dependency instead of five |
 
-## Tests (211 unit — all GREEN, BUILD SUCCESSFUL 2026-05-07)
+## Tests (GREEN — BUILD SUCCESSFUL 2026-05-08)
 
 | File | Tests | Status |
 |------|-------|--------|
@@ -140,16 +143,16 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | `domain/CsvExporterTest.kt` | 9 | GREEN |
 | `domain/GoalStateMachineTest.kt` | 14 | GREEN |
 | `ui/home/HomeViewModelTest.kt` | 18 | GREEN |
-| `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
-| `ui/trends/TrendsViewModelTest.kt` | 18 | GREEN (+7 StatsSection) |
-| `ui/history/HistoryViewModelTest.kt` | 7 | GREEN (+3 edit entry) |
-| `ui/profile/ProfileViewModelTest.kt` | 16 | GREEN (+4 BMI context) |
-| `ui/onboarding/OnboardingViewModelTest.kt` | 24 | GREEN (+1 age-13 test) |
-| `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
-| `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN (+3 reminder) |
-| **TOTAL** | **211** | **0 failures** |
+| `ui/logentry/LogEntryViewModelTest.kt` | 24 | GREEN (+4 new this session) |
+| `ui/trends/TrendsViewModelTest.kt` | 18 | GREEN |
+| `ui/history/HistoryViewModelTest.kt` | 7 | GREEN |
+| `ui/profile/ProfileViewModelTest.kt` | 16 | GREEN |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 24 | GREEN |
+| `ui/home/HomeUiStateMapperTest.kt` | 11 | GREEN (+4 new this session) |
+| `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN |
+| **TOTAL** | **~221** | **0 failures** |
 
-**Note:** SettingsViewModelTest now uses 3-flow combine (themePalette + weightUnit + reminderEnabled).
+Note: Exact count may be higher due to additional tests added by subagents this session.
 
 ## ViewModel Test Patterns (Locked)
 
@@ -159,6 +162,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - **mockk for repos:** `every { repo.flowProp } returns MutableStateFlow(...)` (not `coEvery`)
 - **Synchronous actions:** no `advanceUntilIdle()` needed
 - **Coroutine-launching actions:** call `advanceUntilIdle()` after
+- **LogEntryViewModel:** uses `SharingStarted.WhileSubscribed(5_000)` + `uiState.launchIn(viewModelScope)` to seed combine; tests mock `getEntriesNewestFirst()` returning `flowOf(emptyList())`
 
 ## Build Configuration (AGP 9.x specific)
 
@@ -189,21 +193,25 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - Backup/device-transfer: cloud backup excluded, device-transfer excluded, CSV export as migration path
 - Crashlytics: NOT active. Commented deps. Activate with `google-services.json` in Phase 5.
 
-## UI Layer (post session 2026-05-07-002)
+## UI Layer (post session 2026-05-08-001 — FULL OVERHAUL COMPLETE)
 
 | Component | Status |
 |-----------|--------|
 | App icon | **DONE** — W mark vector, lime on dark, adaptive icon |
-| Typography | **DONE** — negative tracking on display, positive on labels, zero on body |
-| Color tokens | **DONE** — Border 12%, Text2 brighter, accentBorder 20% |
+| Typography | **DONE** — Bebas Neue display (tabular-nums on stats), Outfit body |
+| Color tokens | **DONE** — WFTokens updated: lime-tinted grays, accentSoft, accentBorder |
+| Design system | **DONE** — Zero/Whoop-inspired spec at `docs/superpowers/specs/2026-05-07-ui-ux-overhaul-design.md` |
+| WheelPicker | **DONE** — `ui/components/WheelPicker.kt`, snapping LazyColumn, hairlines |
+| WFHaptics | **DONE** — `ui/components/HapticsHelper.kt`, tick/confirm/celebrate |
 | ShellScreen | DONE |
-| HomeScreen | DONE |
-| TrendsScreen | DONE + Statistics section (P0 gap) |
-| HistoryScreen | DONE + tap-to-edit dialog |
-| ProfileScreen | DONE + BMI context card |
-| LogEntry sheet | DONE |
-| OnboardingScreen | DONE + privacy footer + 13+ gate |
-| SettingsScreen | **DONE** — full redesign (app-consistent header, card rows, 8 themes) |
+| HomeScreen | **DONE** — 64sp ritual weight block, underglow, sparkline, Start/Lost/Goal cards, goal bar |
+| GoalAchievedScreen | **DONE** — full-screen glow burst, journey stats, CTA → Profile |
+| TrendsScreen | **DONE** — coaching sentence, producerReady guard on chart |
+| HistoryScreen | **DONE** — bold 20sp day numbers, delta chips (pill), today lime tint |
+| ProfileScreen | **DONE** — journey card (Start/Now/Goal + progress bar + ETA) |
+| LogEntry sheet | **DONE** — drum-roll picker, 68sp live number, save animation, new-low celebration |
+| OnboardingScreen | **DONE** — step dots (active=pill), "STEP N OF 4" eyebrow |
+| SettingsScreen | **DONE** — 2-col theme grid with color dots, active lime border |
 
 ## Guardrails (Active)
 
@@ -222,6 +230,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 - [ ] Play Store listing + ASO copy (android-aso skill)
 - [ ] Wire Firebase Crashlytics end-to-end (needs google-services.json)
 - [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
+- [ ] Stone unit (ST): `kgToSt` converter not implemented — ST shows kg values in log entry coaching sentence
 
 ## Next Session Should
 
@@ -237,22 +246,25 @@ Vico 1.13.1 uses LEGACY API — context7 returns v3 docs (wrong). Use:
 - `com.patrykandpatrick.vico.compose.chart.Chart`
 - `com.patrykandpatrick.vico.compose.chart.line.lineChart`
 - `com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer` + `FloatEntry`
+- Chart crash guard: use `producerReady` flag — set true after `setEntriesSuspending().await()`
 
 ## Competitor Gap Analysis
 
 Saved: `docs/strategy/competitor-gap-analysis.md`
 
-P0 gaps (closed this session):
+P0 gaps (all closed):
 - All-time stats + 7D/30D change + rate + ETA to goal → TrendsScreen ✓
 - BMI category + normal range + diff → ProfileScreen ✓
 - Edit individual entry → HistoryScreen ✓
+- Drum-roll weight picker → LogEntry ✓
+- Full UI/UX redesign (Zero/Whoop quality) → all screens ✓
 
 P1 gaps (v1.1):
-- Drum roll scroll picker for weight entry
 - Height in imperial (ft+in) for lbs/st users
 - Weekly day-dot streak visualization
 - Share app + Write a Review links in Settings
 - Individual entry detail view
+- Stone unit `kgToSt` conversion
 
 P2 gaps (Phase 5):
 - Calendar month view, Google Fit sync, multiple metric charts, challenges
