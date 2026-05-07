@@ -63,7 +63,11 @@ private fun HomeContent(uiState: HomeUiState) {
         when (uiState) {
             is HomeUiState.Loading -> LoadingView()
             is HomeUiState.Empty   -> EmptyView(uiState)
-            is HomeUiState.HasData -> DataView(uiState)
+            is HomeUiState.HasData -> if (uiState.isGoalAchieved) {
+                GoalAchievedScreen(state = uiState, onSetNewGoal = { /* TODO: nav to Profile */ })
+            } else {
+                DataView(uiState)
+            }
         }
     }
 }
