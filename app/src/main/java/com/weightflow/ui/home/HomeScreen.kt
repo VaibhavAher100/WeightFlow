@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -136,22 +133,6 @@ private fun DataView(state: HomeUiState.HasData) {
         if (state.goalProgress != null) {
             item { Spacer(Modifier.height(10.dp)) }
             item { GoalProgressBar(state.goalProgress, accent) }
-        }
-        if (state.recentEntries.isNotEmpty()) {
-            item {
-                SectionLabel(
-                    text = "RECENT",
-                    modifier = Modifier.padding(start = 18.dp, top = 20.dp, bottom = 8.dp),
-                )
-            }
-            items(state.recentEntries, key = { it.id }) { entry ->
-                RecentEntryRow(
-                    entry = entry,
-                    modifier = Modifier
-                        .padding(horizontal = 14.dp)
-                        .padding(bottom = 8.dp),
-                )
-            }
         }
         item {
             Text(
@@ -433,69 +414,3 @@ private fun StatsTrio(state: HomeUiState.HasData) {
     }
 }
 
-@Composable
-private fun StatDivider() {
-    Box(
-        modifier = Modifier
-            .width(1.dp)
-            .height(32.dp)
-            .background(WFTokens.Border),
-    )
-}
-
-// ── Section Label ─────────────────────────────────────────────────────────────
-
-@Composable
-private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 1.5.sp,
-        color = WFTokens.Text3,
-        modifier = modifier,
-    )
-}
-
-// ── Recent Entry Row ──────────────────────────────────────────────────────────
-
-@Composable
-private fun RecentEntryRow(entry: RecentEntryDisplay, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(WFTokens.Card)
-            .border(1.dp, WFTokens.Border, RoundedCornerShape(14.dp))
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = entry.weightDisplay,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (entry.deltaDisplay != null && entry.deltaIsDown != null) {
-                val color = if (entry.deltaIsDown) WFTokens.Success else WFTokens.Danger
-                val arrow = if (entry.deltaIsDown) "▼" else "▲"
-                Text(
-                    text = "$arrow ${entry.deltaDisplay}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = color,
-                )
-            }
-            Text(
-                text = entry.dateDisplay,
-                style = MaterialTheme.typography.bodyMedium,
-                color = WFTokens.Text2,
-            )
-        }
-    }
-}
