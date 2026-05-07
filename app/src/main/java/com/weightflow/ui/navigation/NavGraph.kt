@@ -70,7 +70,7 @@ fun WeightFlowNavGraph(
         }
         composable(Screen.Settings.route) {
             val vm: SettingsViewModel = viewModel(
-                factory = vmFactory { SettingsViewModel(app.userPrefsDataStore) },
+                factory = vmFactory { SettingsViewModel(app.userPrefsDataStore, app.weightRepository) },
             )
             SettingsScreen(vm, onBack = { navController.popBackStack() })
         }

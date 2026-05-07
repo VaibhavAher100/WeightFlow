@@ -1,5 +1,5 @@
 ---
-last_session: 2026-04-26-001
+last_session: 2026-05-07-001
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -126,7 +126,11 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | COPPA/DPDP: year-of-birth picker (18+ threshold) | **DONE** (OnboardingViewModel + OnboardingScreen) |
 | GDPR Art. 17: Delete all data button | **DONE** (ProfileScreen + ProfileViewModel + DAOs) |
 | Compliance audit (GDPR/COPPA/DPDP) | **DONE** — 9 blockers found, 4 fixed in code, 5 filed as issues #31-34 |
-| Privacy policy live URL | **TODO** — needs GitHub Pages setup |
+| Privacy policy + ToS written | **DONE** — `docs/privacy/privacy-policy.md` + `docs/privacy/terms-of-service.md` (GDPR, COPPA, Art. 17/20) |
+| Privacy policy live URL | **TODO** — needs GitHub Pages publish (user action) |
+| Network Security Config | **DONE** — `res/xml/network_security_config.xml`, cleartext blocked in release, wired in manifest |
+| Medical disclaimer | **DONE** — HomeScreen DataView footer + OnboardingScreen GoalStep safe-messaging banner |
+| CSV export to Settings UI | **DONE** — SAF launcher, `SettingsViewModel.onExportCsv()`, `SettingsEvent.ExportCsvReady`, +2 unit tests (194 total) |
 | Back up Android keystore | **TODO** — user action, CRITICAL before first release build |
 | Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
 | Play Store listing + ASO | **TODO** |
@@ -163,9 +167,9 @@ All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
 | `ui/logentry/` | `LogEntryUiState.kt`, `LogEntryViewModel.kt`, `LogEntryScreen.kt` | PENDING overhaul |
 | `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (full overhaul) | DONE |
 | `ui/history/` | `HistoryUiState.kt` (+delta fields), `HistoryViewModel.kt` (+delta compute), `HistoryScreen.kt` (full overhaul) | DONE |
-| `ui/profile/` | `ProfileUiState.kt` (+8 fields), `ProfileViewModel.kt` (+BadgeObserver/WeightRepo), `ProfileScreen.kt` (full overhaul) | DONE |
+| `ui/profile/` | `ProfileUiState.kt` (+8 fields), `ProfileViewModel.kt` (+BadgeObserver/WeightRepo), `ProfileScreen.kt` (full overhaul + gear icon Settings nav) | DONE |
 | `ui/onboarding/` | `OnboardingUiState.kt` (birthYearInput), `OnboardingViewModel.kt` (year picker, 18+), `OnboardingScreen.kt` (year TextField + Scaffold snackbar) | DONE (2026-04-26) |
-| `ui/settings/` | `SettingsUiState.kt`, `SettingsViewModel.kt`, `SettingsScreen.kt` — merged via PR #30 | IN MAIN (weight unit + theme only; CSV export pending #32) |
+| `ui/settings/` | `SettingsUiState.kt`, `SettingsViewModel.kt` (+WeightRepository, onExportCsv, events), `SettingsEvent.kt`, `SettingsScreen.kt` (+SAF export launcher) | DONE (CSV export wired, #32 closed) |
 
 **Note:** `SettingsViewModelTest.kt` (3 tests) was in `.worktrees/phase3/` but merged via PR #30 — now in main.
 
@@ -188,7 +192,7 @@ All files in `app/src/main/java/com/weightflow/data/`. Phase 4 additions (2026-0
 - `UserProfileRepository` — `deleteProfile(): Int` added
 - `UserPrefsDataStore` — `clearAllPreferences()` added
 
-## Tests (**196 unit tests — all GREEN, BUILD SUCCESSFUL 2026-04-26**)
+## Tests (**194 unit tests — all GREEN, BUILD SUCCESSFUL 2026-05-07**)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -254,10 +258,11 @@ Three hookify rules in `.claude/`:
 
 ## Open Items
 
-- [ ] #31 — Privacy policy: write + publish to GitHub Pages (Play Store blocker)
-- [ ] #32 — CSV export wired to Settings UI (GDPR Art. 20 portability)
-- [ ] #33 — Medical disclaimer + safe-messaging banner (Play health policy)
-- [ ] #34 — Network Security Config (block cleartext traffic in release)
+- [x] #31 — Privacy policy + ToS written (`docs/privacy/`) — CLOSED
+- [x] #32 — CSV export wired to Settings UI (GDPR Art. 20) — CLOSED
+- [x] #33 — Medical disclaimer + safe-messaging banner — CLOSED
+- [x] #34 — Network Security Config blocking cleartext in release — CLOSED
+- [ ] Publish privacy policy to GitHub Pages (user action — needed for Play Store submission)
 - [ ] Back up Android keystore to 3 locations — CRITICAL before first release build
 - [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available
 - [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
@@ -290,12 +295,12 @@ Three hookify rules in `.claude/`:
 
 ## Next Session Should
 
-1. **#31** — Write privacy policy + publish to GitHub Pages (`privacy-policy-malik-taiar` skill)
-2. **#32** — Wire CSV export/import to Settings UI (SAF + ActivityResultContracts)
-3. **#33** — Add medical disclaimer to HomeScreen footer + safe-messaging banner on GoalStep
-4. **#34** — Add Network Security Config XML
-5. Generate Android keystore + back up to 3 locations (user action — CRITICAL)
-6. Start Play Store listing + ASO (`android-aso` skill)
+1. **Publish privacy policy to GitHub Pages** — enable Pages on repo, point to `docs/privacy/` (user action)
+2. **Play Store listing + ASO** — invoke `android-aso` skill, write store listing copy, upload screenshots
+3. **AAB build + internal track upload** — `android-playstore-setup` skill + `gplay-gradle-build` skill
+4. **Back up Android keystore** — CRITICAL user action before AAB upload
+5. **Firebase Crashlytics** — unblock once `google-services.json` available
+6. **Update donation URLs** in ProfileScreen (Ko-fi + Liberapay once accounts created)
 
 ## Vico Note (for future sessions)
 Vico 1.13.1 API — context7 returns v3 docs which are WRONG. Use these imports:

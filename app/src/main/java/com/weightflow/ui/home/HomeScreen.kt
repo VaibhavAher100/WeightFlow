@@ -147,6 +147,17 @@ private fun DataView(state: HomeUiState.HasData) {
                 )
             }
         }
+        item {
+            Text(
+                text = "WeightFlow is not a medical device and does not provide medical advice. Consult a healthcare professional before making health decisions.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+            )
+        }
     }
 }
 

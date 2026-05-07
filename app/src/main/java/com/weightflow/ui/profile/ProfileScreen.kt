@@ -20,8 +20,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -101,6 +105,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
             is ProfileUiState.Loaded -> ProfileContent(
                 state = uiState as ProfileUiState.Loaded,
                 onDeleteAllData = { showDeleteDialog = true },
+                onSettingsClick = onSettingsClick,
             )
         }
     }
@@ -109,12 +114,16 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
 // ── Main content ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun ProfileContent(state: ProfileUiState.Loaded, onDeleteAllData: () -> Unit) {
+private fun ProfileContent(
+    state: ProfileUiState.Loaded,
+    onDeleteAllData: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
-        item { PageHeader() }
+        item { PageHeader(onSettingsClick) }
         item { ProfileHero(state) }
         if (state.goalWeightDisplay != null) {
             item { Spacer(modifier = Modifier.height(10.dp)) }
@@ -140,7 +149,7 @@ private fun ProfileContent(state: ProfileUiState.Loaded, onDeleteAllData: () -> 
 // ── Page header ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun PageHeader() {
+private fun PageHeader(onSettingsClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,6 +163,13 @@ private fun PageHeader() {
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onBackground,
         )
+        IconButton(onClick = onSettingsClick) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = WFTokens.Text2,
+            )
+        }
     }
 }
 
