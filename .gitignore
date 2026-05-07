@@ -9,6 +9,7 @@
 .externalNativeBuild
 .cxx
 *.keystore
+*.jks
 !debug.keystore
 local.properties
 
