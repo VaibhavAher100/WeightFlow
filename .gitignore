@@ -29,3 +29,10 @@ google-services.json
 
 # Claude context (project-local, not for sharing)
 .claude/settings.local.json
+
+# Exclude internal tooling/logs from git tracking
+.agents/
+.codex/
+.continue/
+logs/
+AGENTS.md
