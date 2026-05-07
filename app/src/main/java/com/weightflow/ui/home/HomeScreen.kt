@@ -1,5 +1,6 @@
 package com.weightflow.ui.home
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,13 +13,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -122,15 +121,22 @@ private fun EmptyView(state: HomeUiState.Empty) {
 
 @Composable
 private fun DataView(state: HomeUiState.HasData) {
+    val accent = MaterialTheme.colorScheme.primary
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
         item { DashboardHeader() }
-        item { Spacer(modifier = Modifier.height(14.dp)) }
         item { HeroWeightCard(state) }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
+        if (state.sparklinePoints.size >= 2) {
+            item { SparklineCard(state.sparklinePoints, accent) }
+            item { Spacer(Modifier.height(8.dp)) }
+        }
         item { StatsTrio(state) }
+        if (state.goalProgress != null) {
+            item { Spacer(Modifier.height(10.dp)) }
+            item { GoalProgressBar(state.goalProgress, accent) }
+        }
         if (state.recentEntries.isNotEmpty()) {
             item {
                 SectionLabel(
@@ -149,13 +155,13 @@ private fun DataView(state: HomeUiState.HasData) {
         }
         item {
             Text(
-                text = "WeightFlow is not a medical device and does not provide medical advice. Consult a healthcare professional before making health decisions.",
+                text = "WeightFlow is not a medical device. Consult a healthcare professional before making health decisions.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
             )
         }
     }
@@ -203,150 +209,208 @@ private fun DashboardHeader() {
 @Composable
 private fun HeroWeightCard(state: HomeUiState.HasData) {
     val accent = MaterialTheme.colorScheme.primary
-    val unitSuffix = when (state.weightUnit) {
-        WeightUnit.KG  -> "kg"
-        WeightUnit.LBS -> "lbs"
-        WeightUnit.ST  -> ""
+    val unitLabel = when (state.weightUnit) {
+        WeightUnit.KG  -> "Kilograms"
+        WeightUnit.LBS -> "Pounds"
+        WeightUnit.ST  -> "Stone"
     }
-    val numberPart = if (unitSuffix.isNotEmpty())
-        state.latestWeightDisplay.removeSuffix(" $unitSuffix")
-    else
-        state.latestWeightDisplay
+    val numberText = state.latestWeightDisplay
+        .replace(" kg", "").replace(" lbs", "").replace(" st", "")
 
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "CURRENT WEIGHT",
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            color = WFTokens.Text3,
+            modifier = Modifier.padding(top = 20.dp),
+        )
+        Spacer(Modifier.height(4.dp))
+
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+            Canvas(
+                Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+            ) {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(accent.copy(alpha = 0.11f), Color.Transparent),
+                        center = Offset(size.width / 2, size.height),
+                        radius = size.width * 0.45f,
+                    ),
+                )
+            }
+            Text(
+                text = numberText,
+                fontSize = 64.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-3).sp,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            )
+        }
+
+        Text(
+            text = unitLabel.uppercase(),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp,
+            color = accent.copy(alpha = 0.55f),
+        )
+
+        if (state.deltaDisplay != null && state.deltaIsDown != null) {
+            Spacer(Modifier.height(8.dp))
+            val bg    = if (state.deltaIsDown) WFTokens.Success.copy(alpha = 0.1f) else WFTokens.Danger.copy(alpha = 0.1f)
+            val color = if (state.deltaIsDown) WFTokens.Success else WFTokens.Danger
+            val arrow = if (state.deltaIsDown) "▼" else "▲"
+            Box(
+                Modifier
+                    .background(bg, RoundedCornerShape(999.dp))
+                    .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "$arrow ${state.deltaDisplay} this week",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+// ── Sparkline Card ────────────────────────────────────────────────────────────
+
+@Composable
+private fun SparklineCard(points: List<Float>, accent: Color) {
+    if (points.size < 2) return
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(WFTokens.Card)
-            .border(1.dp, WFTokens.Border, RoundedCornerShape(26.dp)),
+            .padding(horizontal = 16.dp)
+            .background(WFTokens.Card, RoundedCornerShape(16.dp))
+            .border(1.dp, WFTokens.Border, RoundedCornerShape(16.dp))
+            .padding(12.dp),
     ) {
-        // Ambient glow top-right
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = 60.dp, y = (-60).dp)
-                .background(
-                    brush = Brush.radialGradient(
-                        listOf(accent.copy(alpha = 0.22f), Color.Transparent),
-                    ),
-                    shape = CircleShape,
-                ),
-        )
-
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 22.dp)) {
+        Column {
             Text(
-                text = "CURRENT WEIGHT",
-                fontSize = 10.sp,
+                text = "30-DAY TREND",
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp,
                 color = WFTokens.Text3,
             )
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.fillMaxWidth(),
+            Spacer(Modifier.height(8.dp))
+            Canvas(
+                Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             ) {
-                Text(
-                    text = numberPart,
-                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp),
-                    color = MaterialTheme.colorScheme.onBackground,
+                val minVal = points.min()
+                val maxVal = points.max()
+                val range = (maxVal - minVal).coerceAtLeast(0.1f)
+                val w = size.width
+                val h = size.height
+                val path = androidx.compose.ui.graphics.Path()
+                points.forEachIndexed { i, v ->
+                    val x = (i.toFloat() / (points.size - 1)) * w
+                    val y = h - ((v - minVal) / range) * h
+                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                }
+                drawPath(
+                    path,
+                    color = accent,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
                 )
-                if (unitSuffix.isNotEmpty()) {
-                    Text(
-                        text = " $unitSuffix",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = WFTokens.Text2,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                if (state.deltaDisplay != null && state.deltaIsDown != null) {
-                    DeltaPill(
-                        display = state.deltaDisplay,
-                        isDown = state.deltaIsDown,
-                        modifier = Modifier
-                            .align(Alignment.Bottom)
-                            .padding(bottom = 10.dp),
-                    )
-                }
-            }
-
-            if (state.goalProgress != null && state.goalWeightDisplay != null) {
-                Spacer(modifier = Modifier.height(18.dp))
-                GoalProgressBlock(
-                    goalDisplay = state.goalWeightDisplay,
-                    progress = state.goalProgress,
-                    accent = accent,
+                val lastX = w
+                val lastY = h - ((points.last() - minVal) / range) * h
+                drawCircle(
+                    color = accent,
+                    radius = 3.dp.toPx(),
+                    center = Offset(lastX, lastY),
                 )
             }
         }
     }
 }
 
-// ── Delta Pill ────────────────────────────────────────────────────────────────
+// ── Stat Card ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun DeltaPill(display: String, isDown: Boolean, modifier: Modifier = Modifier) {
-    val bg    = if (isDown) WFTokens.Success.copy(alpha = 0.12f) else WFTokens.Danger.copy(alpha = 0.12f)
-    val color = if (isDown) WFTokens.Success else WFTokens.Danger
-    val arrow = if (isDown) "▼" else "▲"
-    Box(
+private fun StatCard(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = Color.Unspecified,
+) {
+    val textColor = if (valueColor == Color.Unspecified) MaterialTheme.colorScheme.onBackground else valueColor
+    Column(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(bg)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .background(WFTokens.Card, RoundedCornerShape(16.dp))
+            .border(1.dp, WFTokens.Border, RoundedCornerShape(16.dp))
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "$arrow $display",
-            fontSize = 12.sp,
+            text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Black,
+            color = textColor,
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+            letterSpacing = (-0.5).sp,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = label,
+            fontSize = 7.sp,
             fontWeight = FontWeight.Bold,
-            color = color,
+            letterSpacing = 1.5.sp,
+            color = WFTokens.Text3,
         )
     }
 }
 
-// ── Goal Progress ─────────────────────────────────────────────────────────────
+// ── Goal Progress Bar ─────────────────────────────────────────────────────────
 
 @Composable
-private fun GoalProgressBlock(goalDisplay: String, progress: Float, accent: Color) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
+private fun GoalProgressBar(progress: Float, accent: Color) {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
-                text = "Goal",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = WFTokens.Text2,
+                text = "GOAL PROGRESS",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
+                color = WFTokens.Text3,
             )
             Text(
-                text = goalDisplay,
-                fontSize = 12.sp,
+                text = "${(progress * 100).toInt()}%",
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
                 color = accent,
             )
         }
-        Spacer(modifier = Modifier.height(7.dp))
+        Spacer(Modifier.height(5.dp))
         Box(
-            modifier = Modifier
+            Modifier
                 .fillMaxWidth()
-                .height(5.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(WFTokens.Elevated),
+                .height(4.dp)
+                .background(WFTokens.Elevated, RoundedCornerShape(999.dp))
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth(progress)
+                Modifier
+                    .fillMaxWidth(progress.coerceIn(0f, 1f))
                     .fillMaxHeight()
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(
-                        Brush.linearGradient(listOf(accent, accent.copy(alpha = 0.5f))),
-                    ),
+                    .background(accent, RoundedCornerShape(999.dp))
             )
         }
     }
@@ -356,51 +420,16 @@ private fun GoalProgressBlock(goalDisplay: String, progress: Float, accent: Colo
 
 @Composable
 private fun StatsTrio(state: HomeUiState.HasData) {
-    val goalPct = state.goalProgress?.let { "${(it * 100).toInt()}%" } ?: "—"
+    val accent = MaterialTheme.colorScheme.primary
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(WFTokens.Card)
-            .border(1.dp, WFTokens.Border, RoundedCornerShape(20.dp))
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StatCell(
-            value = if (state.streakDays > 0) "${state.streakDays}" else "—",
-            label = "DAY STREAK",
-        )
-        StatDivider()
-        StatCell(
-            value = state.avgDisplay ?: "—",
-            label = "7D AVG",
-        )
-        StatDivider()
-        StatCell(
-            value = goalPct,
-            label = "GOAL",
-        )
-    }
-}
-
-@Composable
-private fun StatCell(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = label,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp,
-            color = WFTokens.Text3,
-        )
+        StatCard(label = "START", value = state.startDisplay ?: "—", modifier = Modifier.weight(1f))
+        StatCard(label = "LOST",  value = state.lostDisplay  ?: "—", modifier = Modifier.weight(1f), valueColor = accent)
+        StatCard(label = "GOAL",  value = state.goalWeightDisplay ?: "—", modifier = Modifier.weight(1f))
     }
 }
 

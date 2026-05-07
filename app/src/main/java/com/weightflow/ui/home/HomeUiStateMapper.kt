@@ -62,6 +62,24 @@ object HomeUiStateMapper {
         val goalState = if (data.profile != null) GoalStateMachine.rehydrate(data.profile)
         else GoalState.NoGoal
 
+        val entries = data.entries
+        val startDisplay = if (entries.size >= 2) {
+            WeightConverter.format(entries.last().weightKg, data.unit)
+        } else null
+        val lostDisplay = if (entries.size >= 2) {
+            val startKg = entries.last().weightKg
+            val currentKg = entries.first().weightKg
+            val diff = startKg - currentKg
+            if (diff > 0) "−${"%.1f".format(diff)}" else "+${"%.1f".format(-diff)}"
+        } else null
+        val isGoalAchieved = goalState is GoalState.Active &&
+            entries.isNotEmpty() &&
+            entries.first().weightKg <= goalState.goalWeightKg
+        val sparklinePoints = entries
+            .takeLast(30)
+            .map { it.weightKg.toFloat() }
+            .reversed()
+
         return HomeUiState.HasData(
             latestWeightDisplay = WeightConverter.format(latest.weightKg, data.unit),
             weightUnit = data.unit,
@@ -73,6 +91,10 @@ object HomeUiStateMapper {
             streakDays = streakDays,
             avgDisplay = avgDisplay,
             goalProgress = goalProgress,
+            startDisplay = startDisplay,
+            lostDisplay = lostDisplay,
+            isGoalAchieved = isGoalAchieved,
+            sparklinePoints = sparklinePoints,
         )
     }
 
