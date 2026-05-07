@@ -22,7 +22,9 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
     }
 
     val weightUnit: Flow<WeightUnit> = dataStore.data.map { prefs ->
-        WeightUnit.valueOf(prefs[WEIGHT_UNIT] ?: WeightUnit.KG.name)
+        runCatching {
+            WeightUnit.valueOf(prefs[WEIGHT_UNIT] ?: WeightUnit.KG.name)
+        }.getOrDefault(WeightUnit.KG)
     }
 
     val themePalette: Flow<String> = dataStore.data.map { prefs ->
