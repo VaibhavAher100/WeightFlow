@@ -37,5 +37,6 @@ sealed class TrendsUiState {
         val minDisplay: Float,
         val maxDisplay: Float,
         val statsSection: StatsSection? = null,
+        val coachingSentence: String? = null,
     ) : TrendsUiState()
 }

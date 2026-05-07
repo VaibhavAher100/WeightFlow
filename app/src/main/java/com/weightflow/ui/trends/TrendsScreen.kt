@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -202,6 +203,25 @@ private fun ChartView(state: TrendsUiState.HasData) {
         state.statsSection?.let { stats ->
             Spacer(modifier = Modifier.height(16.dp))
             StatisticsSection(stats, state.weightUnit)
+        }
+        state.coachingSentence?.let { sentence ->
+            Spacer(Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp)
+                    .background(WFTokens.accentSoft(accent), RoundedCornerShape(16.dp))
+                    .border(1.dp, WFTokens.accentBorder(accent), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                Text(
+                    text = sentence,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    fontStyle = FontStyle.Italic,
+                    lineHeight = 16.sp,
+                )
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
     }

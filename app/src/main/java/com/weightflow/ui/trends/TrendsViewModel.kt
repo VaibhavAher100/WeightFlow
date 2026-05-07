@@ -44,12 +44,18 @@ class TrendsViewModel(
             )
         }
 
+        val stats = computeStatsSection(entries, unit, profile?.goalWeightKg)
         TrendsUiState.HasData(
             chartPoints = points,
             weightUnit = unit,
             minDisplay = points.minOf { it.displayValue },
             maxDisplay = points.maxOf { it.displayValue },
-            statsSection = computeStatsSection(entries, unit, profile?.goalWeightKg),
+            statsSection = stats,
+            coachingSentence = buildCoachingSentence(
+                goalWeightKg = profile?.goalWeightKg,
+                etaDays = stats.estimatedDaysToGoal,
+                unit = unit,
+            ),
         )
     }.stateIn(
         scope = viewModelScope,
@@ -121,7 +127,10 @@ class TrendsViewModel(
         val etaDays = if (goalWeightKg != null && weeklyRateKg < 0.0) {
             val currentKg   = allEntries.last().weightKg
             val remainingKg = currentKg - goalWeightKg
-            if (remainingKg > 0.0) ((remainingKg / (-weeklyRateKg)) * 7.0).toInt() else null
+            if (remainingKg > 0.0) {
+                val rawDays = (remainingKg / (-weeklyRateKg)) * 7.0
+                if (rawDays.isFinite() && rawDays < Int.MAX_VALUE.toDouble()) rawDays.toInt() else null
+            } else null
         } else null
 
         return StatsSection(
@@ -135,5 +144,20 @@ class TrendsViewModel(
             avgChangePerMonthDisplay = monthlyRateDisplay,
             estimatedDaysToGoal     = etaDays,
         )
+    }
+
+    private fun buildCoachingSentence(
+        goalWeightKg: Double?,
+        etaDays: Int?,
+        unit: WeightUnit,
+    ): String? {
+        if (goalWeightKg == null || etaDays == null) return null
+        val goalDisplay = when (unit) {
+            WeightUnit.KG  -> "%.1f kg".format(goalWeightKg)
+            WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(goalWeightKg))
+            WeightUnit.ST  -> "%.1f kg".format(goalWeightKg)
+        }
+        return if (etaDays < 14) "You're almost there — goal $goalDisplay is within reach."
+        else "At this rate you'll reach $goalDisplay in about ${etaDays / 7} weeks."
     }
 }
