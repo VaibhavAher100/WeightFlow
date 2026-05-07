@@ -1,51 +1,52 @@
 package com.weightflow.ui.logentry
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.components.WheelPicker
+import com.weightflow.ui.components.rememberWFHaptics
 import com.weightflow.ui.theme.WFTokens
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+private val WHOLE_PARTS_KG  = (20..300).toList()
+private val WHOLE_PARTS_LBS = (44..660).toList()
+private val DECIMAL_PARTS   = (0..9).toList()
 
 @Composable
 fun LogEntrySheet(
@@ -53,8 +54,8 @@ fun LogEntrySheet(
     onDismiss: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val haptics = rememberWFHaptics()
     val accent = MaterialTheme.colorScheme.primary
-    val onPrimary = MaterialTheme.colorScheme.onPrimary
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -64,237 +65,224 @@ fun LogEntrySheet(
         }
     }
 
+    val lastKg = uiState.lastLoggedWeightKg ?: 80.0
+    val initialDisplayVal = when (uiState.weightUnit) {
+        WeightUnit.KG  -> lastKg
+        WeightUnit.LBS -> WeightConverter.kgToLbs(lastKg)
+        WeightUnit.ST  -> lastKg
+    }
+    val wholeParts = if (uiState.weightUnit == WeightUnit.LBS) WHOLE_PARTS_LBS else WHOLE_PARTS_KG
+    val initialWhole = initialDisplayVal.toInt().coerceIn(wholeParts.first(), wholeParts.last())
+    val initialDecimal = ((initialDisplayVal - initialDisplayVal.toInt()) * 10).toInt().coerceIn(0, 9)
+
+    var selectedWhole   by remember { mutableIntStateOf(initialWhole) }
+    var selectedDecimal by remember { mutableIntStateOf(initialDecimal) }
+
+    LaunchedEffect(selectedWhole, selectedDecimal, uiState.weightUnit) {
+        viewModel.onWeightInput("$selectedWhole.$selectedDecimal")
+    }
+
+    val drumAlpha by animateFloatAsState(
+        targetValue = if (uiState.isSaved) 0.12f else 1f,
+        animationSpec = tween(250),
+        label = "drumAlpha",
+    )
+    val numColor by animateColorAsState(
+        targetValue = if (uiState.isNewPersonalLow) accent else MaterialTheme.colorScheme.onBackground,
+        animationSpec = tween(250),
+        label = "numColor",
+    )
+
+    LaunchedEffect(uiState.isNewPersonalLow) {
+        if (uiState.isNewPersonalLow) haptics.celebrate()
+    }
+
+    val wholeInitialIndex = wholeParts.indexOf(initialWhole).coerceAtLeast(0)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .imePadding()
-            .padding(bottom = 24.dp),
+            .padding(bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Header
-        Row(
+        // Handle
+        Box(
+            Modifier
+                .padding(top = 14.dp)
+                .width(36.dp)
+                .height(4.dp)
+                .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(999.dp))
+        )
+
+        // ── Hero zone ──
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(top = 16.dp, bottom = 8.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = "LOG WEIGHT",
-                fontSize = 11.sp,
-                letterSpacing = 2.sp,
-                fontWeight = FontWeight.Bold,
-                color = WFTokens.Text2,
-            )
-            TextButton(onClick = viewModel::onDismiss) {
-                Text("Cancel", color = WFTokens.Text2, fontSize = 14.sp)
+            Canvas(Modifier.matchParentSize()) {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(accent.copy(alpha = 0.13f), Color.Transparent),
+                        center = Offset(size.width / 2, size.height),
+                        radius = size.width * 0.5f,
+                    ),
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "$selectedWhole.$selectedDecimal",
+                    fontSize = 68.sp,
+                    fontWeight = FontWeight.Black,
+                    color = numColor,
+                    letterSpacing = (-3).sp,
+                    fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+                )
+                val unitLabel = when (uiState.weightUnit) {
+                    WeightUnit.KG  -> if (uiState.isNewPersonalLow) "New Low · Kilograms" else "Kilograms"
+                    WeightUnit.LBS -> if (uiState.isNewPersonalLow) "New Low · Pounds" else "Pounds"
+                    WeightUnit.ST  -> if (uiState.isNewPersonalLow) "New Low · Stone" else "Stone"
+                }
+                Box(
+                    modifier = Modifier
+                        .background(WFTokens.accentSoft(accent), RoundedCornerShape(999.dp))
+                        .border(1.dp, WFTokens.accentBorder(accent), RoundedCornerShape(999.dp))
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        text = unitLabel.uppercase(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        color = accent,
+                    )
+                }
+                uiState.lastLoggedWeightKg?.let { lastKgVal ->
+                    val displayLast = when (uiState.weightUnit) {
+                        WeightUnit.KG  -> "%.1f kg".format(lastKgVal)
+                        WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(lastKgVal))
+                        WeightUnit.ST  -> "%.1f kg".format(lastKgVal)
+                    }
+                    Text(
+                        text = "Last logged $displayLast",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = WFTokens.Text3,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        // ── Drum zone ──
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(drumAlpha)
+                .background(Color.White.copy(alpha = 0.02f))
+                .padding(horizontal = 24.dp, vertical = 4.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                WheelPicker(
+                    items = wholeParts,
+                    initialIndex = wholeInitialIndex,
+                    onItemSelected = { selectedWhole = it },
+                    onScrollTick = { haptics.tick() },
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = ".",
+                    fontSize = 20.sp,
+                    color = WFTokens.Text3,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+                WheelPicker(
+                    items = DECIMAL_PARTS,
+                    initialIndex = initialDecimal,
+                    onItemSelected = { selectedDecimal = it },
+                    onScrollTick = { haptics.tick() },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(modifier = Modifier.weight(1f)) {
+                    listOf(WeightUnit.KG to "KG", WeightUnit.LBS to "LBS", WeightUnit.ST to "ST")
+                        .forEach { (unit, label) ->
+                            val isActive = unit == uiState.weightUnit
+                            Text(
+                                text = label,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.5.sp,
+                                color = if (isActive) accent else WFTokens.Text3,
+                                modifier = Modifier.padding(end = 10.dp),
+                            )
+                        }
+                }
+                Text(
+                    text = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d")),
+                    fontSize = 9.sp,
+                    color = WFTokens.Text3,
+                )
+            }
+        }
 
-        // Hero card — weight input
+        Spacer(Modifier.height(12.dp))
+
+        // ── Save button ──
+        val btnLabel = when {
+            uiState.isSaved && uiState.isNewPersonalLow -> "New Low 🏆"
+            uiState.isSaved                             -> "✓  Logged"
+            uiState.isSaving                            -> "Saving…"
+            else                                        -> "Save Entry"
+        }
+        val btnBg = if (uiState.isSaved) Color.Transparent else accent
+        val btnTextColor = if (uiState.isSaved) accent else MaterialTheme.colorScheme.onPrimary
+        val btnBorderMod = if (uiState.isSaved)
+            Modifier.border(1.dp, WFTokens.accentBorder(accent), RoundedCornerShape(999.dp))
+        else
+            Modifier
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(26.dp))
-                .background(WFTokens.Elevated)
-                .border(1.dp, WFTokens.Border, RoundedCornerShape(26.dp))
-                .padding(vertical = 28.dp),
+                .then(btnBorderMod)
+                .background(btnBg, RoundedCornerShape(999.dp))
+                .clickable(enabled = uiState.isInputValid && !uiState.isSaving && !uiState.isSaved) {
+                    haptics.confirm()
+                    viewModel.onSave()
+                }
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "ENTER WEIGHT",
-                    fontSize = 10.sp,
-                    letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = WFTokens.Text3,
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                ) {
-                    StepButton("−") {
-                        val cur = uiState.weightInput.toDoubleOrNull() ?: 0.0
-                        viewModel.onWeightInput("%.1f".format(maxOf(0.0, cur - 0.1)))
-                    }
-
-                    BasicTextField(
-                        value = uiState.weightInput,
-                        onValueChange = viewModel::onWeightInput,
-                        textStyle = TextStyle(
-                            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
-                            fontSize = 72.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                        ),
-                        singleLine = true,
-                        cursorBrush = SolidColor(accent),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done,
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { if (uiState.isInputValid) viewModel.onSave() },
-                        ),
-                        modifier = Modifier.width(160.dp),
-                        decorationBox = { inner ->
-                            Box(contentAlignment = Alignment.Center) {
-                                if (uiState.weightInput.isEmpty()) {
-                                    Text(
-                                        text = "0.0",
-                                        style = TextStyle(
-                                            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
-                                            fontSize = 72.sp,
-                                            color = WFTokens.Text3,
-                                            textAlign = TextAlign.Center,
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
-                                    )
-                                }
-                                inner()
-                            }
-                        },
-                    )
-
-                    StepButton("+") {
-                        val cur = uiState.weightInput.toDoubleOrNull() ?: 0.0
-                        viewModel.onWeightInput("%.1f".format(cur + 0.1))
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Unit indicator (display-only — change via Settings)
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(WFTokens.Card)
-                        .border(1.dp, WFTokens.Border, RoundedCornerShape(8.dp)),
-                ) {
-                    listOf(WeightUnit.KG, WeightUnit.LBS, WeightUnit.ST).forEach { unit ->
-                        val isSelected = unit == uiState.weightUnit
-                        Box(
-                            modifier = Modifier
-                                .background(if (isSelected) accent else Color.Transparent)
-                                .padding(horizontal = 16.dp, vertical = 7.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = when (unit) {
-                                    WeightUnit.KG  -> "kg"
-                                    WeightUnit.LBS -> "lbs"
-                                    WeightUnit.ST  -> "st"
-                                },
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) onPrimary else WFTokens.Text3,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(10.dp))
-
-        // Date row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(WFTokens.Card)
-                .border(1.dp, WFTokens.Border, RoundedCornerShape(14.dp))
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column {
-                Text(
-                    text = "DATE",
-                    fontSize = 9.sp,
-                    letterSpacing = 1.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = WFTokens.Text3,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = uiState.selectedDate.format(
-                        DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"),
-                    ),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            Icon(
-                imageVector = Icons.Filled.CalendarToday,
-                contentDescription = null,
-                tint = WFTokens.Text3,
-                modifier = Modifier.size(18.dp),
+            Text(
+                text = btnLabel,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.5.sp,
+                color = btnTextColor,
             )
         }
 
         if (uiState.errorMessage != null) {
-            Spacer(Modifier.height(6.dp))
             Text(
                 text = uiState.errorMessage!!,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(horizontal = 20.dp),
+                fontSize = 11.sp,
+                color = WFTokens.Danger,
+                modifier = Modifier.padding(top = 8.dp, start = 20.dp, end = 20.dp),
             )
         }
-
-        Spacer(Modifier.height(20.dp))
-
-        Button(
-            onClick = viewModel::onSave,
-            enabled = uiState.isInputValid && !uiState.isSaving,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = accent,
-                contentColor = onPrimary,
-                disabledContainerColor = WFTokens.Elevated,
-                disabledContentColor = WFTokens.Text3,
-            ),
-        ) {
-            Text(
-                text = if (uiState.isSaving) "SAVING…" else "SAVE ENTRY",
-                fontSize = 14.sp,
-                letterSpacing = 1.5.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
-@Composable
-private fun StepButton(label: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(42.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(WFTokens.Card)
-            .border(1.dp, WFTokens.Border, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            fontSize = 22.sp,
-            color = WFTokens.Text2,
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center,
-        )
     }
 }
