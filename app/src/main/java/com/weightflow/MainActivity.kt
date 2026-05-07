@@ -8,7 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.weightflow.ui.onboarding.OnboardingScreen
@@ -19,7 +24,7 @@ import com.weightflow.ui.theme.WeightFlowTheme
 class MainActivity : ComponentActivity() {
 
     private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* graceful deny — reminder won't fire */ }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* graceful deny */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,18 +43,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             val palette by app.userPrefsDataStore.themePalette
                 .collectAsStateWithLifecycle(initialValue = "lime")
-            // initialValue = true keeps the shell visible while prefs load,
-            // preventing a flash of the onboarding screen on existing users.
-            val onboardingComplete by app.userPrefsDataStore.onboardingComplete
-                .collectAsStateWithLifecycle(initialValue = true)
+            // null = DataStore not yet emitted — show blank background to prevent shell flash
+            val onboardingState by app.userPrefsDataStore.onboardingState
+                .collectAsStateWithLifecycle(initialValue = null)
             WeightFlowTheme(palette = palette) {
-                if (onboardingComplete) {
-                    ShellScreen(app = app)
-                } else {
-                    OnboardingScreen(
-                        viewModel = onboardingViewModel,
-                        onFinished = { /* DataStore Flow drives recompose — no manual nav needed */ },
-                    )
+                when (onboardingState) {
+                    null  -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+                    true  -> ShellScreen(app = app)
+                    false -> OnboardingScreen(viewModel = onboardingViewModel, onFinished = { })
                 }
             }
         }

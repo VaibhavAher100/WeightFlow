@@ -135,6 +135,10 @@ fun OnboardingScreen(
 
         Spacer(Modifier.weight(1f))
 
+        if (uiState.currentStep == OnboardingStep.AGE_GATE) {
+            PrivacyFooter()
+        }
+
         BottomBar(
             currentStep = uiState.currentStep,
             canAdvance = uiState.canAdvance,
@@ -149,6 +153,28 @@ fun OnboardingScreen(
     }
     } // end Scaffold content lambda
 } // OnboardingScreen
+
+// ── Privacy footer ────────────────────────────────────────────────────────────
+
+@Composable
+private fun PrivacyFooter() {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        TextButton(onClick = {
+            runCatching { uriHandler.openUri("https://vaibhavaher100.github.io/WeightFlow/privacy-policy") }
+        }) { Text("Privacy Policy", fontSize = 11.sp, color = WFTokens.Text3) }
+        Text("·", fontSize = 11.sp, color = WFTokens.Text3,
+            modifier = Modifier.align(androidx.compose.ui.Alignment.CenterVertically))
+        TextButton(onClick = {
+            runCatching { uriHandler.openUri("https://vaibhavaher100.github.io/WeightFlow/terms-of-service") }
+        }) { Text("Terms of Service", fontSize = 11.sp, color = WFTokens.Text3) }
+    }
+}
 
 // ── Step indicator dots ───────────────────────────────────────────────────────
 

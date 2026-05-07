@@ -17,11 +17,7 @@ class WeightFlowApp : Application() {
     override fun onCreate() {
         super.onCreate()
         // Crashlytics: add google-services.json + wire deps when ready (Phase 5)
-        scheduleWeightReminder()
-    }
-
-    private fun scheduleWeightReminder() {
-        com.weightflow.worker.WeightReminderWorker.schedule(this)
+        // Reminders: opt-in via Settings toggle — not auto-scheduled at startup
     }
 
     val database: AppDatabase by lazy {

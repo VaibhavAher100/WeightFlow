@@ -18,6 +18,7 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
         private val THEME_PALETTE = stringPreferencesKey("theme_palette")
         private val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         private val SEEN_BADGES = stringSetPreferencesKey("seen_badges")
+        private val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
     }
 
     val weightUnit: Flow<WeightUnit> = dataStore.data.map { prefs ->
@@ -30,6 +31,15 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
 
     val onboardingComplete: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[ONBOARDING_COMPLETE] ?: false
+    }
+
+    /** Null = DataStore not yet loaded. True/false = actual value. Use for splash prevention. */
+    val onboardingState: Flow<Boolean?> = dataStore.data.map { prefs ->
+        prefs[ONBOARDING_COMPLETE]
+    }
+
+    val reminderEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[REMINDER_ENABLED] ?: false
     }
 
     suspend fun setWeightUnit(unit: WeightUnit) {
@@ -57,6 +67,10 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
             val existing = prefs[SEEN_BADGES] ?: emptySet()
             prefs[SEEN_BADGES] = existing + badges.map { it.name }
         }
+    }
+
+    suspend fun setReminderEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[REMINDER_ENABLED] = enabled }
     }
 
     suspend fun clearAllPreferences() {
