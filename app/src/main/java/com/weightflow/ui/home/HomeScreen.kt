@@ -41,7 +41,11 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    snackbarHostState: SnackbarHostState,
+    onNavigateToProfile: () -> Unit = {},
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.badgeEvents.collect { badges ->
@@ -50,11 +54,14 @@ fun HomeScreen(viewModel: HomeViewModel, snackbarHostState: SnackbarHostState) {
             viewModel.onBadgeShown(badges)
         }
     }
-    HomeContent(uiState = uiState)
+    HomeContent(uiState = uiState, onNavigateToProfile = onNavigateToProfile)
 }
 
 @Composable
-private fun HomeContent(uiState: HomeUiState) {
+private fun HomeContent(
+    uiState: HomeUiState,
+    onNavigateToProfile: () -> Unit = {},
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +71,7 @@ private fun HomeContent(uiState: HomeUiState) {
             is HomeUiState.Loading -> LoadingView()
             is HomeUiState.Empty   -> EmptyView(uiState)
             is HomeUiState.HasData -> if (uiState.isGoalAchieved) {
-                GoalAchievedScreen(state = uiState, onSetNewGoal = { /* TODO: nav to Profile */ })
+                GoalAchievedScreen(state = uiState, onSetNewGoal = onNavigateToProfile)
             } else {
                 DataView(uiState)
             }
