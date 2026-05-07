@@ -9,6 +9,9 @@ data class LogEntryUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val weightUnit: WeightUnit = WeightUnit.KG,
     val isSaving: Boolean = false,
+    val isSaved: Boolean = false,
+    val isNewPersonalLow: Boolean = false,
+    val lastLoggedWeightKg: Double? = null,
     val errorMessage: String? = null,
 )
 
