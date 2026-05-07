@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -148,7 +149,11 @@ private fun ChartView(state: TrendsUiState.HasData) {
         modelProducer.setEntriesSuspending(entries).await()
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,6 +181,11 @@ private fun ChartView(state: TrendsUiState.HasData) {
 
         Spacer(modifier = Modifier.height(10.dp))
         ChartStatsRow(state)
+        state.statsSection?.let { stats ->
+            Spacer(modifier = Modifier.height(16.dp))
+            StatisticsSection(stats, state.weightUnit)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -253,4 +263,166 @@ private fun ChartStat(
             textAlign = TextAlign.Center,
         )
     }
+}
+
+// ── Statistics Section ────────────────────────────────────────────────────────
+
+@Composable
+private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
+    val unitLabel = when (weightUnit) {
+        WeightUnit.KG  -> "kg"
+        WeightUnit.LBS -> "lbs"
+        WeightUnit.ST  -> "lbs"
+    }
+    val accent = MaterialTheme.colorScheme.primary
+
+    Column(modifier = Modifier.padding(horizontal = 14.dp)) {
+        StatsSectionHeader("All Time")
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            StatRow("%.1f".format(stats.allTimeHighDisplay), "HIGH", unitLabel, modifier = Modifier.weight(1f))
+            StatRow("%.1f".format(stats.allTimeLowDisplay),  "LOW",  unitLabel, modifier = Modifier.weight(1f))
+            StatRow("%.1f".format(stats.allTimeAvgDisplay),  "AVG",  unitLabel, modifier = Modifier.weight(1f))
+            StatRow("${stats.totalEntries}",                  "LOGS", "",        modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+        StatsSectionHeader("Progress")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val change7DColor = stats.change7DDisplay?.let { if (it < 0f) WFTokens.Success else WFTokens.Danger }
+            ?: WFTokens.Text3
+        val change30DColor = stats.change30DDisplay?.let { if (it < 0f) WFTokens.Success else WFTokens.Danger }
+            ?: WFTokens.Text3
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            StatRow(
+                formatChange(stats.change7DDisplay), "7D CHANGE",
+                if (stats.change7DDisplay != null) unitLabel else "", change7DColor, Modifier.weight(1f),
+            )
+            StatRow(
+                formatChange(stats.change30DDisplay), "30D CHANGE",
+                if (stats.change30DDisplay != null) unitLabel else "", change30DColor, Modifier.weight(1f),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        val weekColor  = if (stats.avgChangePerWeekDisplay  < 0f) WFTokens.Success else WFTokens.Danger
+        val monthColor = if (stats.avgChangePerMonthDisplay < 0f) WFTokens.Success else WFTokens.Danger
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            StatRow(
+                formatChange(stats.avgChangePerWeekDisplay), "AVG / WEEK",
+                unitLabel, weekColor, Modifier.weight(1f),
+            )
+            StatRow(
+                formatChange(stats.avgChangePerMonthDisplay), "AVG / MONTH",
+                unitLabel, monthColor, Modifier.weight(1f),
+            )
+        }
+
+        stats.estimatedDaysToGoal?.let { days ->
+            Spacer(modifier = Modifier.height(7.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(WFTokens.Card)
+                    .border(1.dp, WFTokens.accentBorder(accent), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "ESTIMATED DAYS TO GOAL",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.6.sp,
+                            color = WFTokens.Text3,
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "At your current rate",
+                            fontSize = 11.sp,
+                            color = WFTokens.Text2,
+                        )
+                    }
+                    Text(
+                        text = "$days",
+                        fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accent,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsSectionHeader(title: String) {
+    Text(
+        text = title.uppercase(),
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.5.sp,
+        color = WFTokens.Text3,
+    )
+}
+
+@Composable
+private fun StatRow(
+    value: String,
+    label: String,
+    unit: String,
+    valueColor: Color = MaterialTheme.colorScheme.onBackground,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(WFTokens.Card)
+            .border(1.dp, WFTokens.Border, RoundedCornerShape(14.dp))
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall.copy(fontSize = 17.sp),
+            color = valueColor,
+            textAlign = TextAlign.Center,
+        )
+        if (unit.isNotEmpty()) {
+            Text(text = unit, fontSize = 9.sp, color = WFTokens.Text3, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.5.sp,
+            color = WFTokens.Text3,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+private fun formatChange(value: Float?): String {
+    if (value == null) return "—"
+    return if (value < 0f) "−${"%.1f".format(abs(value))}" else "+${"%.1f".format(value)}"
 }

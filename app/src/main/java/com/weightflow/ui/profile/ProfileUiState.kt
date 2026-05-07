@@ -25,5 +25,9 @@ sealed class ProfileUiState {
         val goalProgressPercent: Float? = null,
         val goalSummaryLabel: String? = null,
         val bmiDisplay: String? = null,
+        val bmiCategory: String? = null,
+        val bmiNormalRangeLow: Double? = null,
+        val bmiNormalRangeHigh: Double? = null,
+        val bmiDifferenceFromNormal: Double? = null,
     ) : ProfileUiState()
 }

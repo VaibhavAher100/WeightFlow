@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.weightflow.domain.Badge
+import com.weightflow.domain.WeightConverter
 import com.weightflow.ui.theme.WFTokens
 
 @Composable
@@ -131,6 +132,10 @@ private fun ProfileContent(
         }
         item { Spacer(modifier = Modifier.height(10.dp)) }
         item { BodyStatsGrid(state) }
+        if (state.bmiCategory != null) {
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+            item { BmiContextCard(state) }
+        }
         item {
             AchievementsHeader(
                 earned = state.earnedBadges.size,
@@ -421,6 +426,55 @@ private fun BodyStatsGrid(state: ProfileUiState.Loaded) {
                 }
             }
         }
+    }
+}
+
+// ── BMI context ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun BmiContextCard(state: ProfileUiState.Loaded) {
+    val category = state.bmiCategory ?: return
+    val categoryColor = when (category) {
+        "Normal"      -> WFTokens.Success
+        "Underweight" -> MaterialTheme.colorScheme.primary
+        else          -> WFTokens.Danger
+    }
+    val normalRangeText = if (state.bmiNormalRangeLow != null && state.bmiNormalRangeHigh != null) {
+        val low = WeightConverter.format(state.bmiNormalRangeLow, state.weightUnit)
+        val high = WeightConverter.format(state.bmiNormalRangeHigh, state.weightUnit)
+        "Normal: $low – $high"
+    } else null
+    val diffText = state.bmiDifferenceFromNormal?.let { diff ->
+        if (diff == 0.0) null
+        else if (diff > 0) "+${WeightConverter.format(diff, state.weightUnit)} above range"
+        else "−${WeightConverter.format(kotlin.math.abs(diff), state.weightUnit)} below range"
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+            .background(WFTokens.Card)
+            .border(1.dp, WFTokens.Border, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            if (normalRangeText != null) {
+                Text(text = normalRangeText, fontSize = 11.sp, color = WFTokens.Text2)
+            }
+            if (diffText != null) {
+                Text(text = diffText, fontSize = 11.sp, color = WFTokens.Text3)
+            }
+        }
+        Text(
+            text = category,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = categoryColor,
+        )
     }
 }
 

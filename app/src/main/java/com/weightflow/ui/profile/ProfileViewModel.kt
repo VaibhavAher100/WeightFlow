@@ -54,6 +54,34 @@ class ProfileViewModel(
             "%.1f".format(newestEntry.weightKg / (hM * hM))
         } else null
 
+        val bmiCategory = if (profile.heightCm != null && newestEntry != null) {
+            val hM  = profile.heightCm / 100.0
+            val bmi = newestEntry.weightKg / (hM * hM)
+            when {
+                bmi < 18.5 -> "Underweight"
+                bmi < 25.0 -> "Normal"
+                bmi < 30.0 -> "Overweight"
+                else       -> "Obese"
+            }
+        } else null
+
+        val (bmiNormalRangeLow, bmiNormalRangeHigh) = if (profile.heightCm != null) {
+            val hSq = (profile.heightCm / 100.0).let { it * it }
+            Pair(18.5 * hSq, 25.0 * hSq)
+        } else Pair(null, null)
+
+        val bmiDifferenceFromNormal = if (profile.heightCm != null && newestEntry != null) {
+            val hSq     = (profile.heightCm / 100.0).let { it * it }
+            val bmi     = newestEntry.weightKg / hSq
+            val minKg   = 18.5 * hSq
+            val maxKg   = 25.0 * hSq
+            when {
+                bmi < 18.5 -> newestEntry.weightKg - minKg  // negative (below range)
+                bmi > 25.0 -> newestEntry.weightKg - maxKg  // positive (above range)
+                else       -> 0.0
+            }
+        } else null
+
         ProfileUiState.Loaded(
             displayName = profile.displayName,
             goalWeightKg = profile.goalWeightKg,
@@ -70,6 +98,10 @@ class ProfileViewModel(
             goalProgressPercent = goalProgressPercent,
             goalSummaryLabel = goalSummaryLabel,
             bmiDisplay = bmiDisplay,
+            bmiCategory = bmiCategory,
+            bmiNormalRangeLow = bmiNormalRangeLow,
+            bmiNormalRangeHigh = bmiNormalRangeHigh,
+            bmiDifferenceFromNormal = bmiDifferenceFromNormal,
         )
     }.stateIn(
         scope = viewModelScope,
