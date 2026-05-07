@@ -30,7 +30,7 @@ class OnboardingViewModel(
 
     fun onBirthYearInput(year: String) {
         val age = year.toIntOrNull()?.let { LocalDate.now().year - it }
-        val isOldEnough = age != null && age >= 18
+        val isOldEnough = age != null && age >= 13
         _uiState.update { it.copy(birthYearInput = year, canAdvance = isOldEnough) }
     }
 
@@ -62,7 +62,7 @@ class OnboardingViewModel(
         when (state.currentStep) {
             OnboardingStep.AGE_GATE -> {
                 val age = state.birthYearInput.toIntOrNull()?.let { LocalDate.now().year - it }
-                if (age == null || age < 18) {
+                if (age == null || age < 13) {
                     viewModelScope.launch { _events.emit(OnboardingEvent.AgeDeclined) }
                     return
                 }

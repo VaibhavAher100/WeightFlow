@@ -68,7 +68,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `entering birth year with age 18+ sets canAdvance true`() = runTest {
+    fun `entering birth year with age 13+ sets canAdvance true`() = runTest {
         val vm = makeViewModel()
         vm.onBirthYearInput("2000") // 26 years old in 2026
         advanceUntilIdle()
@@ -76,7 +76,15 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `entering birth year with age under 18 keeps canAdvance false`() = runTest {
+    fun `entering birth year with age exactly 13 sets canAdvance true`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("2013") // 13 years old in 2026
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.canAdvance)
+    }
+
+    @Test
+    fun `entering birth year with age under 13 keeps canAdvance false`() = runTest {
         val vm = makeViewModel()
         vm.onBirthYearInput("2015") // 11 years old in 2026
         advanceUntilIdle()
@@ -92,7 +100,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `advancing from AgeGate with age under 18 stays on AgeGate`() = runTest {
+    fun `advancing from AgeGate with age under 13 stays on AgeGate`() = runTest {
         val vm = makeViewModel()
         vm.onBirthYearInput("2015")
         vm.onNextStep()
