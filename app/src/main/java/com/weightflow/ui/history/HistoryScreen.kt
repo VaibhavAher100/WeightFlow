@@ -1,6 +1,7 @@
 package com.weightflow.ui.history
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.domain.isValidWeightKg
 import com.weightflow.ui.theme.WFTokens
 import java.time.Instant
 import java.time.LocalDate
@@ -84,13 +86,13 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
                 TextButton(
                     onClick = {
                         val raw = editInput.toDoubleOrNull()
-                        if (raw != null && raw > 0 && entry != null) {
+                        if (raw != null && entry != null) {
                             val kg = when (currentState?.weightUnit) {
                                 com.weightflow.domain.WeightUnit.LBS ->
                                     com.weightflow.domain.WeightConverter.lbsToKg(raw)
                                 else -> raw
                             }
-                            viewModel.onEditEntry(entry.id, kg)
+                            if (kg.isValidWeightKg()) viewModel.onEditEntry(entry.id, kg)
                         }
                         editingEntry = null
                         editInput = ""
@@ -198,7 +200,6 @@ private fun DataView(
             items(items = entries, key = { it.id }) { entry ->
                 HistoryEntryRow(
                     entry = entry,
-                    isLast = entry == entries.last(),
                     onDelete = { onDelete(entry.id) },
                     onEdit = { onEdit(entry) },
                 )
@@ -257,7 +258,6 @@ private fun MonthHeader(label: String) {
 @Composable
 private fun HistoryEntryRow(
     entry: HistoryEntryDisplay,
-    isLast: Boolean,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -272,106 +272,153 @@ private fun HistoryEntryRow(
         if (isToday) "TODAY" else localDate.format(dayFmt).uppercase()
     }
 
-    val rowBg = if (isToday)
-        WFTokens.accentDim(MaterialTheme.colorScheme.primary)
-    else
-        Color.Transparent
+    val accent = MaterialTheme.colorScheme.primary
+    val rowBg = if (isToday) accent.copy(alpha = 0.04f) else Color.Transparent
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(rowBg)
-            .clickable(onClick = onEdit)
-            .padding(horizontal = 18.dp, vertical = 11.dp)
-            .semantics {
-                contentDescription = "${entry.weightDisplay} on ${entry.dateDisplay}"
-            },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // Date column — fixed 38dp
-        Column(
-            modifier = Modifier.width(38.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = dayNum,
-                fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                lineHeight = 24.sp,
-            )
-            Text(
-                text = dayName,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp,
-                color = WFTokens.Text3,
-            )
-        }
-
-        // Weight + notes
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = entry.weightDisplay,
-                fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                lineHeight = 22.sp,
-            )
-        }
-
-        // Delta + delete
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            DeltaChip(display = entry.deltaDisplay, isDown = entry.deltaIsDown)
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Delete entry for ${entry.dateDisplay}",
-                    tint = WFTokens.Text3,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
+    // Split "70.5 kg" → numText="70.5", unitText="kg"
+    val numText = remember(entry.weightDisplay) {
+        entry.weightDisplay
+            .replace(" kg", "").replace(" lbs", "").replace(" st", "")
+            .trim()
+    }
+    val unitText = remember(entry.weightDisplay) {
+        when {
+            entry.weightDisplay.contains("kg")  -> "kg"
+            entry.weightDisplay.contains("lbs") -> "lbs"
+            entry.weightDisplay.contains("st")  -> "st"
+            else -> ""
         }
     }
 
-    // Divider
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(WFTokens.Border),
-    )
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(rowBg)
+                .clickable(onClick = onEdit)
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .semantics {
+                    contentDescription = "${entry.weightDisplay} on ${entry.dateDisplay}"
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Day number block — 48dp wide
+            Column(modifier = Modifier.width(48.dp)) {
+                Text(
+                    text = dayNum,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    color = if (isToday) accent else MaterialTheme.colorScheme.onBackground,
+                    fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+                    lineHeight = 22.sp,
+                )
+                Text(
+                    text = dayName,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = WFTokens.Text3,
+                )
+            }
+
+            // Weight number + unit sub-label
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp),
+            ) {
+                Text(
+                    text = numText,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
+                    lineHeight = 22.sp,
+                )
+                if (unitText.isNotEmpty()) {
+                    Text(
+                        text = unitText,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = WFTokens.Text3,
+                    )
+                }
+            }
+
+            // Delta chip + delete button
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                DeltaChip(display = entry.deltaDisplay, isDown = entry.deltaIsDown)
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete entry for ${entry.dateDisplay}",
+                        tint = WFTokens.Text3,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+        }
+
+        // Divider
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(WFTokens.Border),
+        )
+    }
 }
 
 // ── Delta Chip ────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DeltaChip(display: String?, isDown: Boolean?) {
-    val (bg, color, label) = when {
-        display == null        -> return
-        isDown == null         -> Triple(WFTokens.Elevated, WFTokens.Text3, "— $display")
-        display == "0.0 kg" || display == "0.0 lbs" -> Triple(WFTokens.Elevated, WFTokens.Text3, "— same")
-        isDown                 -> Triple(WFTokens.Success.copy(alpha = 0.12f), WFTokens.Success, "▼ $display")
-        else                   -> Triple(WFTokens.Danger.copy(alpha = 0.12f), WFTokens.Danger, "▲ $display")
+    val (bg, borderColor, chipColor, label) = when {
+        display == null -> return
+        isDown == null  -> Quad(
+            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— $display",
+        )
+        display == "0.0 kg" || display == "0.0 lbs" || display == "0.0 st" -> Quad(
+            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— same",
+        )
+        isDown -> Quad(
+            WFTokens.Success.copy(alpha = 0.10f),
+            WFTokens.Success.copy(alpha = 0.20f),
+            WFTokens.Success,
+            "▼ $display",
+        )
+        else -> Quad(
+            WFTokens.Danger.copy(alpha = 0.10f),
+            WFTokens.Danger.copy(alpha = 0.20f),
+            WFTokens.Danger,
+            "▲ $display",
+        )
     }
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            .background(bg, RoundedCornerShape(999.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
         Text(
             text = label,
-            fontSize = 11.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            color = color,
+            color = chipColor,
         )
     }
 }
+
+/** Tiny data holder to make destructuring four values readable in [DeltaChip]. */
+private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+private operator fun <A, B, C, D> Quad<A, B, C, D>.component1() = first
+private operator fun <A, B, C, D> Quad<A, B, C, D>.component2() = second
+private operator fun <A, B, C, D> Quad<A, B, C, D>.component3() = third
+private operator fun <A, B, C, D> Quad<A, B, C, D>.component4() = fourth

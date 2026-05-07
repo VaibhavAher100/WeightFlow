@@ -277,4 +277,21 @@ class OnboardingViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `short year like 20 does not pass age gate`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("20") // not 4 digits — would compute age 2006 with old logic
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.canAdvance)
+    }
+
+    @Test
+    fun `goal weight optional but invalid non-blank value blocks advance`() = runTest {
+        val vm = makeViewModel()
+        navigateTo(vm, OnboardingStep.GOAL)
+        vm.onGoalInput("99999") // extreme — not a valid kg weight
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.canAdvance)
+    }
 }

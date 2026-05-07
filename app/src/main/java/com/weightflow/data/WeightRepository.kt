@@ -1,12 +1,14 @@
 package com.weightflow.data
 
 import com.weightflow.domain.WeightEntry
+import com.weightflow.domain.isValidWeightKg
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class WeightRepository(private val dao: WeightEntryDao) {
 
     suspend fun addEntry(weightKg: Double, timestamp: Long, note: String = ""): Long {
+        require(weightKg.isValidWeightKg()) { "Invalid weight: $weightKg" }
         return dao.insert(WeightEntryEntity(timestamp = timestamp, weightKg = weightKg, note = note))
     }
 
@@ -16,6 +18,7 @@ class WeightRepository(private val dao: WeightEntryDao) {
     }
 
     suspend fun updateEntry(id: Long, weightKg: Double): Int {
+        require(weightKg.isValidWeightKg()) { "Invalid weight: $weightKg" }
         val entity = dao.getById(id) ?: return 0
         return dao.update(entity.copy(weightKg = weightKg))
     }
@@ -33,6 +36,7 @@ class WeightRepository(private val dao: WeightEntryDao) {
     }
 
     fun getEntriesBetween(from: Long, to: Long): Flow<List<WeightEntry>> {
+        require(from <= to) { "from must be <= to" }
         return dao.getEntriesBetween(from, to).map { list -> list.map { it.toDomain() } }
     }
 

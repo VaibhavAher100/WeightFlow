@@ -78,4 +78,14 @@ class CsvImporterTest {
 
         assertTrue(result is ParseResult.Error)
     }
+
+    @Test
+    fun `CsvImporter rejects file larger than 5MB`() {
+        val csv = "x".repeat(5_000_001)
+
+        val result = CsvImporter.import(csv, existingEntries = emptyList())
+
+        assertTrue(result is ParseResult.Error)
+        assertEquals("File too large (max 5 MB)", (result as ParseResult.Error).message)
+    }
 }
