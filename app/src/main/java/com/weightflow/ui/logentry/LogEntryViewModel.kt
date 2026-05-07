@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -41,9 +42,14 @@ class LogEntryViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Eagerly,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = LogEntryUiState(),
     )
+
+    init {
+        // Ensure the combined flow stays active even when not subscribed to (e.g., in tests)
+        uiState.launchIn(viewModelScope)
+    }
 
     fun onWeightInput(input: String) {
         val raw = input.toDoubleOrNull()
