@@ -7,6 +7,7 @@ import com.weightflow.data.UserProfileRepository
 import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
+import com.weightflow.domain.isValidWeightKg
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,8 +30,9 @@ class OnboardingViewModel(
     val events: SharedFlow<OnboardingEvent> = _events.asSharedFlow()
 
     fun onBirthYearInput(year: String) {
-        val age = year.toIntOrNull()?.let { LocalDate.now().year - it }
-        val isOldEnough = age != null && age >= 13
+        val currentYear = LocalDate.now().year
+        val birthYear = if (year.length == 4) year.toIntOrNull() else null
+        val isOldEnough = birthYear != null && birthYear in 1900..(currentYear - 13)
         _uiState.update { it.copy(birthYearInput = year, canAdvance = isOldEnough) }
     }
 
@@ -39,7 +41,15 @@ class OnboardingViewModel(
     }
 
     fun onWeightInput(input: String) {
-        val valid = input.toDoubleOrNull()?.let { it > 0.0 } ?: false
+        val raw = input.toDoubleOrNull()
+        val weightKg = raw?.let { v ->
+            when (_uiState.value.selectedUnit) {
+                WeightUnit.KG  -> v
+                WeightUnit.LBS -> WeightConverter.lbsToKg(v)
+                WeightUnit.ST  -> v
+            }
+        }
+        val valid = weightKg?.isValidWeightKg() ?: false
         _uiState.update { state ->
             val canAdvance = when (state.currentStep) {
                 OnboardingStep.CURRENT_WEIGHT -> valid
@@ -50,8 +60,20 @@ class OnboardingViewModel(
     }
 
     fun onGoalInput(input: String) {
-        // Goal is optional — always can advance from goal step
-        _uiState.update { it.copy(goalInput = input, canAdvance = true) }
+        val valid = if (input.isBlank()) {
+            true
+        } else {
+            val raw = input.toDoubleOrNull()
+            val goalKg = raw?.let { v ->
+                when (_uiState.value.selectedUnit) {
+                    WeightUnit.KG  -> v
+                    WeightUnit.LBS -> WeightConverter.lbsToKg(v)
+                    WeightUnit.ST  -> v
+                }
+            }
+            goalKg?.isValidWeightKg() ?: false
+        }
+        _uiState.update { it.copy(goalInput = input, canAdvance = valid) }
     }
 
     fun onNextStep() {
@@ -61,8 +83,9 @@ class OnboardingViewModel(
 
         when (state.currentStep) {
             OnboardingStep.AGE_GATE -> {
-                val age = state.birthYearInput.toIntOrNull()?.let { LocalDate.now().year - it }
-                if (age == null || age < 13) {
+                val currentYear = LocalDate.now().year
+                val birthYear = if (state.birthYearInput.length == 4) state.birthYearInput.toIntOrNull() else null
+                if (birthYear == null || birthYear !in 1900..(currentYear - 13)) {
                     viewModelScope.launch { _events.emit(OnboardingEvent.AgeDeclined) }
                     return
                 }
@@ -100,18 +123,20 @@ class OnboardingViewModel(
 
             val weightKg = state.weightInput.toDoubleOrNull()?.let { input ->
                 when (state.selectedUnit) {
-                    WeightUnit.KG -> input
+                    WeightUnit.KG  -> input
                     WeightUnit.LBS -> WeightConverter.lbsToKg(input)
-                    WeightUnit.ST -> input
+                    WeightUnit.ST  -> input
                 }
             } ?: 0.0
+            if (!weightKg.isValidWeightKg()) return@launch
 
-            val goalKg = state.goalInput.toDoubleOrNull()?.let { input ->
-                when (state.selectedUnit) {
-                    WeightUnit.KG -> input
+            val goalKg = state.goalInput.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { input ->
+                val kg = when (state.selectedUnit) {
+                    WeightUnit.KG  -> input
                     WeightUnit.LBS -> WeightConverter.lbsToKg(input)
-                    WeightUnit.ST -> input
+                    WeightUnit.ST  -> input
                 }
+                kg.takeIf { it.isValidWeightKg() }
             }
 
             userProfileRepository.saveProfile(

@@ -103,6 +103,8 @@ fun OnboardingScreen(
 
         Spacer(Modifier.height(40.dp))
 
+        StepEyebrow(stepNumber = OnboardingStep.entries.indexOf(uiState.currentStep) + 1, accent = accent)
+        Spacer(Modifier.height(8.dp))
         StepDots(currentStep = uiState.currentStep, accent = accent)
 
         Spacer(Modifier.height(32.dp))
@@ -176,13 +178,32 @@ private fun PrivacyFooter() {
     }
 }
 
+// ── Step eyebrow label ───────────────────────────────────────────────────────
+
+@Composable
+private fun StepEyebrow(stepNumber: Int, accent: Color) {
+    Text(
+        text = "STEP $stepNumber OF ${OnboardingStep.entries.size}",
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 2.sp,
+        color = accent.copy(alpha = 0.55f),
+        modifier = Modifier.padding(horizontal = 24.dp),
+    )
+}
+
 // ── Step indicator dots ───────────────────────────────────────────────────────
 
 @Composable
 private fun StepDots(currentStep: OnboardingStep, accent: Color) {
     val steps = OnboardingStep.entries
     val currentIdx = steps.indexOf(currentStep)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.Center,
+    ) {
         steps.forEachIndexed { idx, _ ->
             val isActive = idx == currentIdx
             val isPast = idx < currentIdx

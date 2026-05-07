@@ -10,6 +10,7 @@ object CsvImporter {
      * If all parsers fail, returns the last error.
      */
     fun import(csv: String, existingEntries: List<WeightEntry>): ParseResult {
+        if (csv.length > 5_000_000) return ParseResult.Error("File too large (max 5 MB)")
         // Try HappyScale first (distinctive: quoted headers + "Pounds")
         val happyScaleResult = HappyScaleParser.parse(csv, existingEntries)
         if (happyScaleResult is ParseResult.Success) {

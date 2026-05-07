@@ -1,5 +1,10 @@
 package com.weightflow.domain
 
+const val MIN_WEIGHT_KG = 0.5
+const val MAX_WEIGHT_KG = 635.0
+
+fun Double.isValidWeightKg(): Boolean = isFinite() && this in MIN_WEIGHT_KG..MAX_WEIGHT_KG
+
 data class StonesResult(val stones: Int, val pounds: Int)
 
 object WeightConverter {

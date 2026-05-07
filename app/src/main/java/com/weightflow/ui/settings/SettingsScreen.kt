@@ -7,14 +7,20 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -55,9 +61,15 @@ import java.time.LocalDate
 private const val PRIVACY_URL = "https://vaibhavaher100.github.io/WeightFlow/privacy-policy/"
 private const val TERMS_URL   = "https://vaibhavaher100.github.io/WeightFlow/terms-of-service/"
 
-private val PALETTES = listOf(
-    "lime" to "🍋", "forest" to "🌲", "ocean" to "🌊", "sunset" to "🌅",
-    "rose" to "🌸", "violet" to "💜", "gold" to "✨", "ice" to "❄️",
+private val THEME_OPTIONS = listOf(
+    Triple("lime", "Lime", Color(0xFFC8FF00)),
+    Triple("rose", "Rose", Color(0xFFFF4081)),
+    Triple("forest", "Forest", Color(0xFF4CAF50)),
+    Triple("violet", "Violet", Color(0xFFBB86FC)),
+    Triple("ocean", "Ocean", Color(0xFF00BCD4)),
+    Triple("gold", "Gold", Color(0xFFFFD700)),
+    Triple("sunset", "Sunset", Color(0xFFFF6B35)),
+    Triple("ice", "Ice", Color(0xFF80DEEA)),
 )
 
 @Composable
@@ -155,28 +167,11 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
 
             // Theme
             SectionLabel("Theme")
-            val cols = PALETTES.chunked(4)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                cols.forEach { col ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        col.forEach { (palette, emoji) ->
-                            ThemeChip(
-                                palette = palette,
-                                emoji = emoji,
-                                selected = state.themePalette == palette,
-                                accent = accent,
-                                onClick = { viewModel.onThemeSelected(palette) },
-                            )
-                        }
-                    }
-                }
-            }
+            ThemeGrid(
+                selectedPalette = state.themePalette,
+                onThemeSelected = viewModel::onThemeSelected,
+                accent = accent,
+            )
 
             // Notifications
             SectionLabel("Notifications")
@@ -246,33 +241,52 @@ private fun UnitChip(label: String, selected: Boolean, accent: Color, onClick: (
 }
 
 @Composable
-private fun ThemeChip(
-    palette: String,
-    emoji: String,
-    selected: Boolean,
+private fun ThemeGrid(
+    selectedPalette: String,
+    onThemeSelected: (String) -> Unit,
     accent: Color,
-    onClick: () -> Unit,
 ) {
-    val bg     = if (selected) WFTokens.accentDim(accent) else WFTokens.Card
-    val border = if (selected) WFTokens.accentBorder(accent) else WFTokens.Border
-    Row(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(bg)
-            .border(1.dp, border, RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = 0.dp)
+            .heightIn(max = 320.dp),
     ) {
-        Text(emoji, fontSize = 13.sp)
-        Text(
-            palette.replaceFirstChar { it.uppercase() },
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) accent else WFTokens.Text2,
-        )
+        items(THEME_OPTIONS) { (key, name, dotColor) ->
+            val isSelected = key == selectedPalette
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (isSelected) WFTokens.accentSoft(accent) else WFTokens.Card,
+                        RoundedCornerShape(12.dp),
+                    )
+                    .border(
+                        1.dp,
+                        if (isSelected) WFTokens.accentBorder(accent) else WFTokens.Border,
+                        RoundedCornerShape(12.dp),
+                    )
+                    .clickable { onThemeSelected(key) }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(14.dp)
+                        .background(dotColor, RoundedCornerShape(999.dp))
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = name,
+                    fontSize = 12.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) MaterialTheme.colorScheme.onBackground else WFTokens.Text2,
+                )
+            }
+        }
     }
 }
 

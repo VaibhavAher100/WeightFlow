@@ -43,6 +43,7 @@ object WeightFitParser {
             val date = runCatching { LocalDate.parse(parts[0]) }.getOrNull() ?: continue
             val raw = parts[1].toDoubleOrNull() ?: continue
             val weightKg = if (isLbs) WeightConverter.lbsToKg(raw) else raw
+            if (!weightKg.isValidWeightKg()) continue
             val entry = makeEntry(date, weightKg)
             if (isDuplicate(entry, existingEntries)) duplicates++ else entries.add(entry)
         }
@@ -74,7 +75,9 @@ object HappyScaleParser {
             if (parts.size < 2) continue
             val date = runCatching { LocalDate.parse(parts[0]) }.getOrNull() ?: continue
             val lbs = parts[1].toDoubleOrNull() ?: continue
-            val entry = makeEntry(date, WeightConverter.lbsToKg(lbs))
+            val weightKg = WeightConverter.lbsToKg(lbs)
+            if (!weightKg.isValidWeightKg()) continue
+            val entry = makeEntry(date, weightKg)
             if (isDuplicate(entry, existingEntries)) duplicates++ else entries.add(entry)
         }
 
@@ -116,7 +119,7 @@ object AppleHealthParser {
             val raw = parts[valueIdx].toDoubleOrNull() ?: continue
             val unit = if (unitIdx >= 0 && unitIdx < parts.size) parts[unitIdx] else "kg"
             val weightKg = if (unit.lowercase() in listOf("lbs", "lb")) WeightConverter.lbsToKg(raw) else raw
-
+            if (!weightKg.isValidWeightKg()) continue
             val entry = makeEntry(date, weightKg)
             if (isDuplicate(entry, existingEntries)) duplicates++ else entries.add(entry)
         }
@@ -155,6 +158,7 @@ object GenericCsvParser {
             val date = runCatching { LocalDate.parse(parts[dateIdx]) }.getOrNull() ?: continue
             val raw = parts[weightIdx].toDoubleOrNull() ?: continue
             val weightKg = if (isLbs) WeightConverter.lbsToKg(raw) else raw
+            if (!weightKg.isValidWeightKg()) continue
             val entry = makeEntry(date, weightKg)
             if (isDuplicate(entry, existingEntries)) duplicates++ else entries.add(entry)
         }

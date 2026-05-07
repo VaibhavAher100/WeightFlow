@@ -31,6 +31,6 @@
 -keep class com.patrykandpatrick.vico.** { *; }
 -dontwarn com.patrykandpatrick.vico.**
 
-# ── WeightFlow domain + data (Room entities, data classes) ────────────────────
--keep class com.weightflow.domain.** { *; }
--keep class com.weightflow.data.** { *; }
+# ── WeightFlow: keep serialized/reflected types only ─────────────────────────
+# Room @Entity and @Dao already kept above via annotation rules.
+# No additional broad keeps needed — R8 traces all usages statically.
