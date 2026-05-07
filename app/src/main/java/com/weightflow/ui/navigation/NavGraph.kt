@@ -1,5 +1,8 @@
 package com.weightflow.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +39,10 @@ fun WeightFlowNavGraph(
         navController = navController,
         startDestination = Screen.Home.route,
         modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(180)) },
+        exitTransition = { fadeOut(animationSpec = tween(180)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(180)) },
+        popExitTransition = { fadeOut(animationSpec = tween(180)) },
     ) {
         composable(Screen.Home.route) {
             val vm: HomeViewModel = viewModel(

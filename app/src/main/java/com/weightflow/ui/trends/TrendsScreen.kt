@@ -22,7 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -141,12 +143,14 @@ private fun EmptyView() {
 private fun ChartView(state: TrendsUiState.HasData) {
     val accent = MaterialTheme.colorScheme.primary
     val modelProducer = remember { ChartEntryModelProducer() }
+    var producerReady by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.chartPoints) {
         val entries = state.chartPoints.mapIndexed { idx, pt ->
             FloatEntry(x = idx.toFloat(), y = pt.displayValue)
         }
         modelProducer.setEntriesSuspending(entries).await()
+        producerReady = true
     }
 
     Column(
@@ -163,20 +167,34 @@ private fun ChartView(state: TrendsUiState.HasData) {
                 .border(1.dp, WFTokens.Border, RoundedCornerShape(20.dp))
                 .padding(14.dp),
         ) {
-            Chart(
-                chart = lineChart(
-                    lines = listOf(
-                        VicoLineChart.LineSpec(
-                            lineColor = accent.toArgb(),
-                            lineThicknessDp = 2f,
+            if (producerReady) {
+                Chart(
+                    chart = lineChart(
+                        lines = listOf(
+                            VicoLineChart.LineSpec(
+                                lineColor = accent.toArgb(),
+                                lineThicknessDp = 2f,
+                            ),
                         ),
                     ),
-                ),
-                chartModelProducer = modelProducer,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-            )
+                    chartModelProducer = modelProducer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
