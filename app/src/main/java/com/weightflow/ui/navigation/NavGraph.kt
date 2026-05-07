@@ -45,7 +45,7 @@ fun WeightFlowNavGraph(
         }
         composable(Screen.Trends.route) {
             val vm: TrendsViewModel = viewModel(
-                factory = vmFactory { TrendsViewModel(app.weightRepository, app.userPrefsDataStore) },
+                factory = vmFactory { TrendsViewModel(app.weightRepository, app.userPrefsDataStore, app.userProfileRepository) },
             )
             TrendsScreen(vm)
         }

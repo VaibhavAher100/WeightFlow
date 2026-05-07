@@ -198,4 +198,62 @@ class ProfileViewModelTest {
         advanceUntilIdle()
         coVerify { userPrefsDataStore.clearAllPreferences() }
     }
+
+    // ── BMI context ───────────────────────────────────────────────────────────
+
+    @Test
+    fun `bmiCategory is Normal when BMI between 18_5 and 25`() = runTest {
+        // height 165cm, weight 65 kg → BMI = 65 / 1.65^2 ≈ 23.9 (Normal)
+        profileFlow.value = baseProfile()
+        entriesFlow.value = listOf(WeightEntry(id = 1, timestamp = 1_000_000L, weightKg = 65.0, note = ""))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals("Normal", state.bmiCategory)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `bmiCategory is Overweight when BMI between 25 and 30`() = runTest {
+        // height 165cm, weight 80 kg → BMI = 80 / 1.65^2 ≈ 29.4 (Overweight)
+        profileFlow.value = baseProfile()
+        entriesFlow.value = listOf(WeightEntry(id = 1, timestamp = 1_000_000L, weightKg = 80.0, note = ""))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals("Overweight", state.bmiCategory)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `bmiNormalRangeLow and High computed from height`() = runTest {
+        // height 165cm → h^2 = 2.7225 → low = 18.5 * 2.7225 ≈ 50.4 kg, high = 25 * 2.7225 ≈ 68.1 kg
+        profileFlow.value = baseProfile()
+        entriesFlow.value = listOf(WeightEntry(id = 1, timestamp = 1_000_000L, weightKg = 70.0, note = ""))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertEquals(50.4, state.bmiNormalRangeLow ?: 0.0, 0.5)
+            assertEquals(68.1, state.bmiNormalRangeHigh ?: 0.0, 0.5)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `bmiDifferenceFromNormal is positive when overweight`() = runTest {
+        // height 165cm, weight 80 kg → normal max ≈ 68.1 kg → diff ≈ +11.9 kg
+        profileFlow.value = baseProfile()
+        entriesFlow.value = listOf(WeightEntry(id = 1, timestamp = 1_000_000L, weightKg = 80.0, note = ""))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as ProfileUiState.Loaded
+            assertTrue(
+                "Expected positive diff, got ${state.bmiDifferenceFromNormal}",
+                (state.bmiDifferenceFromNormal ?: 0.0) > 0.0,
+            )
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

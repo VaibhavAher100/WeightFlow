@@ -16,6 +16,18 @@ data class ChartPoint(
     val displayValue: Float,
 )
 
+data class StatsSection(
+    val allTimeHighDisplay: Float,
+    val allTimeLowDisplay: Float,
+    val allTimeAvgDisplay: Float,
+    val totalEntries: Int,
+    val change7DDisplay: Float?,
+    val change30DDisplay: Float?,
+    val avgChangePerWeekDisplay: Float,
+    val avgChangePerMonthDisplay: Float,
+    val estimatedDaysToGoal: Int?,
+)
+
 sealed class TrendsUiState {
     data object Loading : TrendsUiState()
     data object Empty : TrendsUiState()
@@ -24,5 +36,6 @@ sealed class TrendsUiState {
         val weightUnit: WeightUnit,
         val minDisplay: Float,
         val maxDisplay: Float,
+        val statsSection: StatsSection? = null,
     ) : TrendsUiState()
 }

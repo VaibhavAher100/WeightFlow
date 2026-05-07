@@ -2,7 +2,9 @@ package com.weightflow.ui.trends
 
 import app.cash.turbine.test
 import com.weightflow.data.UserPrefsDataStore
+import com.weightflow.data.UserProfileRepository
 import com.weightflow.data.WeightRepository
+import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
 import io.mockk.every
@@ -33,14 +35,17 @@ class TrendsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val weightRepository: WeightRepository = mockk()
     private val userPrefsDataStore: UserPrefsDataStore = mockk()
+    private val userProfileRepository: UserProfileRepository = mockk()
     private val entriesFlow = MutableStateFlow<List<WeightEntry>>(emptyList())
     private val unitFlow = MutableStateFlow(WeightUnit.KG)
+    private val profileFlow = MutableStateFlow<UserProfile?>(null)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { weightRepository.getEntriesOldestFirst() } returns entriesFlow
         every { userPrefsDataStore.weightUnit } returns unitFlow
+        every { userProfileRepository.getProfile() } returns profileFlow
     }
 
     @After
@@ -48,7 +53,7 @@ class TrendsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun makeViewModel() = TrendsViewModel(weightRepository, userPrefsDataStore)
+    private fun makeViewModel() = TrendsViewModel(weightRepository, userPrefsDataStore, userProfileRepository)
 
     private fun entryAt(daysAgo: Int, weightKg: Double) = WeightEntry(
         id = daysAgo.toLong(),
@@ -181,5 +186,112 @@ class TrendsViewModelTest {
         vm.onRangeSelected(TrendsTimeRange.DAYS_90)
         advanceUntilIdle()
         assertEquals(TrendsTimeRange.DAYS_90, vm.selectedRange.value)
+    }
+
+    // ── StatsSection ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `statsSection allTimeHigh is max of all entries regardless of selected range`() = runTest {
+        entriesFlow.value = listOf(
+            entryAt(365, 90.0), // outside 30D range but must appear in allTimeHigh
+            entryAt(5, 80.0),
+            entryAt(0, 79.0),
+        )
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(90.0f, state.statsSection?.allTimeHighDisplay ?: 0f, 0.1f)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection allTimeLow is min of all entries regardless of selected range`() = runTest {
+        entriesFlow.value = listOf(
+            entryAt(365, 70.0), // outside 30D range but must appear in allTimeLow
+            entryAt(5, 80.0),
+            entryAt(0, 79.0),
+        )
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(70.0f, state.statsSection?.allTimeLowDisplay ?: 0f, 0.1f)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection totalEntries counts all entries not just range`() = runTest {
+        entriesFlow.value = (1..10).map { entryAt(it * 30, 80.0 - it) }
+        val vm = makeViewModel()
+        vm.onRangeSelected(TrendsTimeRange.DAYS_30)
+        advanceUntilIdle()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(10, state.statsSection?.totalEntries)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection change7D is null when fewer than 2 entries in 7-day window`() = runTest {
+        // Both entries are > 7 days ago
+        entriesFlow.value = listOf(entryAt(10, 80.0), entryAt(20, 81.0))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(null, state.statsSection?.change7DDisplay)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection estimatedDaysToGoal is null when no goal set`() = runTest {
+        profileFlow.value = null
+        entriesFlow.value = listOf(entryAt(30, 85.0), entryAt(0, 80.0))
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(null, state.statsSection?.estimatedDaysToGoal)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection estimatedDaysToGoal computed from rate and remaining weight`() = runTest {
+        // 10 kg lost over 70 days = 10 weeks → 1 kg/week
+        // remaining = 80 - 70 = 10 kg → ETA = 70 days
+        entriesFlow.value = listOf(entryAt(70, 90.0), entryAt(0, 80.0))
+        profileFlow.value = UserProfile(
+            id = 1, displayName = "Test", goalWeightKg = 70.0,
+            targetDate = null, heightCm = 170.0, maintenanceMode = false,
+            maintenanceRangeKg = 2.0, maintenanceModeActivatedAt = null,
+        )
+        val vm = makeViewModel()
+        vm.onRangeSelected(TrendsTimeRange.ALL)
+        advanceUntilIdle()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            val eta = state.statsSection?.estimatedDaysToGoal
+            assertTrue("Expected ~70 days, got $eta", eta != null && eta in 60..80)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `statsSection estimatedDaysToGoal is null when gaining weight`() = runTest {
+        // Gaining weight toward a lower goal → ETA not meaningful
+        entriesFlow.value = listOf(entryAt(30, 75.0), entryAt(0, 80.0))
+        profileFlow.value = UserProfile(
+            id = 1, displayName = "Test", goalWeightKg = 70.0,
+            targetDate = null, heightCm = 170.0, maintenanceMode = false,
+            maintenanceRangeKg = 2.0, maintenanceModeActivatedAt = null,
+        )
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as TrendsUiState.HasData
+            assertEquals(null, state.statsSection?.estimatedDaysToGoal)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
