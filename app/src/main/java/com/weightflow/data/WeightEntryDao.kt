@@ -23,13 +23,13 @@ interface WeightEntryDao {
     @Query("SELECT * FROM weight_entries WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): WeightEntryEntity?
 
-    @Query("SELECT * FROM weight_entries ORDER BY timestamp DESC")
+    @Query("SELECT * FROM weight_entries ORDER BY timestamp DESC, id DESC")
     fun getEntriesNewestFirst(): Flow<List<WeightEntryEntity>>
 
-    @Query("SELECT * FROM weight_entries ORDER BY timestamp ASC")
+    @Query("SELECT * FROM weight_entries ORDER BY timestamp ASC, id ASC")
     fun getEntriesOldestFirst(): Flow<List<WeightEntryEntity>>
 
-    @Query("SELECT * FROM weight_entries WHERE timestamp BETWEEN :fromTimestamp AND :toTimestamp ORDER BY timestamp ASC")
+    @Query("SELECT * FROM weight_entries WHERE timestamp BETWEEN :fromTimestamp AND :toTimestamp ORDER BY timestamp ASC, id ASC")
     fun getEntriesBetween(fromTimestamp: Long, toTimestamp: Long): Flow<List<WeightEntryEntity>>
 
     @Query("DELETE FROM weight_entries")
