@@ -294,7 +294,7 @@ These are locked design decisions from the improve-codebase-architecture session
 | `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
 
-**Note:** `SettingsViewModelTest.kt` (3 tests) merged via PR #30 — now in main. Not counted above (total already includes them).
+**Note:** `SettingsViewModelTest.kt` now has 5 tests (3 original + 2 CSV export tests added 2026-05-07). Total unit tests: **194 GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-07).
 
 **ViewModel test pattern (locked — reuse for all future VMs):**
 - `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
@@ -327,8 +327,8 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | 0 | Infrastructure (env, agents x 35, skills x 18, PRD, 29 GitHub issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
 | 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs implemented |
-| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — 196 tests GREEN, PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — R8 enabled, signing config ready, COPPA/GDPR fixes done (issues #31-34 open) |
+| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — R8, signing, COPPA/GDPR done; #31–#34 CLOSED; privacy policy written; network security config active; CSV export wired; Settings gear icon fixed. Pending: GitHub Pages publish, keystore backup, ASO, AAB upload |
 | 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
 
 ---
@@ -361,6 +361,8 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 6. **APK budget**: Keep final download under 15MB. Use AAB not APK for Play Store.
 7. **Crashlytics**: Add `google-services.json` to `app/` then follow checklist in `WeightFlowApp.kt`. Do NOT add partial wiring (dep without config = silent failure).
 8. **GitHub Actions**: `.github/workflows/android.yml` is already set up. Tests run on every push.
+9. **Settings navigation**: Accessed via gear icon (top-right) in ProfileScreen `PageHeader`. `onSettingsClick` must be threaded: `ProfileScreen` → `ProfileContent` → `PageHeader`.
+10. **Haiku worker pattern**: Brief Haiku workers for read/analysis only. All file writes must be done by Executor (Sonnet) — Haiku hits permission walls for writes in this project config.
 
 ---
 

@@ -389,6 +389,16 @@ private fun GoalStep(
                 unfocusedBorderColor = WFTokens.Border,
             ),
         )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Set realistic goals. Rapid weight loss can be harmful. If you're struggling with disordered eating, please seek professional support.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+        )
     }
 }
 
