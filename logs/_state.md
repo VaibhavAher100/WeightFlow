@@ -1,5 +1,5 @@
 ---
-last_session: 2026-05-07-001
+last_session: 2026-05-07-002
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -14,26 +14,37 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 ## App Identity
 - **Name:** WeightFlow | **Package:** `com.weightflow`
 - **Aesthetic:** "Athlete's Journal" — warm dark (#0F0E0B) + electric lime (#C8FF00)
-- **Fonts:** Bebas Neue (numbers) + Outfit (UI)
+- **Fonts:** Bebas Neue (display/numbers, negative tracking) + Outfit (UI body)
+- **Icon:** W mark (weight-trend chart line) in lime on dark — adaptive icon (API 26+)
 - **Position:** Genuinely free weight tracker. No subscription. Data stays on device.
 
-## Revenue Model (Locked)
+## Revenue Model (Locked — Opus 4.7 reviewed)
 - Core: always free (CSV import/export, all charts, all themes, history, badges)
-- Pro: 4.99 EUR one-time (trend intelligence, body comp, health sync, ad removal)
+- Pro: 4.99 EUR one-time (trend intelligence, body comp, health sync)
 - Pro discovery: contextual only, no persistent CTA anywhere
-- Donations: Ko-fi + Liberapay + GitHub Sponsors (link in Settings -> About)
-- Ads: small AdMob banner on free tier, non-core screens only
+- Donations: Ko-fi + Liberapay + GitHub Sponsors (Settings → Legal section)
+- **AdMob: NOT in v1.0** — deferred to Phase 5. Opus: 3 revenue paths = death for solo dev.
 
 ## Tech Stack (Locked)
 - Kotlin 2.2.10 + Jetpack Compose BOM 2025.04.01
 - AGP 9.1.1 + Gradle 9.3.1 (AGP 9.x has built-in Kotlin — no kotlin-android plugin)
-- Room **2.7.0** (upgraded from 2.6.1 — not KSP2-compatible) | KSP 2.3.2
-- DataStore 1.1.1 | Navigation Compose 2.8.9
+- Room **2.7.0** | KSP 2.3.2 | DataStore 1.1.1 | Navigation Compose 2.8.9
 - Vico 1.13.1 charts | Manual DI (no Hilt) | StateFlow
-- WorkManager 2.10.1 (active — daily reminder notification)
-- Google Fonts: `ui-text-google-fonts` (Compose BOM) — Bebas Neue + Outfit via GMS provider
+- WorkManager 2.10.1 — opt-in daily reminder (not auto-scheduled; toggle in Settings)
+- Google Fonts: Bebas Neue + Outfit via GMS provider
 - Test: JUnit 4.13.2 + mockk 1.13.12 + turbine 1.1.0 + kotlinx-coroutines-test 1.8.1
 - CI: GitHub Actions (tests + lint + build on every push)
+
+## Repo
+- URL: `https://github.com/VaibhavAher100/WeightFlow` (**public** — made public 2026-05-07 for Pages)
+- GitHub Pages: `https://vaibhavaher100.github.io/WeightFlow/` (live, Jekyll, docs/ on main)
+- Rename before launch (current name is temporary)
+- PRD: issue #1 | Slice issues: #2-#23 | Architecture RFCs: #24-#29
+
+## Git — IMPORTANT
+- **No Claude co-authorship ever.** No `Co-Authored-By: Claude` or Anthropic traces in any commit.
+- Full history was rewritten 2026-04-17 — all prior Claude co-author lines removed.
+- Always write commit messages manually. No co-author trailers.
 
 ## Phase Status
 
@@ -42,159 +53,81 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | 0 | Infrastructure (environment, agents, skills, conventions, product strategy, PRD, issues) | Complete |
 | 1 | Foundation (Android project + Room + DataStore + NavGraph shell) | Complete |
 | 2 | All 6 screens + ViewModels + Vico + RFCs #24-26 | Complete (166 tests GREEN) |
-| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** (188 tests GREEN) — PR #30 merged |
+| 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | Complete (188 tests GREEN) |
 | 4 | Play Store launch (privacy policy, signed build, ASO) | **In progress** |
-| 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
+| 5 | Firebase sync + iOS via KMP | Needs planning |
 
-## Phase 3 — COMPLETE (UI overhaul complete on main; PR #30 pending merge)
+## Phase 4 — IN PROGRESS (sessions 2026-04-26-001, 2026-05-07-001, 2026-05-07-002)
 
 | Item | Status |
 |------|--------|
-| Error handling in LogEntryViewModel | **DONE** — try/catch, errorMessage surfaced |
-| Badge snackbar on HomeScreen | **DONE** — SharedFlow + LaunchedEffect |
-| BadgeGrid on ProfileScreen | **DONE** — FlowRow with earned/unearned states |
-| GoalState banners on HomeScreen | **DONE** — Achieved + Maintenance banners |
-| Settings screen | **DONE** (in `.worktrees/phase3/`, not yet merged — PR #30 open) |
-| Accessibility pass | **DONE** — merged semantics, TalkBack labels, loading descs, chart desc |
-| WorkManager daily reminder | **DONE** — `WeightReminderWorker`, POST_NOTIFICATIONS guarded |
-| Crashlytics scaffold | **DONE** — deps commented, activation checklist in WeightFlowApp |
-| 185+ unit tests GREEN | **DONE** — 187 after ProfileViewModelTest expanded |
-| Lint clean | **DONE** |
-| assembleDebug successful | **DONE** |
-| PR #30 created | **DONE** — `feature/phase3-polish` → `main` (Settings + snackbar not yet in main) |
-| ShellScreen UI overhaul | **DONE** (session 2026-04-18-002) |
-| HomeScreen UI overhaul | **DONE** (session 2026-04-18-002) |
-| TrendsScreen UI overhaul | **DONE** (session 2026-04-18-002) |
-| HistoryScreen UI overhaul | **DONE** (session 2026-04-18-003) |
-| ProfileScreen UI overhaul | **DONE** (session 2026-04-18-003) — BadgeObserver + WeightRepository wired |
-| LogEntry sheet UI overhaul | **DONE** (session 2026-04-18-004) — BasicTextField Bebas Neue 72sp, +/- buttons, unit indicator, accent Save |
-| OnboardingScreen UI overhaul | **DONE** (session 2026-04-18-004) — branding header, step dots, styled step cards |
+| COPPA age gate — year-of-birth picker (13+ threshold) | **DONE** — 18→13 fixed (Opus review) |
+| POST_NOTIFICATIONS runtime request | **DONE** (MainActivity) |
+| R8/ProGuard rules | **DONE** (proguard-rules.pro) |
+| isMinifyEnabled=true + isShrinkResources=true | **DONE** |
+| Signing config — fail-fast if KEYSTORE_PATH missing | **DONE** — `check()` throws, no debug fallback |
+| Android keystore generated | **DONE** — `weightflow-release.jks`, RSA 2048, valid to 2051 |
+| Keystore backed up | **DONE** — Desktop + Documents + **TODO: Google Drive (3rd location)** |
+| GDPR Art. 17: Delete all data | **DONE** (ProfileScreen + DAOs) |
+| GDPR Art. 20: CSV export | **DONE** — SAF launcher + export confirm dialog |
+| Network Security Config | **DONE** — cleartext blocked in release |
+| Device-transfer exclusion | **DONE** — data_extraction_rules.xml `<device-transfer>` block |
+| Medical disclaimer + safe-messaging | **DONE** — HomeScreen + OnboardingScreen |
+| Privacy policy + ToS written | **DONE** — `docs/privacy/` |
+| Privacy policy live URL | **DONE** — `https://vaibhavaher100.github.io/WeightFlow/privacy-policy/` |
+| Privacy links before data entry | **DONE** — OnboardingScreen AgeGate footer |
+| Privacy links in Settings | **DONE** — Settings → Legal section |
+| Age gate flash fix | **DONE** — tri-state `null/true/false` in MainActivity |
+| Edit individual entry | **DONE** — tap row → AlertDialog, `updateEntry()` in Room |
+| Reminder opt-in toggle | **DONE** — Settings toggle schedules/cancels WorkManager |
+| Competitor gap analysis | **DONE** — `docs/strategy/competitor-gap-analysis.md` |
+| P0 stats (TrendsScreen) | **DONE** — all-time H/L/avg/count, 7D/30D change, rate, ETA to goal |
+| BMI context (ProfileScreen) | **DONE** — category, normal range, difference from normal |
+| App icon redesign | **DONE** — W mark vector, lime on dark, adaptive icon |
+| Typography letter-spacing | **DONE** — display negative, label positive, body zero |
+| Settings screen redesign | **DONE** — app-consistent header, card rows, all 8 themes |
+| Color token improvements | **DONE** — Border 6%→12%, Text2 brighter, accentBorder 20% |
+| Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
+| Play Store listing + ASO | **TODO** |
+| AAB build + upload | **TODO** |
+| Play Data Safety form | **TODO** |
+| Ko-fi + Liberapay URLs | **TODO** — update in ProfileScreen once accounts created |
 
-## GitHub Repo
-- URL: `https://github.com/VaibhavAher100/WeightFlow` (private)
-- Rename before launch (name is temporary)
-- PRD: issue #1 | Slice issues: #2-#23 | Architecture RFCs: #24-#29
-- **PR #30 open:** Phase 3 polish — awaiting manual device testing before merge
-
-## Git — IMPORTANT
-- **No Claude co-authorship ever.** No `Co-Authored-By: Claude` or Anthropic traces in any commit.
-- Full history was rewritten 2026-04-17 — all prior Claude co-author lines removed.
-- Always write commit messages manually. No co-author trailers.
-
-## Key Product Decisions (Locked, from grill-me 2026-04-12)
+## Key Product Decisions (Locked)
 
 | Decision | Choice |
 |----------|--------|
 | Nav | Home + Trends + History + Profile + FAB (no Log tab) |
 | Log sheet | Weight + date only (no note field) |
 | Home layout | Always-full with motivating empty states |
-| Onboarding | 4 screens: age gate -> unit -> weight -> goal |
-| Charts | Line + Bar + Area + Candlestick |
+| Onboarding | 4 screens: age gate (13+) → unit → weight → goal |
+| Age gate | 13+ globally (COPPA minimum). Year-of-birth field, not checkbox. |
+| Charts | Line chart (Vico 1.13.1) + stat cards. Axes removed (ugly decimals). |
 | Time filters | 7D / 30D / 3M / 6M / 1Y / All |
-| Goals | Single active goal -> maintenance mode -> optional new goal chain |
-| Badges | 12 (Zero-inspired, all 12 listed in PRD) |
-| Pro price | 4.99 EUR one-time, Play Billing localised |
-| Revenue priority | Donations first, Pro second |
+| Goals | Single active goal → maintenance mode → optional new goal chain |
+| Badges | 12 (Zero-inspired) |
+| Pro price | 4.99 EUR one-time |
+| Revenue priority | Donations first, Pro second. **No AdMob in v1.0.** |
 | CSV import | WeightFit + Happy Scale + Apple Health + generic |
-| Themes | 8 palettes (Lime default) |
+| Themes | 8 palettes (Lime default). All shown in Settings. |
 | RTL | RTL-safe from Phase 2 (start/end semantics) |
-| Repo | Private now, rename before launch |
 | Weight storage | Always kg internally, unit conversion is display-only |
-| Settings | Accessed from Profile — not a 6th tab |
+| Settings | Accessed via gear icon in ProfileScreen PageHeader |
+| Reminder | Opt-in via Settings toggle — not auto-scheduled at startup |
+| AdMob | NOT in v1.0. Deferred to Phase 5. |
 
 ## Architecture RFCs (all implemented)
 
-| RFC | Issue | Decision |
-|-----|-------|----------|
-| BadgeObserver | #24 | Reactive (combine Room Flows), not imperative on insert — **IMPLEMENTED** |
-| CsvImporter | #25 | Single entry point, CsvFormat enum in ParseResult — **IMPLEMENTED** |
-| GoalStateMachine | #26 | Explicit sealed FSM with transition functions — **IMPLEMENTED** |
-| StoredWeight + HomeUiStateMapper | #27 | Value class for Room + single conversion point in ViewModel — **IMPLEMENTED** |
-| SortedEntries + named Repository methods | #28 | Type-safe ordering contract, delete getAllEntries() — **IMPLEMENTED** |
-| HomeDataAggregator | #29 | ViewModel gets one dependency instead of five — **IMPLEMENTED** |
+| RFC | Decision |
+|-----|----------|
+| BadgeObserver #24 | Reactive combine() over Room Flows |
+| CsvImporter #25 | Single entry point, CsvFormat enum in ParseResult |
+| GoalStateMachine #26 | Sealed FSM with transition functions |
+| StoredWeight + HomeUiStateMapper #27 | Value class + single conversion in ViewModel |
+| SortedEntries + named Repository methods #28 | Type-safe ordering contract |
+| HomeDataAggregator #29 | ViewModel gets one dependency instead of five |
 
-## Phase 4 — IN PROGRESS (session 2026-04-26-001)
-
-| Item | Status |
-|------|--------|
-| COPPA age gate — AgeDeclined snackbar | **DONE** (OnboardingScreen Scaffold + snackbar) |
-| POST_NOTIFICATIONS runtime request | **DONE** (MainActivity) |
-| R8/ProGuard rules | **DONE** (proguard-rules.pro — Room, DataStore, Coroutines, WorkManager, Vico, domain/data) |
-| isMinifyEnabled=true + isShrinkResources=true | **DONE** (release build type) |
-| Signing config from local.properties | **DONE** (falls back to debug if KEYSTORE_PATH not set) |
-| Donation links in ProfileScreen | **DONE** (Ko-fi, Liberapay, GitHub Sponsors — update URLs before launch) |
-| COPPA/DPDP: year-of-birth picker (18+ threshold) | **DONE** (OnboardingViewModel + OnboardingScreen) |
-| GDPR Art. 17: Delete all data button | **DONE** (ProfileScreen + ProfileViewModel + DAOs) |
-| Compliance audit (GDPR/COPPA/DPDP) | **DONE** — 9 blockers found, 4 fixed in code, 5 filed as issues #31-34 |
-| Privacy policy + ToS written | **DONE** — `docs/privacy/privacy-policy.md` + `docs/privacy/terms-of-service.md` (GDPR, COPPA, Art. 17/20) |
-| Privacy policy live URL | **TODO** — needs GitHub Pages publish (user action) |
-| Network Security Config | **DONE** — `res/xml/network_security_config.xml`, cleartext blocked in release, wired in manifest |
-| Medical disclaimer | **DONE** — HomeScreen DataView footer + OnboardingScreen GoalStep safe-messaging banner |
-| CSV export to Settings UI | **DONE** — SAF launcher, `SettingsViewModel.onExportCsv()`, `SettingsEvent.ExportCsvReady`, +2 unit tests (194 total) |
-| Back up Android keystore | **TODO** — user action, CRITICAL before first release build |
-| Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
-| Play Store listing + ASO | **TODO** |
-| AAB build + upload | **TODO** |
-
-## Build Configuration (AGP 9.x specific)
-
-- `gradle/libs.versions.toml`: Kotlin 2.2.10, KSP 2.3.2, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, WorkManager 2.10.1
-- Firebase versions in `[versions]` block + library aliases commented — activate after adding `google-services.json`
-- `gradle.properties`: `android.disallowKotlinSourceSets=false` (KSP + AGP 9.x compatibility)
-- `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
-- XML theme: `Theme.AppCompat.DayNight.NoActionBar`
-- Room schema export: `app/schemas/` — currently at **schema v2** (`achievedAtEpochDay` on `user_profile`)
-- `isMinifyEnabled = true` + `isShrinkResources = true` in release — enabled Phase 4 (2026-04-26); R8 release build verified GREEN
-- Signing config reads from `local.properties` (KEYSTORE_PATH / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD); falls back to debug signing if not set
-- `POST_NOTIFICATIONS` permission in `AndroidManifest.xml` (required for WorkManager notification on API 33+)
-
-## Backup / Privacy Configuration
-
-- `app/src/main/res/xml/backup_rules.xml` — API 30 and below: all DB + DataStore excluded from cloud backup
-- `app/src/main/res/xml/data_extraction_rules.xml` — API 31+: cloud backup excluded; device-transfer enabled
-- `android:allowBackup="true"` in manifest — required to reference `fullBackupContent`
-
-## UI Layer (main branch — post overhaul sessions)
-
-All ViewModels and Screens in `app/src/main/java/com/weightflow/ui/`:
-
-| Package | Files | Overhaul Status |
-|---------|-------|-----------------|
-| `ui/theme/` | `Color.kt` (+WFTokens), `Type.kt`, `Theme.kt` | DONE |
-| `ui/navigation/` | `Screen.kt`, `NavGraph.kt` (+BadgeObserver/WeightRepo to ProfileVM) | DONE |
-| `ui/shell/` | `ShellScreen.kt` (styled nav bar) | DONE |
-| `ui/home/` | `HomeUiState.kt`, `HomeUiStateMapper.kt`, `HomeViewModel.kt`, `HomeScreen.kt` (full overhaul) | DONE |
-| `ui/logentry/` | `LogEntryUiState.kt`, `LogEntryViewModel.kt`, `LogEntryScreen.kt` | PENDING overhaul |
-| `ui/trends/` | `TrendsUiState.kt`, `TrendsViewModel.kt`, `TrendsScreen.kt` (full overhaul) | DONE |
-| `ui/history/` | `HistoryUiState.kt` (+delta fields), `HistoryViewModel.kt` (+delta compute), `HistoryScreen.kt` (full overhaul) | DONE |
-| `ui/profile/` | `ProfileUiState.kt` (+8 fields), `ProfileViewModel.kt` (+BadgeObserver/WeightRepo), `ProfileScreen.kt` (full overhaul + gear icon Settings nav) | DONE |
-| `ui/onboarding/` | `OnboardingUiState.kt` (birthYearInput), `OnboardingViewModel.kt` (year picker, 18+), `OnboardingScreen.kt` (year TextField + Scaffold snackbar) | DONE (2026-04-26) |
-| `ui/settings/` | `SettingsUiState.kt`, `SettingsViewModel.kt` (+WeightRepository, onExportCsv, events), `SettingsEvent.kt`, `SettingsScreen.kt` (+SAF export launcher) | DONE (CSV export wired, #32 closed) |
-
-**Note:** `SettingsViewModelTest.kt` (3 tests) was in `.worktrees/phase3/` but merged via PR #30 — now in main.
-
-## Worker Layer (Phase 3 new)
-
-| Package | Files |
-|---------|-------|
-| `worker/` | `WeightReminderWorker.kt` — daily notification, `ExistingPeriodicWorkPolicy.KEEP` |
-
-## Domain Layer (Complete)
-
-All files in `app/src/main/java/com/weightflow/domain/` — unchanged from Phase 2.
-
-## Data Layer (Phase 4 additions)
-
-All files in `app/src/main/java/com/weightflow/data/`. Phase 4 additions (2026-04-26):
-- `WeightEntryDao` — `deleteAll(): Int` added
-- `UserProfileDao` — `deleteAll(): Int` added
-- `WeightRepository` — `deleteAllEntries(): Int` added
-- `UserProfileRepository` — `deleteProfile(): Int` added
-- `UserPrefsDataStore` — `clearAllPreferences()` added
-
-## Tests (**194 unit tests — all GREEN, BUILD SUCCESSFUL 2026-05-07**)
-
-**Unit tests** — `app/src/test/java/com/weightflow/`:
+## Tests (211 unit — all GREEN, BUILD SUCCESSFUL 2026-05-07)
 
 | File | Tests | Status |
 |------|-------|--------|
@@ -208,122 +141,118 @@ All files in `app/src/main/java/com/weightflow/data/`. Phase 4 additions (2026-0
 | `domain/GoalStateMachineTest.kt` | 14 | GREEN |
 | `ui/home/HomeViewModelTest.kt` | 18 | GREEN |
 | `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
-| `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
-| `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
-| `ui/profile/ProfileViewModelTest.kt` | 12 | GREEN (+3 deleteAllData GDPR Art. 17) |
-| `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN (+5 year-of-birth picker tests) |
+| `ui/trends/TrendsViewModelTest.kt` | 18 | GREEN (+7 StatsSection) |
+| `ui/history/HistoryViewModelTest.kt` | 7 | GREEN (+3 edit entry) |
+| `ui/profile/ProfileViewModelTest.kt` | 16 | GREEN (+4 BMI context) |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 24 | GREEN (+1 age-13 test) |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
-| **TOTAL** | **196** | **0 failures** |
+| `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN (+3 reminder) |
+| **TOTAL** | **211** | **0 failures** |
 
-**Note:** `SettingsViewModelTest.kt` (3 tests) merged via PR #30 — now in main (not counted above since already accounted in +196).
-
-**Instrumented tests** — `app/src/androidTest/java/com/weightflow/data/` (need device/emulator):
-
-| File | Tests | Status |
-|------|-------|--------|
-| `WeightEntryDaoTest.kt` | 7 | Compile-verified |
-| `UserProfileDaoTest.kt` | 5 | Compile-verified |
-| `UserPrefsDataStoreTest.kt` | 7 | Compile-verified |
-| `WeightRepositoryTest.kt` | 11 | Compile-verified |
-| `UserProfileRepositoryTest.kt` | 6 | Compile-verified |
+**Note:** SettingsViewModelTest now uses 3-flow combine (themePalette + weightUnit + reminderEnabled).
 
 ## ViewModel Test Patterns (Locked)
 
 - **Dispatcher:** `StandardTestDispatcher()` + `Dispatchers.setMain` in `@Before`
-- **stateIn initial skip:** `awaitRealState()` — consumes the Loading item before asserting real state
-- **Settings-style VMs (no Loading state):** use `expectMostRecentItem()` after `advanceUntilIdle()` — StateFlow deduplicates, so no second emission when initial == default
-- **Fake aggregator:** anonymous object implementing interface — no mockk needed for pure Flow tests
+- **stateIn initial skip:** `awaitRealState()` — consumes Loading before asserting
+- **Settings-style VMs (no Loading):** `expectMostRecentItem()` after `advanceUntilIdle()`
 - **mockk for repos:** `every { repo.flowProp } returns MutableStateFlow(...)` (not `coEvery`)
-- **Synchronous VM actions** (`onWeightInput`, `onNextStep`): no `advanceUntilIdle()` needed
-- **Coroutine-launching actions** (`onSave`, `onComplete`): call `advanceUntilIdle()` after
-- **4-flow combine VMs (ProfileViewModel):** mock all 4 flows in `@Before`; test each field independently
+- **Synchronous actions:** no `advanceUntilIdle()` needed
+- **Coroutine-launching actions:** call `advanceUntilIdle()` after
+
+## Build Configuration (AGP 9.x specific)
+
+- `gradle/libs.versions.toml`: Kotlin 2.2.10, KSP 2.3.2, Room 2.7.0, DataStore 1.1.1, NavCompose 2.8.9, Vico 1.13.1, Compose BOM 2025.04.01, mockk 1.13.12, turbine 1.1.0, WorkManager 2.10.1
+- Firebase deps **commented out** — activate after adding `google-services.json`
+- `gradle.properties`: `android.disallowKotlinSourceSets=false` (KSP + AGP 9.x)
+- `app/build.gradle.kts` plugins: `android-application` + `kotlin-compose` + `ksp` (NO `kotlin-android`)
+- Release signing: **fail-fast** — `check()` throws if KEYSTORE_PATH not in local.properties
+- `isMinifyEnabled = true` + `isShrinkResources = true` in release
+- Room schema export: `app/schemas/` — currently at **schema v2**
+
+## Keystore (CRITICAL)
+
+- **File:** `WeightFlow/weightflow-release.jks` (gitignored via `*.jks`)
+- **local.properties** (not committed): KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+- **Backup 1:** `Desktop/WeightFlow-Keystore-BACKUP/`
+- **Backup 2:** `Documents/WeightFlow-Keystore-BACKUP/`
+- **Backup 3: TODO — upload to Google Drive**
+- SHA256: `F7:1B:CA:7A:4D:12:CE:FB:E5:E5:38:91:D0:5F:99:99:DA:84:36:6A:0F:6B:84:66:0E:3D:A9:C9:00:DC:CC:CF`
+- Valid until: 2051-05-01
+
+## Privacy / Legal
+
+- **Privacy Policy (live):** `https://vaibhavaher100.github.io/WeightFlow/privacy-policy/`
+- **Terms of Service (live):** `https://vaibhavaher100.github.io/WeightFlow/terms-of-service/`
+- **GitHub Pages:** `docs/` on `main` branch, Jekyll minima theme
+- Age threshold: 13+ globally (COPPA minimum). Year-of-birth field.
+- Backup/device-transfer: cloud backup excluded, device-transfer excluded, CSV export as migration path
+- Crashlytics: NOT active. Commented deps. Activate with `google-services.json` in Phase 5.
+
+## UI Layer (post session 2026-05-07-002)
+
+| Component | Status |
+|-----------|--------|
+| App icon | **DONE** — W mark vector, lime on dark, adaptive icon |
+| Typography | **DONE** — negative tracking on display, positive on labels, zero on body |
+| Color tokens | **DONE** — Border 12%, Text2 brighter, accentBorder 20% |
+| ShellScreen | DONE |
+| HomeScreen | DONE |
+| TrendsScreen | DONE + Statistics section (P0 gap) |
+| HistoryScreen | DONE + tap-to-edit dialog |
+| ProfileScreen | DONE + BMI context card |
+| LogEntry sheet | DONE |
+| OnboardingScreen | DONE + privacy footer + 13+ gate |
+| SettingsScreen | **DONE** — full redesign (app-consistent header, card rows, 8 themes) |
 
 ## Guardrails (Active)
 
-Three hookify rules in `.claude/`:
 | Rule | Event | Purpose |
 |------|-------|---------|
-| `hookify.tdd-production-guard.local.md` | file | Warns before any `app/src/main/java/**/*.kt` write — confirms failing test exists first |
-| `hookify.completion-verification.local.md` | stop | Checklist on session stop — requires `BUILD SUCCESSFUL` evidence |
-| `hookify.session-start-plan-check.local.md` | prompt | Triggers on "continue/next step" — requires reading `_state.md` + TDD plan |
-
-## Environment
-- **Open from:** `C:\Users\vaibh\Desktop\102\WeightFlow\`
-- **Agents:** 35 in `.claude/agents/`
-- **Skills:** 18 total in `.claude/skills/`
-- **Plugins (active):** kotlin-lsp | swift-lsp | feature-dev | code-review | pr-review-toolkit | commit-commands | code-simplifier | hookify | claude-md-management | security-guidance | session-report | frontend-design
-- **Codex CLI:** `codex` v0.118.0 installed globally
-- **CLI Priority:** `gh` > github MCP | `codex` > agent for isolation | `npx skills` for skill mgmt | `./gradlew` for builds
-- **CI:** `.github/workflows/android.yml` ready
+| `hookify.tdd-production-guard.local.md` | file | Warns before any `app/src/main/java/**/*.kt` write |
+| `hookify.completion-verification.local.md` | stop | Requires `BUILD SUCCESSFUL` evidence before completion |
+| `hookify.session-start-plan-check.local.md` | prompt | Read `_state.md` + TDD plan before coding |
 
 ## Open Items
 
-- [x] #31 — Privacy policy + ToS written (`docs/privacy/`) — CLOSED
-- [x] #32 — CSV export wired to Settings UI (GDPR Art. 20) — CLOSED
-- [x] #33 — Medical disclaimer + safe-messaging banner — CLOSED
-- [x] #34 — Network Security Config blocking cleartext in release — CLOSED
-- [ ] Publish privacy policy to GitHub Pages (user action — needed for Play Store submission)
-- [ ] Back up Android keystore to 3 locations — CRITICAL before first release build
-- [ ] Wire Firebase Crashlytics end-to-end once `google-services.json` available
-- [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
+- [ ] Back up keystore to Google Drive — **CRITICAL, 3rd backup location**
+- [ ] Build release AAB: `./gradlew bundleRelease`
+- [ ] Upload AAB to Play Store internal testing track
 - [ ] Complete Play Data Safety form in Play Console
-- [ ] Play Store listing + ASO (android-aso skill)
-- [ ] AAB build + Play Store internal track upload (android-playstore-setup skill)
-
-## Critical Before First Build
-- [ ] Back up Android keystore to 3 locations (CRITICAL)
-- [ ] Add Firebase Crashlytics properly — needs `google-services.json` (checklist in WeightFlowApp.kt)
-- [ ] Age gate (13+) in onboarding — ViewModel gate implemented ✓
-- [ ] Privacy policy live URL before Phase 4 (GitHub Pages)
-
-## Phase 4 Reminders (don't forget)
-- Enable R8/ProGuard (`isMinifyEnabled = true`) — write Room + Kotlin rules first
-- AAB not APK for Play Store submission
-- APK budget: keep final download under 15MB
-
-## UI Overhaul Status (2026-04-18, screen-by-screen)
-
-| Screen | Status |
-|--------|--------|
-| ShellScreen (nav bar) | DONE |
-| HomeScreen | DONE |
-| TrendsScreen | DONE |
-| HistoryScreen | DONE |
-| ProfileScreen | DONE |
-| LogEntry sheet | **DONE** (session 2026-04-18-004) |
-| OnboardingScreen | **DONE** (session 2026-04-18-004) |
+- [ ] Play Store listing + ASO copy (android-aso skill)
+- [ ] Wire Firebase Crashlytics end-to-end (needs google-services.json)
+- [ ] Update Ko-fi + Liberapay URLs in ProfileScreen once accounts created
 
 ## Next Session Should
 
-1. **Publish privacy policy to GitHub Pages** — enable Pages on repo, point to `docs/privacy/` (user action)
-2. **Play Store listing + ASO** — invoke `android-aso` skill, write store listing copy, upload screenshots
-3. **AAB build + internal track upload** — `android-playstore-setup` skill + `gplay-gradle-build` skill
-4. **Back up Android keystore** — CRITICAL user action before AAB upload
-5. **Firebase Crashlytics** — unblock once `google-services.json` available
-6. **Update donation URLs** in ProfileScreen (Ko-fi + Liberapay once accounts created)
+1. **Back up keystore to Google Drive** — CRITICAL. 3rd location. Do before building AAB.
+2. **Build release AAB** — `./gradlew bundleRelease` — should succeed, keystore is wired
+3. **Play Store listing + ASO** — `android-aso` skill, write listing copy
+4. **Internal track upload** — `android-playstore-setup` skill
+5. **Play Data Safety form** — complete in Play Console (offline-first, no data sharing)
+6. **Firebase Crashlytics** — unblock once `google-services.json` available
 
-## Vico Note (for future sessions)
-Vico 1.13.1 API — context7 returns v3 docs which are WRONG. Use these imports:
+## Vico Note (API)
+Vico 1.13.1 uses LEGACY API — context7 returns v3 docs (wrong). Use:
 - `com.patrykandpatrick.vico.compose.chart.Chart`
 - `com.patrykandpatrick.vico.compose.chart.line.lineChart`
-- `com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis`
-- `com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis`
-- `com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer`
-- `com.patrykandpatrick.vico.core.entry.FloatEntry`
+- `com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer` + `FloatEntry`
 
-## HistoryScreen Design Notes (locked 2026-04-18)
-- Layout: flat list with `border-bottom` dividers — NOT cards per entry
-- Date column: fixed 38dp, Bebas Neue day number (24sp) + abbreviated day name (9sp uppercase)
-- Weight: display font (Bebas Neue) 22sp full display string (e.g. "82.4 kg")
-- Today row: `accentDim` background highlight
-- Delta chip: 6dp radius (rectangular), green/red/gray for down/up/same
-- Month sticky headers: 10sp bold, letter-spacing 1.5sp, Text3 color
-- Decorative search bar at top (non-functional, matches mockup aesthetic)
+## Competitor Gap Analysis
 
-## ProfileScreen Design Notes (locked 2026-04-18)
-- Avatar: 64dp, 20dp corners, linear gradient (accent → accent 30%), initials in onPrimary
-- Streak row: 🔥 emoji + Bebas Neue number in Success color + "day streak" label
-- Goal showcase: accent border, 3-column trio (start/current/goal) + progress bar + summary label
-- Body stats 2×2 grid: Height / BMI / Logged / Streak — BMI cell uses accent border when available
-- Badge row: horizontal LazyRow, all 12 badges, earned = accentDim bg + accentBorder, locked = Card bg
-- ProfileViewModel now requires 4 deps: UserProfileRepository, UserPrefsDataStore, WeightRepository, BadgeObserver
+Saved: `docs/strategy/competitor-gap-analysis.md`
+
+P0 gaps (closed this session):
+- All-time stats + 7D/30D change + rate + ETA to goal → TrendsScreen ✓
+- BMI category + normal range + diff → ProfileScreen ✓
+- Edit individual entry → HistoryScreen ✓
+
+P1 gaps (v1.1):
+- Drum roll scroll picker for weight entry
+- Height in imperial (ft+in) for lbs/st users
+- Weekly day-dot streak visualization
+- Share app + Write a Review links in Settings
+- Individual entry detail view
+
+P2 gaps (Phase 5):
+- Calendar month view, Google Fit sync, multiple metric charts, challenges

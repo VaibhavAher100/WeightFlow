@@ -318,3 +318,63 @@
 **Decision:** Haiku workers used for analysis/read; Executor (Sonnet) does all file writes
 **Rationale:** Haiku workers hit write permission walls in this session config. More efficient to brief workers for read/analysis, return findings, then Executor applies all writes with full project context.
 **Context:** All 3 Haiku parallel workers completed analysis but could not write -- Executor re-executed all writes directly.
+
+## Session 2026-05-07-002 — 2026-05-07
+
+**Decision:** Age gate threshold lowered from 18+ to 13+ globally.
+**Rationale:** Opus 4.7 review: 18+ amputates the most engaged fitness demographic (16-25 year olds). COPPA minimum is 13+. India DPDP §14 (18+) can be handled via Play Store territory exclusion, not a global code gate. 13+ passes COPPA, GDPR has no age floor for non-child-directed services, and this recovers the largest user segment.
+**Context:** Opus strategic review flagged 18+ as a self-inflicted wound killing install-to-DAU ratios.
+
+---
+
+**Decision:** No AdMob in v1.0.
+**Rationale:** Opus: 3 revenue paths (AdMob + donations + Pro IAP) = solo dev death. AdMob on a health app tanks perceived quality. One-time Pro is the only model that matches the "genuinely free, data stays on device" brand. Donations kept (low harm, some upside). AdMob deferred to Phase 5 if ever needed.
+**Context:** Opus strategic review.
+
+---
+
+**Decision:** Edit individual entry promoted to P0 (not P1).
+**Rationale:** Fat-finger weight entry (e.g., 87.5 instead of 78.5) with no correction path = immediate 1-star review. "Lost my data" is the most common complaint in weight-tracker Play reviews. `updateEntry()` added to DAO + Repository; tap-to-edit dialog in HistoryScreen.
+**Context:** Opus strategic review: "most likely cause of your first negative reviews."
+
+---
+
+**Decision:** Release signing is fail-fast — no silent debug fallback.
+**Rationale:** Codex audit: `if (storeFile != null) releaseSigning else debug` means a misconfigured CI/developer machine silently ships a debug-signed APK to the store. `check()` throws at build time, making the misconfiguration visible immediately.
+**Context:** Codex security audit finding #1.
+
+---
+
+**Decision:** MainActivity age-gate uses tri-state null/true/false instead of `initialValue = true`.
+**Rationale:** Codex audit: `initialValue = true` briefly renders ShellScreen for new users while DataStore cold-starts (~100ms), exposing the logged-in UI before the gate check runs. `onboardingState: Flow<Boolean?>` returns null until DataStore emits; MainActivity shows a blank background-colored screen while null.
+**Context:** Codex security audit finding #3.
+
+---
+
+**Decision:** WorkManager reminder is opt-in via Settings toggle, not auto-scheduled at startup.
+**Rationale:** Codex audit: scheduling a daily reminder at app startup without user consent violates the spirit of POST_NOTIFICATIONS permission. Users explicitly opt-in via Settings toggle; ViewModel persists pref; Screen calls WeightReminderWorker.schedule/cancel with Context.
+**Context:** Codex audit finding #2. Aligns with platform best practices.
+
+---
+
+**Decision:** GitHub Pages served from docs/ on main branch (Jekyll, minima theme).
+**Rationale:** Simplest possible setup — no separate gh-pages branch, no CI deploy step, no external hosting. Jekyll renders existing markdown automatically. Privacy policy and ToS live at deterministic URLs needed for Play Store Data Safety form.
+**Context:** Play Store requires a live, publicly accessible privacy policy URL.
+
+---
+
+**Decision:** Repo made public.
+**Rationale:** GitHub Pages for private repos requires a paid plan. Repo needs to be public before Play Store launch anyway (source visibility = trust signal for privacy-first positioning). Keystore is gitignored, no secrets committed.
+**Context:** Pages API returned 422 "Your current plan does not support GitHub Pages for this repository."
+
+---
+
+**Decision:** App icon is a W-shaped weight-trend chart line in lime on dark.
+**Rationale:** The W shape reads as both the brand initial and a weight trend line (down-up-down-up-up). A circle dot at the top-right peak = today's data point, like a chart. Electric lime (#C8FF00) on warm dark (#0A0907) matches the full app palette. Distinctive at 48dp launcher size. Avoids clichéd dumbbell/scale icons.
+**Context:** Default Android robot icon was in place. User flagged app as "nasty and boring."
+
+---
+
+**Decision:** Typography uses negative letter-spacing on Bebas Neue display text, positive on labels.
+**Rationale:** open-design craft rules: display text ≥48px should use -0.02em to -0.03em tracking (tighter = more premium). ALL-CAPS UI labels need +0.06em-0.1em (more legible at small sizes). Body text = 0 (Outfit reads cleanly without tracking adjustment). Applied: displayLarge -1.5sp, displayMedium -1.0sp, displaySmall -0.5sp; labelSmall +0.8sp.
+**Context:** Research from pbakaus/impeccable and nexu-io/open-design craft/ folder.

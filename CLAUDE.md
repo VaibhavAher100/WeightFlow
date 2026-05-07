@@ -272,7 +272,7 @@ These are locked design decisions from the improve-codebase-architecture session
 
 ---
 
-## Tests (196 unit + 37 instrumented — all GREEN/compile-verified)
+## Tests (211 unit + 37 instrumented — all GREEN/compile-verified)
 
 **Unit tests** — `app/src/test/java/com/weightflow/`:
 
@@ -288,13 +288,14 @@ These are locked design decisions from the improve-codebase-architecture session
 | `domain/GoalStateMachineTest.kt` | 14 | GREEN |
 | `ui/home/HomeViewModelTest.kt` | 18 | GREEN |
 | `ui/logentry/LogEntryViewModelTest.kt` | 20 | GREEN |
-| `ui/trends/TrendsViewModelTest.kt` | 11 | GREEN |
-| `ui/history/HistoryViewModelTest.kt` | 4 | GREEN |
-| `ui/profile/ProfileViewModelTest.kt` | 12 | GREEN |
-| `ui/onboarding/OnboardingViewModelTest.kt` | 23 | GREEN |
+| `ui/trends/TrendsViewModelTest.kt` | 18 | GREEN (+7 StatsSection) |
+| `ui/history/HistoryViewModelTest.kt` | 7 | GREEN (+3 edit entry) |
+| `ui/profile/ProfileViewModelTest.kt` | 16 | GREEN (+4 BMI context) |
+| `ui/onboarding/OnboardingViewModelTest.kt` | 24 | GREEN (+1 age-13 test) |
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
+| `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN (+3 reminder) |
 
-**Note:** `SettingsViewModelTest.kt` now has 5 tests (3 original + 2 CSV export tests added 2026-05-07). Total unit tests: **194 GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-07).
+**Total unit tests: 211 GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-07).
 
 **ViewModel test pattern (locked — reuse for all future VMs):**
 - `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
@@ -328,8 +329,8 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
 | 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs implemented |
 | 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — R8, signing, COPPA/GDPR done; #31–#34 CLOSED; privacy policy written; network security config active; CSV export wired; Settings gear icon fixed. Pending: GitHub Pages publish, keystore backup, ASO, AAB upload |
-| 5 | Firebase sync + AdMob + iOS via KMP | Needs planning |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — All compliance done; keystore generated+backed up; privacy policy live on GitHub Pages; P0 competitor gaps closed; icon + typography + Settings redesigned. Pending: Google Drive keystore backup, AAB build, ASO, Play Store upload |
+| 5 | Firebase sync + iOS via KMP | Needs planning (no AdMob in v1.0) |
 
 ---
 
@@ -346,7 +347,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all 196 unit tests still green
+3. Run `./gradlew testDebugUnitTest` — confirm all 211 unit tests still green
 4. THEN start coding
 
 ---
