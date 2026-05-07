@@ -6,12 +6,15 @@ import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.WeightRepository
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.weightflow.domain.isValidWeightKg
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -23,21 +26,37 @@ class LogEntryViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogEntryUiState())
-    val uiState: StateFlow<LogEntryUiState> = _uiState.asStateFlow()
+    private val _events = Channel<LogEntryEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
-    private val _events = MutableSharedFlow<LogEntryEvent>()
-    val events: SharedFlow<LogEntryEvent> = _events.asSharedFlow()
-
-    init {
-        viewModelScope.launch {
-            userPrefsDataStore.weightUnit.collect { unit ->
-                _uiState.update { it.copy(weightUnit = unit) }
-            }
-        }
-    }
+    val uiState: StateFlow<LogEntryUiState> = combine(
+        _uiState,
+        userPrefsDataStore.weightUnit,
+        weightRepository.getEntriesNewestFirst(),
+    ) { state, unit, entries ->
+        val lastKg = entries.firstOrNull()?.weightKg
+        state.copy(
+            weightUnit = unit,
+            lastLoggedWeightKg = lastKg,
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = LogEntryUiState(),
+    )
 
     fun onWeightInput(input: String) {
-        val valid = input.toDoubleOrNull()?.let { it > 0.0 } ?: false
+        val raw = input.toDoubleOrNull()
+        // Read unit from the combined uiState so it reflects the DataStore value
+        val currentUnit = uiState.value.weightUnit
+        val weightKg = raw?.let { v ->
+            when (currentUnit) {
+                WeightUnit.KG  -> v
+                WeightUnit.LBS -> WeightConverter.lbsToKg(v)
+                WeightUnit.ST  -> v
+            }
+        }
+        val valid = weightKg?.isValidWeightKg() ?: false
         _uiState.update { it.copy(weightInput = input, isInputValid = valid) }
     }
 
@@ -47,37 +66,45 @@ class LogEntryViewModel(
 
     fun onSave() {
         val state = _uiState.value
-        if (!state.isInputValid) return
-
-        val inputValue = state.weightInput.toDoubleOrNull() ?: return
-        val weightKg = when (state.weightUnit) {
-            WeightUnit.KG -> inputValue
-            WeightUnit.LBS -> WeightConverter.lbsToKg(inputValue)
-            WeightUnit.ST -> {
-                // Input in stones (decimal) — treat as kg fallback; full st/lb input handled in Phase 3
-                inputValue
-            }
-        }
-        val timestamp = state.selectedDate
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
+        // Read unit from the combined uiState so it reflects the DataStore value
+        val currentUnit = uiState.value.weightUnit
+        if (!state.isInputValid || state.isSaving) return
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
-                weightRepository.addEntry(weightKg = weightKg, timestamp = timestamp)
-                _uiState.update { it.copy(isSaving = false) }
-                _events.emit(LogEntryEvent.Saved)
+                val raw = state.weightInput.toDouble()
+                val weightKg = when (currentUnit) {
+                    WeightUnit.KG  -> raw
+                    WeightUnit.LBS -> WeightConverter.lbsToKg(raw)
+                    WeightUnit.ST  -> raw
+                }
+                val timestamp = state.selectedDate
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+                weightRepository.addEntry(weightKg, timestamp)
+
+                val prevMin = uiState.value.lastLoggedWeightKg
+                val isNewLow = prevMin != null && weightKg < prevMin
+
+                _uiState.update {
+                    it.copy(isSaving = false, isSaved = true, isNewPersonalLow = isNewLow)
+                }
+                val lingerMs = if (isNewLow) 1200L else 600L
+                delay(lingerMs)
+                _events.send(LogEntryEvent.Saved)
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false, errorMessage = "Failed to save — please try again") }
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        errorMessage = "Failed to save — please try again",
+                    )
+                }
             }
         }
     }
 
     fun onDismiss() {
-        viewModelScope.launch {
-            _events.emit(LogEntryEvent.Dismissed)
-        }
+        viewModelScope.launch { _events.send(LogEntryEvent.Dismissed) }
     }
 }
