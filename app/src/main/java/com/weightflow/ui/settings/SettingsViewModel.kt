@@ -23,7 +23,8 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         userPrefsDataStore.themePalette,
         userPrefsDataStore.weightUnit,
-    ) { palette, unit -> SettingsUiState(palette, unit) }
+        userPrefsDataStore.reminderEnabled,
+    ) { palette, unit, reminder -> SettingsUiState(palette, unit, reminder) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -39,6 +40,10 @@ class SettingsViewModel(
 
     fun onUnitChanged(unit: com.weightflow.domain.WeightUnit) {
         viewModelScope.launch { userPrefsDataStore.setWeightUnit(unit) }
+    }
+
+    fun onReminderToggled(enabled: Boolean) {
+        viewModelScope.launch { userPrefsDataStore.setReminderEnabled(enabled) }
     }
 
     fun onExportCsv() {

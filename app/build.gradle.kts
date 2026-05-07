@@ -50,8 +50,10 @@ android {
                 "proguard-rules.pro"
             )
             val releaseSigning = signingConfigs.getByName("release")
-            signingConfig = if (releaseSigning.storeFile != null) releaseSigning
-                            else signingConfigs.getByName("debug")
+            check(releaseSigning.storeFile != null) {
+                "Release build requires KEYSTORE_PATH in local.properties — never fall back to debug signing"
+            }
+            signingConfig = releaseSigning
         }
     }
 

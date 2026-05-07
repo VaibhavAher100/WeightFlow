@@ -31,6 +31,7 @@ class SettingsViewModelTest {
     private val weightRepository: WeightRepository = mockk()
     private val paletteFlow = MutableStateFlow("lime")
     private val unitFlow = MutableStateFlow(WeightUnit.KG)
+    private val reminderFlow = MutableStateFlow(false)
     private val entriesFlow = MutableStateFlow<List<WeightEntry>>(emptyList())
 
     @Before
@@ -38,8 +39,10 @@ class SettingsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { userPrefsDataStore.themePalette } returns paletteFlow
         every { userPrefsDataStore.weightUnit } returns unitFlow
+        every { userPrefsDataStore.reminderEnabled } returns reminderFlow
         coEvery { userPrefsDataStore.setThemePalette(any()) } returns Unit
         coEvery { userPrefsDataStore.setWeightUnit(any()) } returns Unit
+        coEvery { userPrefsDataStore.setReminderEnabled(any()) } returns Unit
         every { weightRepository.getEntriesOldestFirst() } returns entriesFlow
     }
 
@@ -110,6 +113,33 @@ class SettingsViewModelTest {
             assertTrue(event is SettingsEvent.ExportCsvReady)
             val csv = (event as SettingsEvent.ExportCsvReady).csvContent
             assertEquals("date,weight_kg", csv.trim())
+        }
+    }
+
+    @Test
+    fun `onReminderToggled true persists enabled state`() = runTest {
+        val vm = makeViewModel()
+        vm.onReminderToggled(true)
+        advanceUntilIdle()
+        coVerify { userPrefsDataStore.setReminderEnabled(true) }
+    }
+
+    @Test
+    fun `onReminderToggled false persists disabled state`() = runTest {
+        val vm = makeViewModel()
+        vm.onReminderToggled(false)
+        advanceUntilIdle()
+        coVerify { userPrefsDataStore.setReminderEnabled(false) }
+    }
+
+    @Test
+    fun `uiState reflects reminderEnabled from DataStore`() = runTest {
+        reminderFlow.value = true
+        val vm = makeViewModel()
+        vm.uiState.test {
+            advanceUntilIdle()
+            val state = expectMostRecentItem()
+            assertTrue(state.reminderEnabled)
         }
     }
 }
