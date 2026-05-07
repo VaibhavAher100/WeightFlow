@@ -1,5 +1,7 @@
 package com.weightflow.ui.settings
 
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -78,6 +80,9 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+    val requestNotificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* gracefully handle grant/deny */ }
     var pendingCsv by remember { mutableStateOf<String?>(null) }
     var showExportConfirm by remember { mutableStateOf(false) }
     val accent = MaterialTheme.colorScheme.primary
@@ -182,8 +187,14 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 accent = accent,
                 onCheckedChange = { enabled ->
                     viewModel.onReminderToggled(enabled)
-                    if (enabled) WeightReminderWorker.schedule(context)
-                    else WeightReminderWorker.cancel(context)
+                    if (enabled) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                        WeightReminderWorker.schedule(context)
+                    } else {
+                        WeightReminderWorker.cancel(context)
+                    }
                 },
             )
 
