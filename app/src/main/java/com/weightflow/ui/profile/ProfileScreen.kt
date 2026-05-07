@@ -126,9 +126,10 @@ private fun ProfileContent(
     ) {
         item { PageHeader(onSettingsClick) }
         item { ProfileHero(state) }
-        if (state.goalWeightDisplay != null) {
-            item { Spacer(modifier = Modifier.height(10.dp)) }
-            item { GoalShowcase(state) }
+        item { Spacer(modifier = Modifier.height(10.dp)) }
+        item {
+            val accent = MaterialTheme.colorScheme.primary
+            JourneyCard(state = state, accent = accent)
         }
         item { Spacer(modifier = Modifier.height(10.dp)) }
         item { BodyStatsGrid(state) }
@@ -251,96 +252,58 @@ private fun ProfileHero(state: ProfileUiState.Loaded) {
     }
 }
 
-// ── Goal showcase ─────────────────────────────────────────────────────────────
+// ── Journey card ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun GoalShowcase(state: ProfileUiState.Loaded) {
-    val accent = MaterialTheme.colorScheme.primary
-    val phase = when {
-        state.maintenanceMode     -> "Maintenance"
-        state.goalProgressPercent != null && state.goalProgressPercent >= 1f -> "Complete!"
-        else                      -> "Cutting Phase"
-    }
-
-    Box(
+private fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(WFTokens.Card)
-            .border(1.dp, WFTokens.accentBorder(accent), RoundedCornerShape(26.dp))
-            .padding(18.dp),
+            .padding(horizontal = 16.dp)
+            .background(WFTokens.Card, RoundedCornerShape(16.dp))
+            .border(1.dp, WFTokens.Border, RoundedCornerShape(16.dp))
+            .padding(16.dp),
     ) {
-        Column {
-            // Top row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            JourneyValue(label = "START", value = state.startWeightDisplay ?: "—")
+            JourneyValue(label = "NOW", value = state.currentWeightDisplay ?: "—", color = accent)
+            JourneyValue(label = "GOAL", value = state.goalWeightDisplay ?: "—")
+        }
+        if (state.goalProgressPercent != null) {
+            Spacer(Modifier.height(12.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .background(WFTokens.Elevated, RoundedCornerShape(999.dp)),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth(state.goalProgressPercent.coerceIn(0f, 1f))
+                        .fillMaxHeight()
+                        .background(accent, RoundedCornerShape(999.dp)),
+                )
+            }
+            Spacer(Modifier.height(4.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "CURRENT GOAL",
-                    fontSize = 11.sp,
+                    text = "${(state.goalProgressPercent * 100).toInt()}% complete",
+                    fontSize = 8.sp,
+                    color = WFTokens.Text3,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    color = accent,
                 )
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(WFTokens.Elevated)
-                        .padding(horizontal = 10.dp, vertical = 3.dp),
-                ) {
+                if (state.etaDays != null) {
                     Text(
-                        text = phase,
-                        fontSize = 10.sp,
+                        text = "~${state.etaDays}d to go",
+                        fontSize = 8.sp,
+                        color = accent.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Bold,
-                        color = WFTokens.Text2,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Start / Current / Goal trio
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                GoalCell(label = "Start", value = state.startWeightDisplay ?: "—", color = WFTokens.Text2)
-                Box(modifier = Modifier.width(1.dp).height(40.dp).background(WFTokens.Border))
-                GoalCell(label = "Current", value = state.currentWeightDisplay ?: "—", color = accent)
-                Box(modifier = Modifier.width(1.dp).height(40.dp).background(WFTokens.Border))
-                GoalCell(label = "Goal", value = state.goalWeightDisplay ?: "—", color = WFTokens.Text2)
-            }
-
-            // Progress bar
-            if (state.goalProgressPercent != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                if (state.goalSummaryLabel != null) {
-                    Text(
-                        text = state.goalSummaryLabel,
-                        fontSize = 11.sp,
-                        color = WFTokens.Text2,
-                        modifier = Modifier.padding(bottom = 6.dp),
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(5.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(WFTokens.Elevated),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(state.goalProgressPercent)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(
-                                Brush.linearGradient(listOf(accent, accent.copy(alpha = 0.5f))),
-                            ),
                     )
                 }
             }
@@ -349,22 +312,22 @@ private fun GoalShowcase(state: ProfileUiState.Loaded) {
 }
 
 @Composable
-private fun GoalCell(label: String, value: String, color: Color) {
+private fun JourneyValue(label: String, value: String, color: Color = Color.Unspecified) {
+    val textColor = if (color == Color.Unspecified) MaterialTheme.colorScheme.onBackground else color
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = label.uppercase(),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.8.sp,
-            color = WFTokens.Text3,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
             text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Black,
+            color = textColor,
             fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
-            fontSize = 24.sp,
-            color = color,
-            lineHeight = 24.sp,
+        )
+        Text(
+            text = label,
+            fontSize = 7.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.5.sp,
+            color = WFTokens.Text3,
         )
     }
 }
