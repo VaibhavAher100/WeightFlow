@@ -22,6 +22,11 @@ sealed class HomeUiState {
         val streakDays: Int = 0,
         val avgDisplay: String? = null,
         val goalProgress: Float? = null,
+        // New fields
+        val startDisplay: String? = null,
+        val lostDisplay: String? = null,
+        val isGoalAchieved: Boolean = false,
+        val sparklinePoints: List<Float> = emptyList(),
     ) : HomeUiState()
 }
 
