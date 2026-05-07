@@ -295,7 +295,7 @@ These are locked design decisions from the improve-codebase-architecture session
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
 | `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN (+3 reminder) |
 
-**Total unit tests: 211 GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-07).
+**Total unit tests: 221+ GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-08). LogEntryViewModelTest +4, HomeUiStateMapperTest +4 added in UI/UX overhaul session.
 
 **ViewModel test pattern (locked — reuse for all future VMs):**
 - `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
@@ -329,7 +329,7 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
 | 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs implemented |
 | 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — All compliance done; keystore generated+backed up; privacy policy live on GitHub Pages; P0 competitor gaps closed; icon + typography + Settings redesigned. Pending: Google Drive keystore backup, AAB build, ASO, Play Store upload |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — All compliance done; full UI/UX overhaul complete (Zero/Whoop design language, all 6 screens, 17 commits 2026-05-08). Pending: Google Drive keystore backup, AAB build, ASO, Play Store upload |
 | 5 | Firebase sync + iOS via KMP | Needs planning (no AdMob in v1.0) |
 
 ---
@@ -347,7 +347,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all 211 unit tests still green
+3. Run `./gradlew testDebugUnitTest` — confirm all unit tests still green (221+ as of 2026-05-08)
 4. THEN start coding
 
 ---
