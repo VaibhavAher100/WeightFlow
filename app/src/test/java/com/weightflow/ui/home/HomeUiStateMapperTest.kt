@@ -145,4 +145,77 @@ class HomeUiStateMapperTest {
             state.avgDisplay
         )
     }
+
+    // ── startDisplay ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `startDisplay is oldest entry weight when 2 or more entries exist`() {
+        // entries newest-first: [current=80.0 kg, oldest=85.0 kg]
+        // startDisplay must format the oldest entry (entries.last())
+        val data = HomeData(
+            entries = listOf(
+                entryDaysAgo(0, 80.0),  // current (newest)
+                entryDaysAgo(1, 85.0),  // oldest
+            ),
+            profile = null,
+            unit = WeightUnit.KG,
+        )
+        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        assertEquals("85.0 kg", state.startDisplay)
+    }
+
+    // ── lostDisplay ───────────────────────────────────────────────────────────
+
+    @Test
+    fun `lostDisplay shows minus value when weight decreased`() {
+        // start=85.0 kg, current=80.0 kg → diff=5.0 → lostDisplay = "−5.0"
+        val data = HomeData(
+            entries = listOf(
+                entryDaysAgo(0, 80.0),  // current
+                entryDaysAgo(1, 85.0),  // start
+            ),
+            profile = null,
+            unit = WeightUnit.KG,
+        )
+        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        assertEquals("−5.0", state.lostDisplay)
+    }
+
+    // ── isGoalAchieved ────────────────────────────────────────────────────────
+
+    @Test
+    fun `isGoalAchieved is true when current weight is at or below goal`() {
+        // profile goal=75.0 kg, current weight=75.0 kg → goalState is Active → isGoalAchieved = true
+        val data = HomeData(
+            entries = listOf(
+                entryDaysAgo(0, 75.0),  // current weight equals goal
+                entryDaysAgo(1, 80.0),
+            ),
+            profile = profile(goalWeightKg = 75.0),
+            unit = WeightUnit.KG,
+        )
+        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        assertTrue("isGoalAchieved must be true when current weight <= goal", state.isGoalAchieved)
+    }
+
+    // ── sparklinePoints ───────────────────────────────────────────────────────
+
+    @Test
+    fun `sparklinePoints contains up to 30 float values oldest first`() {
+        // 35 entries newest-first → takeLast(30) keeps entries 6..35 (oldest 30),
+        // then reversed() → oldest first; size must be 30
+        val entries = (0L until 35L).map { daysAgo -> entryDaysAgo(daysAgo, 70.0 + daysAgo) }
+        val data = HomeData(
+            entries = entries,
+            profile = null,
+            unit = WeightUnit.KG,
+        )
+        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        assertEquals("sparklinePoints must be capped at 30 entries", 30, state.sparklinePoints.size)
+        // oldest entry (highest daysAgo among retained) should be first
+        assertTrue(
+            "sparklinePoints must be oldest-first (first value >= last value for descending weight)",
+            state.sparklinePoints.first() >= state.sparklinePoints.last()
+        )
+    }
 }
