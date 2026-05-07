@@ -49,11 +49,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val releaseSigning = signingConfigs.getByName("release")
-            check(releaseSigning.storeFile != null) {
-                "Release build requires KEYSTORE_PATH in local.properties — never fall back to debug signing"
-            }
-            signingConfig = releaseSigning
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -69,6 +65,17 @@ android {
 
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
+    }
+}
+
+afterEvaluate {
+    tasks.named("assembleRelease") {
+        doFirst {
+            val storeFile = android.signingConfigs.getByName("release").storeFile
+            check(storeFile != null) {
+                "Release build requires KEYSTORE_PATH in local.properties — never fall back to debug signing"
+            }
+        }
     }
 }
 
