@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -15,6 +16,9 @@ interface WeightEntryDao {
 
     @Delete
     suspend fun delete(entry: WeightEntryEntity): Int
+
+    @Update
+    suspend fun update(entry: WeightEntryEntity): Int
 
     @Query("SELECT * FROM weight_entries WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): WeightEntryEntity?

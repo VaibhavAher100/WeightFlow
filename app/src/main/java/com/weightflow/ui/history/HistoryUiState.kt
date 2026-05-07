@@ -4,6 +4,7 @@ import com.weightflow.domain.WeightUnit
 
 data class HistoryEntryDisplay(
     val id: Long,
+    val weightKg: Double,
     val weightDisplay: String,
     val dateDisplay: String,
     val timestamp: Long,

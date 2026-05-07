@@ -15,6 +15,11 @@ class WeightRepository(private val dao: WeightEntryDao) {
         return dao.delete(entity)
     }
 
+    suspend fun updateEntry(id: Long, weightKg: Double): Int {
+        val entity = dao.getById(id) ?: return 0
+        return dao.update(entity.copy(weightKg = weightKg))
+    }
+
     suspend fun getById(id: Long): WeightEntry? {
         return dao.getById(id)?.toDomain()
     }

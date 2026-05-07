@@ -44,6 +44,7 @@ class HistoryViewModelTest {
         every { weightRepository.getEntriesNewestFirst() } returns entriesFlow
         every { userPrefsDataStore.weightUnit } returns unitFlow
         coEvery { weightRepository.removeEntry(any()) } returns 1
+        coEvery { weightRepository.updateEntry(any(), any()) } returns 1
     }
 
     @After
@@ -124,5 +125,29 @@ class HistoryViewModelTest {
         vm.onDelete(entryId = 0L)
         advanceUntilIdle()
         coVerify { weightRepository.removeEntry(id = 0L) }
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `onEditEntry calls updateEntry with correct id and weight`() = runTest {
+        entriesFlow.value = listOf(entryAt(0, 80.0))
+        val vm = makeViewModel()
+        advanceUntilIdle()
+        vm.onEditEntry(id = 0L, newWeightKg = 79.5)
+        advanceUntilIdle()
+        coVerify { weightRepository.updateEntry(id = 0L, weightKg = 79.5) }
+    }
+
+    @Test
+    fun `entry display contains raw weightKg for edit pre-fill`() = runTest {
+        entriesFlow.value = listOf(entryAt(0, 82.3))
+        unitFlow.value = WeightUnit.KG
+        val vm = makeViewModel()
+        vm.uiState.test {
+            val state = awaitRealState() as HistoryUiState.HasData
+            assertEquals(82.3, state.entries.first().weightKg, 0.001)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

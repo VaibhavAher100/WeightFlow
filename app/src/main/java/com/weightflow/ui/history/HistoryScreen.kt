@@ -1,6 +1,7 @@
 package com.weightflow.ui.history
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,14 +20,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +56,55 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HistoryScreen(viewModel: HistoryViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var editingEntry by rememberSaveable { mutableStateOf<Long?>(null) }
+    var editInput by rememberSaveable { mutableStateOf("") }
+
+    val currentState = uiState as? HistoryUiState.HasData
+
+    editingEntry?.let { editId ->
+        val entry = currentState?.entries?.firstOrNull { it.id == editId }
+        val unitLabel = when (currentState?.weightUnit) {
+            com.weightflow.domain.WeightUnit.LBS -> "lbs"
+            com.weightflow.domain.WeightUnit.ST  -> "st"
+            else                                 -> "kg"
+        }
+        AlertDialog(
+            onDismissRequest = { editingEntry = null; editInput = "" },
+            title = { Text("Edit entry") },
+            text = {
+                OutlinedTextField(
+                    value = editInput,
+                    onValueChange = { editInput = it },
+                    label = { Text("Weight ($unitLabel)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val raw = editInput.toDoubleOrNull()
+                        if (raw != null && raw > 0 && entry != null) {
+                            val kg = when (currentState?.weightUnit) {
+                                com.weightflow.domain.WeightUnit.LBS ->
+                                    com.weightflow.domain.WeightConverter.lbsToKg(raw)
+                                else -> raw
+                            }
+                            viewModel.onEditEntry(entry.id, kg)
+                        }
+                        editingEntry = null
+                        editInput = ""
+                    },
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingEntry = null; editInput = "" }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,6 +116,16 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
             is HistoryUiState.HasData -> DataView(
                 state = uiState as HistoryUiState.HasData,
                 onDelete = { id -> viewModel.onDelete(id) },
+                onEdit = { entry ->
+                    editInput = "%.1f".format(
+                        when ((uiState as HistoryUiState.HasData).weightUnit) {
+                            com.weightflow.domain.WeightUnit.LBS ->
+                                com.weightflow.domain.WeightConverter.kgToLbs(entry.weightKg)
+                            else -> entry.weightKg
+                        }
+                    )
+                    editingEntry = entry.id
+                },
             )
         }
     }
@@ -101,7 +169,11 @@ private fun EmptyView() {
 // ── Has Data ──────────────────────────────────────────────────────────────────
 
 @Composable
-private fun DataView(state: HistoryUiState.HasData, onDelete: (Long) -> Unit) {
+private fun DataView(
+    state: HistoryUiState.HasData,
+    onDelete: (Long) -> Unit,
+    onEdit: (HistoryEntryDisplay) -> Unit,
+) {
     val monthFmt = remember { DateTimeFormatter.ofPattern("MMMM yyyy") }
     val grouped = remember(state.entries) {
         state.entries.groupBy { entry ->
@@ -128,6 +200,7 @@ private fun DataView(state: HistoryUiState.HasData, onDelete: (Long) -> Unit) {
                     entry = entry,
                     isLast = entry == entries.last(),
                     onDelete = { onDelete(entry.id) },
+                    onEdit = { onEdit(entry) },
                 )
             }
         }
@@ -186,6 +259,7 @@ private fun HistoryEntryRow(
     entry: HistoryEntryDisplay,
     isLast: Boolean,
     onDelete: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     val zone = remember { ZoneId.systemDefault() }
     val dayFmt = remember { DateTimeFormatter.ofPattern("EEE") }
@@ -207,10 +281,7 @@ private fun HistoryEntryRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(rowBg)
-            .then(
-                if (!isLast) Modifier.padding(bottom = 0.dp)
-                else Modifier
-            )
+            .clickable(onClick = onEdit)
             .padding(horizontal = 18.dp, vertical = 11.dp)
             .semantics {
                 contentDescription = "${entry.weightDisplay} on ${entry.dateDisplay}"

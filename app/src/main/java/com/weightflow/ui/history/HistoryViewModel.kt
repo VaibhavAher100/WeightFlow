@@ -45,6 +45,7 @@ class HistoryViewModel(
             }
             HistoryEntryDisplay(
                 id = entry.id,
+                weightKg = entry.weightKg,
                 weightDisplay = WeightConverter.format(entry.weightKg, unit),
                 dateDisplay = formatDate(entry.timestamp),
                 timestamp = entry.timestamp,
@@ -62,6 +63,12 @@ class HistoryViewModel(
     fun onDelete(entryId: Long) {
         viewModelScope.launch {
             weightRepository.removeEntry(entryId)
+        }
+    }
+
+    fun onEditEntry(id: Long, newWeightKg: Double) {
+        viewModelScope.launch {
+            weightRepository.updateEntry(id, newWeightKg)
         }
     }
 
