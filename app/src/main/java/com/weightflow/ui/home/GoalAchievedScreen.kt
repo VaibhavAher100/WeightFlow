@@ -2,7 +2,7 @@ package com.weightflow.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -126,6 +126,7 @@ fun GoalAchievedScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(accent, RoundedCornerShape(999.dp))
+                    .clickable { onSetNewGoal() }
                     .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {

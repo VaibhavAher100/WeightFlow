@@ -48,7 +48,16 @@ fun WeightFlowNavGraph(
             val vm: HomeViewModel = viewModel(
                 factory = vmFactory { HomeViewModel(app.homeDataAggregator, app.badgeObserver) },
             )
-            HomeScreen(vm, snackbarHostState)
+            HomeScreen(
+                vm,
+                snackbarHostState,
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            )
         }
         composable(Screen.Trends.route) {
             val vm: TrendsViewModel = viewModel(
