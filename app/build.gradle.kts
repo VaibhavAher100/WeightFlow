@@ -165,6 +165,9 @@ dependencies {
     // zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
     implementation(libs.zip4j)
 
+    // security-crypto — EncryptedSharedPreferences for stable database passphrase storage
+    implementation(libs.androidx.security.crypto)
+
     // Firebase — uncomment after placing google-services.json in app/ and enabling plugins
     // implementation(platform(libs.firebase.bom))
     // implementation(libs.firebase.crashlytics)

@@ -110,31 +110,33 @@ class DatabaseKeyManagerTest {
     }
 
     @Test
-    fun `resetProvider restores production provider type`() {
+    fun `resetProvider clears provider — subsequent call without init throws`() {
         DatabaseKeyManager.setProviderForTesting(FakeKeyProvider())
         DatabaseKeyManager.resetProvider()
-        // After reset the provider is AndroidKeystoreKeyProvider.
-        // We can only verify keyExists() without crashing on JVM — it should be false
-        // because there is no real Keystore available in unit-test JVM.
-        // The assertion merely confirms the call does not throw.
+        // After reset, provider is null. getOrCreateKey() must throw IllegalStateException.
         try {
-            DatabaseKeyManager.keyExists()
-            // If it returns (even false) that is acceptable
-        } catch (_: Exception) {
-            // UnsatisfiedLinkError / ProviderException from Keystore on plain JVM is
-            // acceptable — the important thing is that the reset itself did not throw.
+            DatabaseKeyManager.getOrCreateKey()
+            // If we reach here the reset had no effect — fail explicitly.
+            throw AssertionError("Expected IllegalStateException but no exception was thrown")
+        } catch (_: IllegalStateException) {
+            // Expected — provider is null after resetProvider()
         }
     }
 
-    // ── Key size constant ─────────────────────────────────────────────────────
+    // ── EncryptedPrefsKeyProvider constants ───────────────────────────────────
 
     @Test
-    fun `AndroidKeystoreKeyProvider KEY_SIZE_BITS is 256`() {
-        assertEquals(256, AndroidKeystoreKeyProvider.KEY_SIZE_BITS)
+    fun `EncryptedPrefsKeyProvider KEY_SIZE_BYTES is 32`() {
+        assertEquals(32, EncryptedPrefsKeyProvider.KEY_SIZE_BYTES)
     }
 
     @Test
-    fun `AndroidKeystoreKeyProvider KEY_ALIAS is stable`() {
-        assertEquals("weightflow_db_key", AndroidKeystoreKeyProvider.KEY_ALIAS)
+    fun `EncryptedPrefsKeyProvider PREFS_FILE is stable`() {
+        assertEquals("weightflow_db_key_store", EncryptedPrefsKeyProvider.PREFS_FILE)
+    }
+
+    @Test
+    fun `EncryptedPrefsKeyProvider KEY_PREF is stable`() {
+        assertEquals("db_passphrase", EncryptedPrefsKeyProvider.KEY_PREF)
     }
 }
