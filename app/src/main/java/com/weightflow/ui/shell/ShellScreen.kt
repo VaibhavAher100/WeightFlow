@@ -130,7 +130,10 @@ fun ShellScreen(app: WeightFlowApp) {
         floatingActionButton = {
             if (onHomeTab) {
                 FloatingActionButton(
-                    onClick = { showLogEntry = true },
+                    onClick = {
+                        logEntryVm.reset()
+                        showLogEntry = true
+                    },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {

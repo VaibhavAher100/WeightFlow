@@ -289,4 +289,30 @@ class LogEntryViewModelTest {
         // We verify the save was called instead
         coVerify { weightRepository.addEntry(weightKg = 80.0, timestamp = any(), note = any()) }
     }
+
+    // ── Reset ─────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `reset clears isSaved so save button is re-enabled`() = runTest {
+        val vm = makeViewModel()
+
+        // Arrange: get to a saved state
+        vm.onWeightInput("80")
+        advanceUntilIdle()
+        vm.onSave()
+        advanceUntilIdle()
+
+        // isSaved should be true after a save (verify via direct state read)
+        assertTrue("isSaved should be true after save", vm.uiState.value.isSaved)
+
+        // Act: reset
+        vm.reset()
+        advanceUntilIdle()
+
+        // Assert: state cleared
+        val state = vm.uiState.value
+        assertFalse("isSaved should be false after reset", state.isSaved)
+        assertEquals("weightInput should be empty after reset", "", state.weightInput)
+        assertFalse("isInputValid should be false after reset", state.isInputValid)
+    }
 }
