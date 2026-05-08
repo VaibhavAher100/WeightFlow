@@ -354,7 +354,7 @@ private fun HistoryEntryRow(
                 DeltaChip(display = entry.deltaDisplay, isDown = entry.deltaIsDown)
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(48.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
