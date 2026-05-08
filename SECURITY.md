@@ -72,7 +72,7 @@ The CSV is placed inside a WinZip AES v2 (AES-256) encrypted ZIP file.
 Technical properties:
 - Encryption: AES-256, WinZip AES v2 (`EncryptionMethod.AES`, `AesKeyStrength.KEY_STRENGTH_256`, `AesVersion.TWO`)
 - No ZipCrypto fallback — ZipCrypto is known to be weak and is explicitly disabled
-- Password is handled as a `CharArray`; the array is overwritten with spaces immediately after the zip4j call completes, whether the export succeeded or failed
+- Password is handled as a `CharArray` copy created at the point of export; the array is overwritten with spaces immediately after the zip4j call completes, whether the export succeeded or failed
 - Password is never stored in DataStore, SharedPreferences, or any durable storage
 - Password is never copied to the clipboard (no convenience shortcut is provided)
 - Minimum password length: 12 characters, enforced before any file I/O begins
@@ -85,6 +85,12 @@ The ZIP central directory (the file's metadata index) is not encrypted. This mea
 **Compatibility:**
 AES-encrypted ZIPs are readable by: 7-Zip, WinRAR, The Unarchiver (macOS).
 **macOS Archive Utility does not support AES-encrypted ZIPs** — it silently fails or shows a corrupted-file error. This limitation is documented in the in-app export dialog.
+
+> **Known JVM limitation (export password):** The export password dialog binds to a Compose
+> `TextField` which requires a `String`. A `CharArray` copy is created at the point of calling
+> `onExportEncryptedZip()` and zeroed immediately after the zip4j call. The original `String`
+> cannot be explicitly zeroed — it remains in JVM heap until GC. This is an inherent `TextField`
+> constraint and does not weaken the AES-256 encrypted output.
 
 #### Format 3 — Minimal CSV
 Date and weight_kg columns only. Profile data, goal data, and notes are omitted.
