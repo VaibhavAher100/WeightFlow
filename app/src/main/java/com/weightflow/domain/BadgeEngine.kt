@@ -66,7 +66,7 @@ object BadgeEngine {
 
         // Steady state: maintenance mode active for 30+ days
         if (profile.maintenanceMode && profile.maintenanceModeActivatedAt != null) {
-            val activatedDate = LocalDate.ofInstant(Instant.ofEpochMilli(profile.maintenanceModeActivatedAt), ZoneId.systemDefault())
+            val activatedDate = Instant.ofEpochMilli(profile.maintenanceModeActivatedAt).atZone(ZoneId.systemDefault()).toLocalDate()
             val daysInMaintenance = ChronoUnit.DAYS.between(activatedDate, LocalDate.now())
             if (daysInMaintenance >= 30) awarded += Badge.STEADY_STATE
         }
@@ -76,7 +76,7 @@ object BadgeEngine {
 
     private fun maxConsecutiveStreak(entries: List<WeightEntry>): Int {
         val dates = entries
-            .map { LocalDate.ofInstant(Instant.ofEpochMilli(it.timestamp), ZoneId.systemDefault()) }
+            .map { Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate() }
             .toSortedSet()
 
         if (dates.size < 2) return dates.size
@@ -100,8 +100,8 @@ object BadgeEngine {
     private fun hasComeback(entries: List<WeightEntry>): Boolean {
         val sorted = entries.sortedBy { it.timestamp }
         for (i in 1 until sorted.size) {
-            val prev = LocalDate.ofInstant(Instant.ofEpochMilli(sorted[i - 1].timestamp), ZoneId.systemDefault())
-            val curr = LocalDate.ofInstant(Instant.ofEpochMilli(sorted[i].timestamp), ZoneId.systemDefault())
+            val prev = Instant.ofEpochMilli(sorted[i - 1].timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+            val curr = Instant.ofEpochMilli(sorted[i].timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
             if (ChronoUnit.DAYS.between(prev, curr) >= 14) return true
         }
         return false
