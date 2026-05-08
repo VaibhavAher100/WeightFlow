@@ -30,14 +30,21 @@ android {
 
     signingConfigs {
         create("release") {
+            // Try environment variables first (CI), then local.properties
+            val storePathEnv = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotEmpty() }
+            val storePassEnv = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() }
+            val keyAliasEnv = System.getenv("KEY_ALIAS")?.takeIf { it.isNotEmpty() }
+            val keyPassEnv = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotEmpty() }
+
             val props = Properties()
             val localPropsFile = rootProject.file("local.properties")
             if (localPropsFile.exists()) props.load(localPropsFile.inputStream())
-            val keystorePath = props.getProperty("KEYSTORE_PATH")
-            storeFile     = if (keystorePath != null) file(keystorePath) else null
-            storePassword = props.getProperty("KEYSTORE_PASSWORD")
-            keyAlias      = props.getProperty("KEY_ALIAS")
-            keyPassword   = props.getProperty("KEY_PASSWORD")
+
+            val storeFilePath = storePathEnv ?: props.getProperty("KEYSTORE_PATH")
+            storeFile = storeFilePath?.let { file(it) }
+            storePassword = storePassEnv ?: props.getProperty("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = keyAliasEnv ?: props.getProperty("KEY_ALIAS") ?: ""
+            keyPassword = keyPassEnv ?: props.getProperty("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -69,13 +76,45 @@ android {
 }
 
 afterEvaluate {
-    tasks.named("assembleRelease") {
+    // Dedicated validation task
+    tasks.register("validateReleaseSigning") {
         doFirst {
-            val storeFile = android.signingConfigs.getByName("release").storeFile
-            check(storeFile != null) {
-                "Release build requires KEYSTORE_PATH in local.properties — never fall back to debug signing"
+            val signingConfig = android.signingConfigs.getByName("release")
+            val storeFile = signingConfig.storeFile
+            val storePassword = signingConfig.storePassword
+            val keyAlias = signingConfig.keyAlias
+            val keyPassword = signingConfig.keyPassword
+
+            val missing = mutableListOf<String>()
+            if (storeFile == null || !storeFile.exists()) missing.add("storeFile (KEYSTORE_PATH)")
+            if (storePassword.isNullOrBlank()) missing.add("storePassword (KEYSTORE_PASSWORD)")
+            if (keyAlias.isNullOrBlank()) missing.add("keyAlias (KEY_ALIAS)")
+            if (keyPassword.isNullOrBlank()) missing.add("keyPassword (KEY_PASSWORD)")
+
+            if (missing.isNotEmpty()) {
+                error("""
+                    Release signing validation failed. Missing credentials:
+                    ${missing.joinToString("\n    ") { "  - $it" }}
+
+                    Provide via environment variables (CI) or local.properties (local dev):
+                      • KEYSTORE_PATH / KEYSTORE_PATH env
+                      • KEYSTORE_PASSWORD / KEYSTORE_PASSWORD env
+                      • KEY_ALIAS / KEY_ALIAS env
+                      • KEY_PASSWORD / KEY_PASSWORD env
+
+                    Example local.properties:
+                      KEYSTORE_PATH=/Users/you/.android/release.jks
+                      KEYSTORE_PASSWORD=your-keystore-password
+                      KEY_ALIAS=your-key-alias
+                      KEY_PASSWORD=your-key-password
+                """.trimIndent())
             }
         }
+    }
+
+    // Make assembleRelease depend on validateReleaseSigning
+    tasks.named("assembleRelease").configure {
+        dependsOn("validateReleaseSigning")
     }
 }
 
@@ -116,6 +155,15 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // SQLCipher — encrypted Room database (Android Keystore-backed key)
+    implementation(libs.sqlcipher.android)
+
+    // kotlin-csv — RFC-4180 compliant CSV parsing
+    implementation(libs.kotlin.csv)
+
+    // zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
+    implementation(libs.zip4j)
 
     // Firebase — uncomment after placing google-services.json in app/ and enabling plugins
     // implementation(platform(libs.firebase.bom))

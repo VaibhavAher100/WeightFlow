@@ -42,7 +42,14 @@ class WeightReminderWorker(
         val canPost = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
-        if (canPost) notificationManager.notify(NOTIFICATION_ID, notification)
+        if (canPost) {
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        } else {
+            android.util.Log.w(
+                "WeightReminderWorker",
+                "POST_NOTIFICATIONS permission absent at worker execution — notification suppressed.",
+            )
+        }
         return Result.success()
     }
 

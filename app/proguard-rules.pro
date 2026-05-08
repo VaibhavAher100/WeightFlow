@@ -31,6 +31,10 @@
 -keep class com.patrykandpatrick.vico.** { *; }
 -dontwarn com.patrykandpatrick.vico.**
 
+# ── SQLCipher 4.x (net.zetetic) ───────────────────────────────────────────────
+-keep class net.zetetic.database.** { *; }
+-dontwarn net.zetetic.**
+
 # ── WeightFlow: keep serialized/reflected types only ─────────────────────────
 # Room @Entity and @Dao already kept above via annotation rules.
 # No additional broad keeps needed — R8 traces all usages statically.

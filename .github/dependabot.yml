@@ -1,0 +1,55 @@
+version: 2
+
+updates:
+  # ── Gradle dependencies (app/build.gradle.kts + libs.versions.toml) ──────
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - android
+    groups:
+      # Batch all Compose BOM + related artifacts into one PR
+      jetpack-compose:
+        patterns:
+          - "androidx.compose*"
+          - "androidx.activity*"
+          - "androidx.lifecycle*"
+          - "androidx.navigation*"
+      # Batch Room + KSP together (they must stay in sync)
+      room-ksp:
+        patterns:
+          - "androidx.room*"
+          - "com.google.devtools.ksp*"
+      # Testing libraries — lower urgency, batch weekly
+      testing:
+        patterns:
+          - "io.mockk*"
+          - "app.cash.turbine*"
+          - "junit*"
+          - "androidx.test*"
+    ignore:
+      # AGP + Gradle upgrades are manual — they require build-gotcha review
+      - dependency-name: "com.android.tools.build:gradle"
+      - dependency-name: "com.android.application"
+      - dependency-name: "com.android.library"
+
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
+    # Dependabot will propose SHA + tag comment updates automatically.
+    # Review each PR — confirm the new SHA matches the new tag before merging.
