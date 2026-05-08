@@ -125,7 +125,13 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
         ActivityResultContracts.CreateDocument("application/zip"),
     ) { uri ->
         val zipFile = pendingZipFile ?: return@rememberLauncherForActivityResult
-        uri ?: return@rememberLauncherForActivityResult
+        if (uri == null) {
+            scope.launch(Dispatchers.IO) {
+                zipFile.delete()
+                pendingZipFile = null
+            }
+            return@rememberLauncherForActivityResult
+        }
         scope.launch(Dispatchers.IO) {
             try {
                 context.contentResolver.openOutputStream(uri)?.use { out ->
@@ -363,7 +369,9 @@ private fun PlaintextExportConfirmDialog(
  * Dialog for the ENCRYPTED_ZIP flow.
  *
  * Security notes (enforced here):
- * - Password is held in a [CharArray] backed by mutable local state — never a String.
+ * - Password is bound to a mutable String for TextField compatibility; a CharArray copy is
+ *   passed to [onExport] and immediately zeroed there. The intermediate String cannot be
+ *   zeroed (JVM limitation) — documented in SECURITY.md.
  * - No clipboard shortcut is offered (Security finding #8).
  * - Password is never surfaced in SettingsUiState or emitted in any event.
  * - [onExport] receives the CharArray; the ViewModel zeros it.
