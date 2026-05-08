@@ -113,4 +113,8 @@ class LogEntryViewModel(
     fun onDismiss() {
         viewModelScope.launch { _events.send(LogEntryEvent.Dismissed) }
     }
+
+    fun reset() {
+        _uiState.update { LogEntryUiState() }
+    }
 }
