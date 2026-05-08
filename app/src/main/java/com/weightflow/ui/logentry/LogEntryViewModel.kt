@@ -59,7 +59,7 @@ class LogEntryViewModel(
             when (currentUnit) {
                 WeightUnit.KG  -> v
                 WeightUnit.LBS -> WeightConverter.lbsToKg(v)
-                WeightUnit.ST  -> v
+                WeightUnit.ST  -> WeightConverter.stToKg(v)
             }
         }
         val valid = weightKg?.isValidWeightKg() ?: false
@@ -82,7 +82,7 @@ class LogEntryViewModel(
                 val weightKg = when (currentUnit) {
                     WeightUnit.KG  -> raw
                     WeightUnit.LBS -> WeightConverter.lbsToKg(raw)
-                    WeightUnit.ST  -> raw
+                    WeightUnit.ST  -> WeightConverter.stToKg(raw)
                 }
                 val timestamp = state.selectedDate
                     .atStartOfDay(ZoneId.systemDefault())

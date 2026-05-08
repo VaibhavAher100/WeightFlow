@@ -96,4 +96,21 @@ class WeightConverterTest {
         assertEquals("0.0 lbs", WeightConverter.format(0.0, WeightUnit.LBS))
         assertEquals("0st 0lb", WeightConverter.format(0.0, WeightUnit.ST))
     }
+
+    // ── stToKg (decimal stones input) ───────────────────────────────────────
+
+    @Test
+    fun `stToKg converts 1 stone to approximately 6 35 kg`() {
+        assertEquals(6.35029, WeightConverter.stToKg(1.0), 0.001)
+    }
+
+    @Test
+    fun `stToKg converts 12 point 8 stones to approximately 81 kg`() {
+        assertEquals(81.284, WeightConverter.stToKg(12.8), 0.01)
+    }
+
+    @Test
+    fun `stToKg zero returns zero`() {
+        assertEquals(0.0, WeightConverter.stToKg(0.0), 0.001)
+    }
 }
