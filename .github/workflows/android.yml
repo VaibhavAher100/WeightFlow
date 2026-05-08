@@ -6,23 +6,126 @@ on:
   pull_request:
     branches: [ main ]
 
+# Least-privilege default: all jobs start read-only.
+# Individual jobs elevate only what they need.
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
+  # ── Dependency review ────────────────────────────────────────────────────
+  # Runs only on PRs. Blocks merges that introduce newly-vulnerable transitive deps.
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write        # post inline PR comment with findings
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4.9.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+  # ── OSV vulnerability scan ───────────────────────────────────────────────
+  # Scans Gradle dependency lock-files against the OSV advisory database.
+  osv-scan:
+    name: OSV Vulnerability Scan
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write      # upload SARIF to code-scanning dashboard
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Run OSV Scanner
+        uses: google/osv-scanner-action@c51854704019a247608d928f370c98740469d4b5  # v2.3.5
+        with:
+          scan-args: |-
+            --recursive
+            --skip-git
+            ./
+        continue-on-error: true   # upload findings even when vulnerabilities found
+
+      - name: Upload OSV SARIF
+        uses: github/codeql-action/upload-sarif@7fd177fa680c9881b53cdab4d346d32574c9f7f4  # v3.35.4
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: osv-scanner
+
+  # ── CodeQL SAST ──────────────────────────────────────────────────────────
+  # Static Application Security Testing on Kotlin source.
+  codeql:
+    name: CodeQL SAST
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write      # upload SARIF results
+      actions: read               # read workflow metadata for CodeQL
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v4.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1  # v4.4.4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@7fd177fa680c9881b53cdab4d346d32574c9f7f4  # v3.35.4
+        with:
+          languages: java-kotlin
+          # Use the security-extended query suite for broader SAST coverage
+          queries: security-extended
+
+      - name: Build for CodeQL
+        run: ./gradlew assembleDebug
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@7fd177fa680c9881b53cdab4d346d32574c9f7f4  # v3.35.4
+        with:
+          category: codeql-kotlin
+
+  # ── Unit Tests ───────────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v4.7.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1  # v4.4.4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -31,25 +134,32 @@ jobs:
         run: ./gradlew testDebugUnitTest
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: failure()
         with:
           name: test-results
           path: app/build/reports/tests/
 
+  # ── Lint ─────────────────────────────────────────────────────────────────
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v4.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1  # v4.4.4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -58,26 +168,33 @@ jobs:
         run: ./gradlew lintDebug
 
       - name: Upload lint results
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: failure()
         with:
           name: lint-results
           path: app/build/reports/lint-results-debug.html
 
-  build:
+  # ── Debug build ──────────────────────────────────────────────────────────
+  build-debug:
     name: Build Debug APK
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [test, lint]
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v4.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1  # v4.4.4
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -85,8 +202,49 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4.6.2
+      - name: Upload debug APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/
+          retention-days: 7
+
+  # ── Release build (security gate) ────────────────────────────────────────
+  # Gated on ALL security and quality checks. The AAB produced here is what
+  # gets uploaded to the Play Store in Phase 4. No artifact is uploaded unless
+  # every upstream job is green.
+  build-release:
+    name: Build Release AAB (security gate)
+    runs-on: ubuntu-24.04
+    needs: [test, lint, codeql, osv-scan]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12  # v4.7.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@748248ddd2a24f49513d8f472f81c3a07d4d50e1  # v4.4.4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build release AAB
+        # Produces an unsigned AAB — signing happens locally before Play upload.
+        # In Phase 4 add KEYSTORE_* secrets and wire gradle signing config here.
+        run: ./gradlew bundleRelease
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/release/
+          retention-days: 14

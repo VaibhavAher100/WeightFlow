@@ -83,7 +83,17 @@ We will update this policy before activating any of these features.
 
 ## 7. Data Security
 
-Your data is stored in the app's private storage directory on your device, which is protected by Android's application sandboxing. Other apps cannot access WeightFlow's data without root access. Release builds block unencrypted (HTTP) network traffic.
+Your data is stored in the app's private storage directory on your device and encrypted using **SQLCipher 4 (AES-256-CBC)**. The encryption key is generated on first launch and stored securely in Android Keystore, which is hardware-backed on supporting devices.
+
+The app declares **no `INTERNET` permission**, so it cannot transmit your data over the network. Cleartext traffic is also disabled at the platform level via `network_security_config`.
+
+**On factory reset or uninstall:** Android removes the app's private storage, including the encrypted Room database and DataStore preferences. Because Auto Backup is disabled for these files (see `backup_rules.xml` and `data_extraction_rules.xml`), no copy is uploaded to Google Drive, and there is no remote copy to delete.
+
+**Data export security:** Settings → Export data offers three formats:
+
+- **Plaintext CSV** — your full weight history as an unencrypted CSV file. A warning dialog is shown before the file picker opens. Only share with apps you trust.
+- **Encrypted ZIP (AES-256)** — your weight history encrypted with AES-256 inside a password-protected ZIP file. You choose a password of at least 12 characters; the app never stores or transmits this password. The file can be opened with 7-Zip, WinRAR, or The Unarchiver. Note: macOS Archive Utility does not support AES-encrypted ZIPs.
+- **Minimal CSV** — date and weight columns only, with no profile or note data. This format reduces data exposure but is not anonymous: a date+weight series may still identify you when combined with other information.
 
 We recommend keeping your device OS and WeightFlow updated to benefit from the latest security patches.
 

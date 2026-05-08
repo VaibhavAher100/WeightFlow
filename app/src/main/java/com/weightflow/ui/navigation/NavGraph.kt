@@ -23,6 +23,7 @@ import com.weightflow.ui.home.HomeScreen
 import com.weightflow.ui.home.HomeViewModel
 import com.weightflow.ui.profile.ProfileScreen
 import com.weightflow.ui.profile.ProfileViewModel
+import androidx.compose.ui.platform.LocalContext
 import com.weightflow.ui.settings.SettingsScreen
 import com.weightflow.ui.settings.SettingsViewModel
 import com.weightflow.ui.trends.TrendsScreen
@@ -85,8 +86,15 @@ fun WeightFlowNavGraph(
             ProfileScreen(vm, onSettingsClick = { navController.navigate(Screen.Settings.route) })
         }
         composable(Screen.Settings.route) {
+            val context = LocalContext.current
             val vm: SettingsViewModel = viewModel(
-                factory = vmFactory { SettingsViewModel(app.userPrefsDataStore, app.weightRepository) },
+                factory = vmFactory {
+                    SettingsViewModel(
+                        userPrefsDataStore = app.userPrefsDataStore,
+                        weightRepository   = app.weightRepository,
+                        cacheDir           = context.cacheDir,
+                    )
+                },
             )
             SettingsScreen(vm, onBack = { navController.popBackStack() })
         }

@@ -77,8 +77,46 @@ WeightFlow/
 ./gradlew connectedAndroidTest        # instrumented tests (needs device/emulator)
 ./gradlew testDebugUnitTest --tests "com.weightflow.domain.WeightConverterTest"
 ./gradlew lintDebug                   # lint
-./gradlew assembleRelease             # signed release build (Phase 4)
+./gradlew assembleRelease             # signed release build (Phase 4) — validates all 4 signing creds first
+./gradlew validateReleaseSigning      # check release signing credentials without building
 ```
+
+---
+
+## Release Signing Setup (Phase 4)
+
+**Critical:** `./gradlew assembleRelease` now validates all four signing credentials before building. If any is missing, it fails fast with a clear error message.
+
+### Local Development Setup
+
+Create `WeightFlow/local.properties` (not checked in — add to `.gitignore`):
+```properties
+KEYSTORE_PATH=/Users/you/.android/release.jks
+KEYSTORE_PASSWORD=your-keystore-password
+KEY_ALIAS=your-key-alias
+KEY_PASSWORD=your-key-password
+```
+
+Then run:
+```bash
+./gradlew assembleRelease
+```
+
+### GitHub Actions / CI Setup
+
+Add these GitHub repository secrets (Settings → Secrets and variables → Actions):
+- `KEYSTORE_PATH` — absolute path on runner or base64-encoded keystore
+- `KEYSTORE_PASSWORD` — keystore password
+- `KEY_ALIAS` — key alias inside keystore
+- `KEY_PASSWORD` — key password
+
+The build will read from environment variables first, then fall back to `local.properties`.
+
+**Caveman checklist:**
+- All 4 creds must be non-empty strings
+- `storeFile` must exist on disk (validated by `validateReleaseSigning`)
+- Never commit keystore file or passwords to git
+- Back up keystore to 3 secure locations before first Play Store submission
 
 ---
 
@@ -355,7 +393,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 ## Critical Reminders (Do Not Forget)
 
 1. **Git commits**: No Claude co-authorship ever. No `Co-Authored-By` trailers. Write messages manually. History was cleaned 2026-04-17.
-2. **Keystore**: Back up the Android keystore to 3 places before first release build.
+2. **Keystore + Release signing**: Back up keystore to 3 places. `./gradlew assembleRelease` now validates all 4 credentials (storeFile, storePassword, keyAlias, keyPassword) before building — fails fast if any missing. Set up via `local.properties` (dev) or GitHub secrets (CI). See "Release Signing Setup" above.
 3. **Privacy policy**: Must be a live URL before Play Store submission (Phase 4). → `docs/privacy/`
 4. **Room migrations**: Every schema change needs a Migration object. Never skip.
 5. **COPPA**: Age gate (13+) required in onboarding.
