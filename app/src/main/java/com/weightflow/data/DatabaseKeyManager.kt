@@ -102,13 +102,15 @@ internal object DatabaseKeyManager {
 
     @Volatile private var provider: DatabaseKeyProvider? = null
 
+    private val initLock = Any()
+
     /**
      * Initialises the production [EncryptedPrefsKeyProvider] if no provider has
      * been set yet. Idempotent — safe to call multiple times.
      */
     fun init(context: Context) {
         if (provider == null) {
-            synchronized(this) {
+            synchronized(initLock) {
                 if (provider == null) {
                     provider = EncryptedPrefsKeyProvider(context)
                 }
