@@ -36,33 +36,19 @@ jobs:
           comment-summary-in-pr: always
 
   # ── OSV vulnerability scan ───────────────────────────────────────────────
-  # Scans Gradle dependency lock-files against the OSV advisory database.
+  # Uses Google's maintained reusable workflow — handles SARIF output internally.
+  # Direct use of the Docker action is not supported (action.yml itself says so).
   osv-scan:
     name: OSV Vulnerability Scan
-    runs-on: ubuntu-24.04
     permissions:
       contents: read
       security-events: write      # upload SARIF to code-scanning dashboard
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-
-      - name: Run OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@c51854704019a247608d928f370c98740469d4b5  # v2.3.5
-        with:
-          scan-args: |-
-            --recursive
-            --format=sarif
-            --output=results.sarif
-            ./
-
-      - name: Upload OSV SARIF
-        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e  # v4.35.4
-        if: always()
-        with:
-          sarif_file: results.sarif
-          category: osv-scanner
+      actions: read               # required by the reusable workflow
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@c51854704019a247608d928f370c98740469d4b5  # v2.3.5
+    with:
+      scan-args: |-
+        -r
+        ./
 
   # ── CodeQL SAST ──────────────────────────────────────────────────────────
   # Static Application Security Testing on Kotlin source.
