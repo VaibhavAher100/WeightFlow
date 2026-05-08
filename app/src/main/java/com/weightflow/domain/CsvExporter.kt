@@ -50,7 +50,7 @@ object CsvExporter {
         }
 
         val rows = entries.sortedBy { it.timestamp }.map { entry ->
-            val date   = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), ZoneId.systemDefault())
+            val date   = Instant.ofEpochMilli(entry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
             val weight = when (unit) {
                 WeightUnit.KG  -> "%.1f".format(entry.weightKg)
                 WeightUnit.LBS -> "%.1f".format(WeightConverter.kgToLbs(entry.weightKg))
@@ -82,7 +82,7 @@ object CsvExporter {
     fun exportMinimalCsv(entries: List<WeightEntry>): String {
         val header = "date,weight_kg"
         val rows = entries.sortedBy { it.timestamp }.map { entry ->
-            val date = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), ZoneId.systemDefault())
+            val date = Instant.ofEpochMilli(entry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
             "$date,${"%.1f".format(entry.weightKg)}"
         }
         return buildString {

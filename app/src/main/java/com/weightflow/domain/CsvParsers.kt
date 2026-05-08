@@ -17,9 +17,9 @@ internal const val MAX_COLUMNS = 10
 
 private fun isDuplicate(entry: WeightEntry, existing: List<WeightEntry>): Boolean {
     val zone = ZoneId.systemDefault()
-    val entryDate = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), zone)
+    val entryDate = Instant.ofEpochMilli(entry.timestamp).atZone(zone).toLocalDate()
     return existing.any { ex ->
-        val exDate = LocalDate.ofInstant(Instant.ofEpochMilli(ex.timestamp), zone)
+        val exDate = Instant.ofEpochMilli(ex.timestamp).atZone(zone).toLocalDate()
         exDate == entryDate && abs(ex.weightKg - entry.weightKg) < 0.01
     }
 }
