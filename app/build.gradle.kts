@@ -116,6 +116,9 @@ afterEvaluate {
     tasks.named("assembleRelease").configure {
         dependsOn("validateReleaseSigning")
     }
+    tasks.named("bundleRelease").configure {
+        dependsOn("validateReleaseSigning")
+    }
 }
 
 dependencies {
