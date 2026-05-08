@@ -356,6 +356,34 @@ class CsvExporterTest {
         }
     }
 
+    // ── Timezone correctness ──────────────────────────────────────────────────
+
+    @Test
+    fun `export uses local timezone date not UTC division`() {
+        // Temporarily set the JVM default timezone to UTC+8 (Asia/Shanghai) so that
+        // ZoneId.systemDefault() inside CsvExporter resolves to UTC+8 during this test.
+        // Jan 5 00:00 UTC+8 = Jan 4 16:00 UTC. The old epoch/86400000 code would give Jan 4.
+        // The fixed ofInstant(..., ZoneId.systemDefault()) code gives Jan 5.
+        val originalDefault = java.util.TimeZone.getDefault()
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Shanghai"))
+        try {
+            val zone = java.time.ZoneId.of("Asia/Shanghai") // UTC+8
+            // Jan 5 00:00 UTC+8 stored as epoch millis
+            val jan5LocalMidnight = java.time.LocalDate.of(2024, 1, 5)
+                .atStartOfDay(zone).toInstant().toEpochMilli()
+
+            val entries = listOf(
+                WeightEntry(id = 1, weightKg = 80.0, timestamp = jan5LocalMidnight, note = "")
+            )
+            val csv = CsvExporter.export(entries, WeightUnit.KG)
+
+            // The date in the CSV should be 2024-01-05 (local date), not 2024-01-04 (UTC date)
+            assertTrue("CSV should contain 2024-01-05, got:\n$csv", csv.contains("2024-01-05"))
+        } finally {
+            java.util.TimeZone.setDefault(originalDefault)
+        }
+    }
+
     // ── Estimated size ────────────────────────────────────────────────────────
 
     @Test

@@ -8,7 +8,9 @@ import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * CSV export in three formats:
@@ -48,7 +50,7 @@ object CsvExporter {
         }
 
         val rows = entries.sortedBy { it.timestamp }.map { entry ->
-            val date   = LocalDate.ofEpochDay(entry.timestamp / 86_400_000L)
+            val date   = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), ZoneId.systemDefault())
             val weight = when (unit) {
                 WeightUnit.KG  -> "%.1f".format(entry.weightKg)
                 WeightUnit.LBS -> "%.1f".format(WeightConverter.kgToLbs(entry.weightKg))
@@ -80,7 +82,7 @@ object CsvExporter {
     fun exportMinimalCsv(entries: List<WeightEntry>): String {
         val header = "date,weight_kg"
         val rows = entries.sortedBy { it.timestamp }.map { entry ->
-            val date = LocalDate.ofEpochDay(entry.timestamp / 86_400_000L)
+            val date = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), ZoneId.systemDefault())
             "$date,${"%.1f".format(entry.weightKg)}"
         }
         return buildString {

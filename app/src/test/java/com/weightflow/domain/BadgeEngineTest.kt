@@ -226,4 +226,51 @@ class BadgeEngineTest {
         val second = BadgeEngine.evaluate(entries, profile)
         assertEquals(first, second)
     }
+
+    // ── Timezone correctness ──────────────────────────────────────────────────
+
+    @Test
+    fun `streak counts correctly for UTC plus timezone timestamps`() {
+        // Temporarily set the JVM default timezone to UTC+8 (Asia/Shanghai) so that
+        // ZoneId.systemDefault() inside BadgeEngine resolves to UTC+8.
+        // Jan 5 00:00 UTC+8 = Jan 4 16:00 UTC → epoch/86400000 gives Jan 4 (WRONG in old code).
+        // The fixed ofInstant(..., ZoneId.systemDefault()) correctly gives Jan 5.
+        val originalDefault = java.util.TimeZone.getDefault()
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Shanghai"))
+        try {
+            val zone = java.time.ZoneId.of("Asia/Shanghai")
+            fun midnight(year: Int, month: Int, day: Int): Long =
+                java.time.LocalDate.of(year, month, day)
+                    .atStartOfDay(zone)
+                    .toInstant()
+                    .toEpochMilli()
+
+            val entries = (1..8).map { day ->
+                WeightEntry(
+                    id = day.toLong(),
+                    weightKg = 80.0,
+                    timestamp = midnight(2024, 1, day),
+                    note = ""
+                )
+            }
+            val profile = UserProfile(
+                id = 1,
+                displayName = "",
+                goalWeightKg = null,
+                targetDate = null,
+                heightCm = null,
+                maintenanceMode = false,
+                maintenanceRangeKg = 2.0,
+                maintenanceModeActivatedAt = null,
+            )
+
+            val badges = BadgeEngine.evaluate(entries, profile)
+            assertTrue(
+                "7-day streak should be awarded for 8 consecutive local days in UTC+8",
+                Badge.SEVEN_DAY_STREAK in badges
+            )
+        } finally {
+            java.util.TimeZone.setDefault(originalDefault)
+        }
+    }
 }
