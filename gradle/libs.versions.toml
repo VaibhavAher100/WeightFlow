@@ -14,7 +14,7 @@ datastore = "1.1.1"
 navigationCompose = "2.8.9"
 vico = "1.13.1"
 coroutines = "1.8.1"
-appcompat = "1.7.0"
+appcompat = "1.7.1"
 mockk = "1.13.12"
 turbine = "1.1.0"
 # Firebase — add google-services.json to app/ and apply plugins below to activate
