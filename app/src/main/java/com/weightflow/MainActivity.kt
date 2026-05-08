@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
         val onboardingViewModel = OnboardingViewModel(
             userProfileRepository = app.userProfileRepository,
             userPrefsDataStore = app.userPrefsDataStore,
+            weightRepository = app.weightRepository,
         )
         setContent {
             val palette by app.userPrefsDataStore.themePalette
