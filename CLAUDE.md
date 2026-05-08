@@ -333,7 +333,7 @@ These are locked design decisions from the improve-codebase-architecture session
 | `ui/home/HomeUiStateMapperTest.kt` | 7 | GREEN |
 | `ui/settings/SettingsViewModelTest.kt` | 8 | GREEN (+3 reminder) |
 
-**Total unit tests: 221+ GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-08). LogEntryViewModelTest +4, HomeUiStateMapperTest +4 added in UI/UX overhaul session.
+**Total unit tests: 311+ GREEN** (verified `./gradlew testDebugUnitTest` 2026-05-08-002). Session added: stToKg tests, UTC+ timezone tests (BadgeEngine + CsvExporter), reset() test, onboarding weight save tests, DatabaseKeyManagerTest.
 
 **ViewModel test pattern (locked — reuse for all future VMs):**
 - `StandardTestDispatcher` + `Dispatchers.setMain/@Before`
@@ -367,7 +367,7 @@ TDD execution order: `docs/plans/2026-04-12-tdd-order.md`
 | 1 | Foundation (Android project + Room + DataStore + NavGraph) | **Complete** — all 11 TDD steps done; app launchable with 4-tab nav |
 | 2 | All 6 screens + ViewModels + Vico charts + RFCs #24-26 | **Complete** — 166 tests GREEN, Vico wired, OnboardingScreen + gate, RFCs implemented |
 | 3 | Polish + badge UI + goal banners + settings + accessibility + WorkManager | **Complete** — PR #30 merged; all 7 screens overhauled (Athlete's Journal aesthetic) |
-| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — All compliance done; full UI/UX overhaul complete (Zero/Whoop design language, all 6 screens, 17 commits 2026-05-08). Pending: Google Drive keystore backup, AAB build, ASO, Play Store upload |
+| 4 | Play Store launch (privacy policy, Crashlytics, ASO, signed build) | **In progress** — All compliance done; 13 pre-launch bugs fixed; app launches on device (2026-05-08-002). Pending: full device test, Google Drive keystore backup, AAB build, ASO, Play Store upload |
 | 5 | Firebase sync + iOS via KMP | Needs planning (no AdMob in v1.0) |
 
 ---
@@ -385,7 +385,7 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 **Session start protocol (enforced by hook):**
 1. Read `logs/_state.md` — confirm current open items
 2. Read `docs/plans/2026-04-12-tdd-order.md` — confirm which TDD step is next
-3. Run `./gradlew testDebugUnitTest` — confirm all unit tests still green (221+ as of 2026-05-08)
+3. Run `./gradlew testDebugUnitTest` — confirm all unit tests still green (311+ as of 2026-05-08-002)
 4. THEN start coding
 
 ---
@@ -402,6 +402,8 @@ Three rules in `.claude/hookify.*.local.md` — active immediately, no restart n
 8. **GitHub Actions**: `.github/workflows/android.yml` is already set up. Tests run on every push.
 9. **Settings navigation**: Accessed via gear icon (top-right) in ProfileScreen `PageHeader`. `onSettingsClick` must be threaded: `ProfileScreen` → `ProfileContent` → `PageHeader`.
 10. **Haiku worker pattern**: Brief Haiku workers for read/analysis only. All file writes must be done by Executor (Sonnet) — Haiku hits permission walls for writes in this project config.
+11. **Debug vs Release DB**: `AppDatabase.buildDatabase()` uses `BuildConfig.DEBUG` — debug skips SQLCipher (plain Room). `EncryptedSharedPreferences` Keystore init blocks main thread 30-55s on cold start = permanent black screen. Do NOT remove this guard. Long-term fix: move DB init off main thread (Phase 5).
+12. **`onboardingState` null semantics**: `UserPrefsDataStore.onboardingState` must emit `false` when key is absent (absent = not done = show onboarding). Do NOT revert to `prefs[key]` without `?: false` — absent key emits `null` and UI shows permanent black screen on fresh install.
 
 ---
 
