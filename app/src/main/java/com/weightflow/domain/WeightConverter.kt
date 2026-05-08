@@ -16,6 +16,9 @@ object WeightConverter {
 
     fun lbsToKg(lbs: Double): Double = lbs / KG_TO_LBS
 
+    /** Converts decimal stones (e.g. 12.8) to kilograms. 1 stone = 6.35029 kg. */
+    fun stToKg(decimalStones: Double): Double = decimalStones * 6.35029
+
     fun kgToStones(kg: Double): StonesResult {
         val totalLbs = kgToLbs(kg)
         val stones = (totalLbs / LBS_PER_STONE).toInt()

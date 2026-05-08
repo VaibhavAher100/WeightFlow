@@ -46,7 +46,7 @@ class OnboardingViewModel(
             when (_uiState.value.selectedUnit) {
                 WeightUnit.KG  -> v
                 WeightUnit.LBS -> WeightConverter.lbsToKg(v)
-                WeightUnit.ST  -> v
+                WeightUnit.ST  -> WeightConverter.stToKg(v)
             }
         }
         val valid = weightKg?.isValidWeightKg() ?: false
@@ -68,7 +68,7 @@ class OnboardingViewModel(
                 when (_uiState.value.selectedUnit) {
                     WeightUnit.KG  -> v
                     WeightUnit.LBS -> WeightConverter.lbsToKg(v)
-                    WeightUnit.ST  -> v
+                    WeightUnit.ST  -> WeightConverter.stToKg(v)
                 }
             }
             goalKg?.isValidWeightKg() ?: false
@@ -125,7 +125,7 @@ class OnboardingViewModel(
                 when (state.selectedUnit) {
                     WeightUnit.KG  -> input
                     WeightUnit.LBS -> WeightConverter.lbsToKg(input)
-                    WeightUnit.ST  -> input
+                    WeightUnit.ST  -> WeightConverter.stToKg(input)
                 }
             } ?: 0.0
             if (!weightKg.isValidWeightKg()) return@launch
@@ -134,7 +134,7 @@ class OnboardingViewModel(
                 val kg = when (state.selectedUnit) {
                     WeightUnit.KG  -> input
                     WeightUnit.LBS -> WeightConverter.lbsToKg(input)
-                    WeightUnit.ST  -> input
+                    WeightUnit.ST  -> WeightConverter.stToKg(input)
                 }
                 kg.takeIf { it.isValidWeightKg() }
             }
