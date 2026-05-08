@@ -55,7 +55,6 @@ jobs:
             --recursive
             --skip-git
             ./
-        continue-on-error: true   # upload findings even when vulnerabilities found
 
       - name: Upload OSV SARIF
         uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e  # v4.35.4
