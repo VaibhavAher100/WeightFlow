@@ -53,6 +53,8 @@ jobs:
         with:
           scan-args: |-
             --recursive
+            --format=sarif
+            --output=results.sarif
             ./
 
       - name: Upload OSV SARIF
