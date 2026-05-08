@@ -3,6 +3,7 @@ package com.weightflow
 import android.app.Application
 import androidx.datastore.preferences.preferencesDataStore
 import com.weightflow.data.AppDatabase
+import com.weightflow.data.DatabaseKeyManager
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
 import com.weightflow.data.WeightRepository
@@ -16,6 +17,11 @@ class WeightFlowApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Initialise the database key provider early so it is ready when any
+        // component accesses the database. EncryptedSharedPreferences is backed
+        // by the Android Keystore but returns the passphrase as readable bytes —
+        // this avoids the null-encoded() issue with hardware-backed Keystore keys.
+        DatabaseKeyManager.init(this)
         // Crashlytics: add google-services.json + wire deps when ready (Phase 5)
         // Reminders: opt-in via Settings toggle — not auto-scheduled at startup
     }

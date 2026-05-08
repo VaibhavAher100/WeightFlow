@@ -29,6 +29,8 @@ sqlcipher = "4.5.4"
 kotlinCsv = "1.10.0"
 # zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
 zip4j = "2.11.5"
+# security-crypto — EncryptedSharedPreferences for database passphrase storage
+securityCrypto = "1.1.0-alpha06"
 
 [libraries]
 # Core
@@ -87,6 +89,8 @@ sqlcipher-android = { group = "net.zetetic", name = "sqlcipher-android", version
 kotlin-csv = { group = "com.github.doyaaaaaken", name = "kotlin-csv-jvm", version.ref = "kotlinCsv" }
 # zip4j — AES-256 encrypted ZIP (audited before merge)
 zip4j = { group = "net.lingala.zip4j", name = "zip4j", version.ref = "zip4j" }
+# security-crypto — EncryptedSharedPreferences for database passphrase storage
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 # Firebase (uncomment after adding google-services.json to app/)
 # firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 # firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
