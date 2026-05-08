@@ -1,6 +1,8 @@
 package com.weightflow.domain
 
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 enum class Badge {
@@ -64,7 +66,7 @@ object BadgeEngine {
 
         // Steady state: maintenance mode active for 30+ days
         if (profile.maintenanceMode && profile.maintenanceModeActivatedAt != null) {
-            val activatedDate = LocalDate.ofEpochDay(profile.maintenanceModeActivatedAt / 86_400_000L)
+            val activatedDate = LocalDate.ofInstant(Instant.ofEpochMilli(profile.maintenanceModeActivatedAt), ZoneId.systemDefault())
             val daysInMaintenance = ChronoUnit.DAYS.between(activatedDate, LocalDate.now())
             if (daysInMaintenance >= 30) awarded += Badge.STEADY_STATE
         }
@@ -74,7 +76,7 @@ object BadgeEngine {
 
     private fun maxConsecutiveStreak(entries: List<WeightEntry>): Int {
         val dates = entries
-            .map { LocalDate.ofEpochDay(it.timestamp / 86_400_000L) }
+            .map { LocalDate.ofInstant(Instant.ofEpochMilli(it.timestamp), ZoneId.systemDefault()) }
             .toSortedSet()
 
         if (dates.size < 2) return dates.size
@@ -98,8 +100,8 @@ object BadgeEngine {
     private fun hasComeback(entries: List<WeightEntry>): Boolean {
         val sorted = entries.sortedBy { it.timestamp }
         for (i in 1 until sorted.size) {
-            val prev = LocalDate.ofEpochDay(sorted[i - 1].timestamp / 86_400_000L)
-            val curr = LocalDate.ofEpochDay(sorted[i].timestamp / 86_400_000L)
+            val prev = LocalDate.ofInstant(Instant.ofEpochMilli(sorted[i - 1].timestamp), ZoneId.systemDefault())
+            val curr = LocalDate.ofInstant(Instant.ofEpochMilli(sorted[i].timestamp), ZoneId.systemDefault())
             if (ChronoUnit.DAYS.between(prev, curr) >= 14) return true
         }
         return false

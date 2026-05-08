@@ -3,7 +3,9 @@ package com.weightflow.domain
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.context.ExcessFieldsRowBehaviour
 import com.github.doyaaaaaken.kotlincsv.dsl.context.InsufficientFieldsRowBehaviour
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import kotlin.math.abs
 
 // ── Internal limits ────────────────────────────────────────────────────────────
@@ -14,9 +16,10 @@ internal const val MAX_COLUMNS = 10
 // ── Shared helpers ─────────────────────────────────────────────────────────────
 
 private fun isDuplicate(entry: WeightEntry, existing: List<WeightEntry>): Boolean {
-    val entryDate = LocalDate.ofEpochDay(entry.timestamp / 86_400_000L)
+    val zone = ZoneId.systemDefault()
+    val entryDate = LocalDate.ofInstant(Instant.ofEpochMilli(entry.timestamp), zone)
     return existing.any { ex ->
-        val exDate = LocalDate.ofEpochDay(ex.timestamp / 86_400_000L)
+        val exDate = LocalDate.ofInstant(Instant.ofEpochMilli(ex.timestamp), zone)
         exDate == entryDate && abs(ex.weightKg - entry.weightKg) < 0.01
     }
 }
