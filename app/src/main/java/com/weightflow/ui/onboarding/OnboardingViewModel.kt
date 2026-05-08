@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
+import com.weightflow.data.WeightRepository
 import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
@@ -17,10 +18,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 
 class OnboardingViewModel(
     private val userProfileRepository: UserProfileRepository,
     private val userPrefsDataStore: UserPrefsDataStore,
+    private val weightRepository: WeightRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -129,6 +132,13 @@ class OnboardingViewModel(
                 }
             } ?: 0.0
             if (!weightKg.isValidWeightKg()) return@launch
+
+            // Save initial weight so the tracker is not empty after onboarding
+            val timestamp = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
+            weightRepository.addEntry(weightKg, timestamp)
 
             val goalKg = state.goalInput.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { input ->
                 val kg = when (state.selectedUnit) {

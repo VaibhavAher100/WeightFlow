@@ -3,11 +3,13 @@ package com.weightflow.ui.onboarding
 import app.cash.turbine.test
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.UserProfileRepository
+import com.weightflow.data.WeightRepository
 import com.weightflow.domain.WeightUnit
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,7 @@ class OnboardingViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val userProfileRepository: UserProfileRepository = mockk()
     private val userPrefsDataStore: UserPrefsDataStore = mockk()
+    private val mockWeightRepo: WeightRepository = mockk()
 
     @Before
     fun setUp() {
@@ -42,6 +45,7 @@ class OnboardingViewModelTest {
         coEvery { userProfileRepository.saveProfile(any()) } returns Unit
         coEvery { userPrefsDataStore.setWeightUnit(any()) } returns Unit
         coEvery { userPrefsDataStore.setOnboardingComplete() } returns Unit
+        coEvery { mockWeightRepo.addEntry(any(), any()) } returns 1L
     }
 
     @After
@@ -49,7 +53,11 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun makeViewModel() = OnboardingViewModel(userProfileRepository, userPrefsDataStore)
+    private fun makeViewModel() = OnboardingViewModel(
+        userProfileRepository = userProfileRepository,
+        userPrefsDataStore = userPrefsDataStore,
+        weightRepository = mockWeightRepo,
+    )
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -293,5 +301,38 @@ class OnboardingViewModelTest {
         vm.onGoalInput("99999") // extreme — not a valid kg weight
         advanceUntilIdle()
         assertFalse(vm.uiState.value.canAdvance)
+    }
+
+    // ── Initial weight entry saved to repository ──────────────────────────────
+
+    @Test
+    fun `onComplete saves initial weight entry to repository`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("1990")
+        vm.onNextStep() // → UNIT
+        vm.onNextStep() // → CURRENT_WEIGHT
+        vm.onWeightInput("80")
+        vm.onNextStep() // → GOAL
+        vm.onComplete()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { mockWeightRepo.addEntry(80.0, any()) }
+    }
+
+    @Test
+    fun `onComplete with ST unit converts stones before saving`() = runTest {
+        val vm = makeViewModel()
+        vm.onBirthYearInput("1990")
+        vm.onNextStep() // → UNIT
+        vm.onUnitSelected(WeightUnit.ST)
+        vm.onNextStep() // → CURRENT_WEIGHT
+        vm.onWeightInput("10") // 10 st ≈ 63.50 kg
+        vm.onNextStep() // → GOAL
+        vm.onComplete()
+        advanceUntilIdle()
+
+        val capturedKg = slot<Double>()
+        coVerify { mockWeightRepo.addEntry(capture(capturedKg), any()) }
+        assertEquals(63.5029, capturedKg.captured, 0.01)
     }
 }
