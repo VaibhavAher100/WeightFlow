@@ -1,5 +1,5 @@
 ---
-last_session: 2026-05-08-001
+last_session: 2026-05-09-001
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -58,7 +58,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | 4 | Play Store launch (privacy policy, signed build, ASO) | **In progress** |
 | 5 | Firebase sync + iOS via KMP | Needs planning |
 
-## Phase 4 — IN PROGRESS (sessions 2026-04-26-001, 2026-05-07-001, 2026-05-07-002, 2026-05-08-001, 2026-05-08-002, 2026-05-08-003)
+## Phase 4 — IN PROGRESS (sessions 2026-04-26-001, 2026-05-07-001, 2026-05-07-002, 2026-05-08-001, 2026-05-08-002, 2026-05-08-003, 2026-05-09-001)
 
 | Item | Status |
 |------|--------|
@@ -115,6 +115,7 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | **Device testing** | **DONE** — app launches, onboarding visible (2026-05-08-002) |
 | **Debug SQLCipher bypass** | **DONE** — BuildConfig.DEBUG → plain Room (avoids main thread block) |
 | **onboardingState null fix** | **DONE** — absent key emits false not null |
+| **UI/UX plan verification** | **DONE** (2026-05-09-001) — all 12 tasks confirmed implemented, 3 pending files committed |
 | Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
 | Play Store listing + ASO | **TODO** |
 | AAB build + upload | **TODO** |
