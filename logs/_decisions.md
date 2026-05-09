@@ -448,3 +448,17 @@
 **Decision:** `onboardingState` emits `false` when `ONBOARDING_COMPLETE` key is absent.
 **Rationale:** Absent key = onboarding not done = show onboarding screen. Original implementation emitted `null` for absent key, which the UI mapped to permanent black screen. `null` is now only the Compose `initialValue` (before DataStore first emits), lasting milliseconds.
 **Context:** Discovered during device testing — app showed permanent black screen on fresh install. DataStore was emitting correctly but emitting `null` (key absent), which was indistinguishable from "not yet loaded".
+
+## Session 2026-05-09-002 — 2026-05-09
+
+**Decision:** Base64 keystore stored as GitHub secret, decoded to `/tmp` at CI build time, always-run cleanup step removes it after build.
+**Rationale:** Standard Android CI signing pattern — avoids binary secrets, step-scoped env vars prevent leakage, ephemeral `/tmp` file not persisted in artifact.
+**Context:** Phase 4 Play Store launch requires signed AAB from CI.
+
+**Decision:** Dependabot PRs #41 (Room 2.8) and #42 (mockk 1.14) deferred until post-launch.
+**Rationale:** Room 2.8 requires a schema migration (currently v2); mockk 1.14 has value-class matcher changes that may affect `@JvmInline StoredWeight` tests. Pre-launch risk outweighs dependency freshness benefit.
+**Context:** Automated Dependabot PRs opened 2026-05-08.
+
+**Decision:** R8 ProGuard `-dontwarn` for Google Tink compile-time annotations.
+**Rationale:** Tink's error-prone and javax annotations are compile-time only; they're not present at runtime and don't affect app behaviour. Google's own migration guide recommends this approach.
+**Context:** `minifyReleaseWithR8` failed with "Missing class" for `com.google.errorprone.annotations.**` and `javax.annotation.**`.

@@ -1,5 +1,5 @@
 ---
-last_session: 2026-05-09-001
+last_session: 2026-05-09-002
 status: active
 environment: isolated (WeightFlow/ only)
 ---
@@ -261,8 +261,7 @@ Session 2026-05-08-002 added:
 ## Open Items
 
 - [ ] **Complete device testing** — go through all screens, note any issues
-- [ ] Back up keystore to Google Drive — **CRITICAL, 3rd backup location**
-- [ ] Build release AAB: `./gradlew bundleRelease`
+- [ ] Download CI release AAB + verify signature: `gh run download <run-id> -n release-aab`
 - [ ] Upload AAB to Play Store internal testing track
 - [ ] Complete Play Data Safety form in Play Console
 - [ ] Play Store listing + ASO copy (android-aso skill)
@@ -273,12 +272,11 @@ Session 2026-05-08-002 added:
 ## Next Session Should
 
 1. **Complete device testing** — go through all screens, fix any issues found
-2. **Back up keystore to Google Drive** — CRITICAL. 3rd location. Do before building AAB.
-3. **Build release AAB** — `./gradlew bundleRelease` — should succeed, keystore is wired
-4. **Play Store listing + ASO** — `android-aso` skill, write listing copy
-5. **Internal track upload** — `android-playstore-setup` skill
-6. **Play Data Safety form** — complete in Play Console (offline-first, no data sharing)
-7. **Firebase Crashlytics** — unblock once `google-services.json` available
+2. **Download + verify signed AAB** from CI artifact (`gh run download`) — confirm Play-ready
+3. **Play Store listing + ASO** — `android-aso` skill, write listing copy
+4. **Internal track upload** — `android-playstore-setup` skill
+5. **Play Data Safety form** — complete in Play Console (offline-first, no data sharing)
+6. **Firebase Crashlytics** — unblock once `google-services.json` available
 
 ## Debug vs Release DB (CRITICAL — do not forget)
 
