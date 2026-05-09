@@ -223,10 +223,24 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build release AAB
-        # Produces an unsigned AAB — signing happens locally before Play upload.
-        # In Phase 4 add KEYSTORE_* secrets and wire gradle signing config here.
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/weightflow-release.jks
+          test -s /tmp/weightflow-release.jks
+
+      - name: Build release AAB (signed)
+        env:
+          KEYSTORE_PATH: /tmp/weightflow-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew bundleRelease
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f /tmp/weightflow-release.jks
 
       - name: Upload release AAB
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
