@@ -35,9 +35,9 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
         prefs[ONBOARDING_COMPLETE] ?: false
     }
 
-    /** Null = DataStore not yet loaded. True/false = actual value. Use for splash prevention. */
+    /** Null = DataStore not yet loaded (Compose initial value only). Once loaded: false = show onboarding, true = show shell. */
     val onboardingState: Flow<Boolean?> = dataStore.data.map { prefs ->
-        prefs[ONBOARDING_COMPLETE]
+        prefs[ONBOARDING_COMPLETE] ?: false
     }
 
     val reminderEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
