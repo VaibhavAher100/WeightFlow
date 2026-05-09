@@ -21,7 +21,7 @@ class WeightFlowApp : Application() {
         // component accesses the database. EncryptedSharedPreferences is backed
         // by the Android Keystore but returns the passphrase as readable bytes —
         // this avoids the null-encoded() issue with hardware-backed Keystore keys.
-        System.loadLibrary("sqlcipher")
+        if (!BuildConfig.DEBUG) System.loadLibrary("sqlcipher")
         DatabaseKeyManager.init(this)
         // Crashlytics: add google-services.json + wire deps when ready (Phase 5)
         // Reminders: opt-in via Settings toggle — not auto-scheduled at startup
