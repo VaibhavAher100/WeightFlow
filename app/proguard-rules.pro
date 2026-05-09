@@ -35,6 +35,15 @@
 -keep class net.zetetic.database.** { *; }
 -dontwarn net.zetetic.**
 
+# ── Google Tink / EncryptedSharedPreferences (via security-crypto) ────────────
+# Tink depends on error-prone and javax annotations which are compile-time only.
+# R8 sees them as missing at runtime — suppress warnings to unblock minification.
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
+-dontwarn javax.annotation.concurrent.**
+-dontwarn com.google.crypto.tink.**
+-keep class com.google.crypto.tink.** { *; }
+
 # ── WeightFlow: keep serialized/reflected types only ─────────────────────────
 # Room @Entity and @Dao already kept above via annotation rules.
 # No additional broad keeps needed — R8 traces all usages statically.
