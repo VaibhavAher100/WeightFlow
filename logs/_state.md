@@ -116,6 +116,9 @@ _Always open `WeightFlow/` in Claude Code, never the root `102/`._
 | **Debug SQLCipher bypass** | **DONE** — BuildConfig.DEBUG → plain Room (avoids main thread block) |
 | **onboardingState null fix** | **DONE** — absent key emits false not null |
 | **UI/UX plan verification** | **DONE** (2026-05-09-001) — all 12 tasks confirmed implemented, 3 pending files committed |
+| **Keystore Google Drive backup** | **DONE** (2026-05-09) — Drive ID `18t1kAGv2ScYkcmDLoDVVQ0jkUXjZ3tiM` |
+| **GitHub Actions signing secrets** | **DONE** (2026-05-09) — KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD set |
+| **CI release build signed** | **DONE** (2026-05-09) — workflow wired; bundleRelease produces signed AAB |
 | Firebase Crashlytics end-to-end | **TODO** — blocked on google-services.json |
 | Play Store listing + ASO | **TODO** |
 | AAB build + upload | **TODO** |
@@ -214,7 +217,7 @@ Session 2026-05-08-002 added:
 - **local.properties** (not committed): KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
 - **Backup 1:** `Desktop/WeightFlow-Keystore-BACKUP/`
 - **Backup 2:** `Documents/WeightFlow-Keystore-BACKUP/`
-- **Backup 3: TODO — upload to Google Drive**
+- **Backup 3:** Google Drive — `weightflow-release.jks` (ID: `18t1kAGv2ScYkcmDLoDVVQ0jkUXjZ3tiM`, owner: vaibhavaher100@gmail.com, uploaded 2026-05-09)
 - SHA256: `F7:1B:CA:7A:4D:12:CE:FB:E5:E5:38:91:D0:5F:99:99:DA:84:36:6A:0F:6B:84:66:0E:3D:A9:C9:00:DC:CC:CF`
 - Valid until: 2051-05-01
 
