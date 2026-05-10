@@ -27,8 +27,16 @@ google-services.json
 /tmp
 .superpowers/
 
-# Claude context (project-local, not for sharing)
-.claude/settings.local.json
+# Claude AI context (internal tooling — not for public)
+.claude/
+CLAUDE.md
+
+# Internal strategy and planning docs
+docs/strategy/
+docs/superpowers/
+
+# Stray scripts
+test_missing_creds.sh
 
 # Exclude internal tooling/logs from git tracking
 .agents/
