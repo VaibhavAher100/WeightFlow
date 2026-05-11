@@ -30,7 +30,7 @@ kotlinCsv = "1.10.0"
 # zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
 zip4j = "2.11.6"
 # security-crypto — EncryptedSharedPreferences for database passphrase storage
-securityCrypto = "1.1.0-alpha06"
+securityCrypto = "1.1.0"
 
 [libraries]
 # Core
