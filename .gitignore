@@ -27,9 +27,13 @@ google-services.json
 /tmp
 .superpowers/
 
-# Claude AI context (internal tooling — not for public)
+# Claude AI context (internal tooling - not for public)
 .claude/
 CLAUDE.md
+skills-lock.json
+*.skills-lock.json
+GEMINI.md
+AGENTS.md
 
 # Internal strategy and planning docs
 docs/strategy/
@@ -38,9 +42,12 @@ docs/superpowers/
 # Stray scripts
 test_missing_creds.sh
 
-# Exclude internal tooling/logs from git tracking
+# Internal AI tooling
 .agents/
 .codex/
 .continue/
 logs/
-AGENTS.md
+_state.md
+_decisions.md
+*.session.md
+sessions/

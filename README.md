@@ -1,15 +1,24 @@
 # WeightFlow
 
-WeightFlow is a privacy-focused Android weight tracker built with Kotlin and Jetpack Compose. 
-It is designed around local-first storage, simple logging, trends, reminders, and user-controlled export.
+Privacy-focused Android weight tracker. Local-first storage, encrypted database,
+and user-controlled data. No data collection in the current version.
+
+Built with Kotlin, Jetpack Compose, Room + SQLCipher, and Jetpack DataStore.
+
+## Features
+
+- Weight logging with unit support (kg, lbs, stones)
+- Trends, statistics, and goal tracking
+- Encrypted local database (SQLCipher)
+- CSV export with password protection
+- GDPR Art. 17 data deletion
 
 ## Status
 
-This project is under active development.
+Under active development. Not yet released.
 
 ## License
 
-Copyright © 2026 Vaibhav Aher. All rights reserved.
-
-This source code is not licensed for copying, modification, distribution, or commercial use.
-You may not reuse this code without written permission from the author.
+Copyright (c) 2026 Vaibhav Aher. All rights reserved.
+Source is publicly viewable for reference only.
+See LICENSE for full terms.
