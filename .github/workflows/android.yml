@@ -126,6 +126,9 @@ jobs:
           name: test-results
           path: app/build/reports/tests/
 
+      - name: Static analysis (detekt + ktlint)
+        run: ./gradlew detekt ktlintCheck
+
   # ── Lint ─────────────────────────────────────────────────────────────────
   lint:
     name: Lint

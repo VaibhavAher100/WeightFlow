@@ -1,6 +1,7 @@
 package com.weightflow.data
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.security.SecureRandom
@@ -68,7 +69,7 @@ internal class EncryptedPrefsKeyProvider(context: Context) : DatabaseKeyProvider
         val existing = prefs.getString(KEY_PREF, null)
         if (existing != null) return hexToBytes(existing)
         val newKey = ByteArray(KEY_SIZE_BYTES).also { SecureRandom().nextBytes(it) }
-        prefs.edit().putString(KEY_PREF, bytesToHex(newKey)).apply()
+        prefs.edit { putString(KEY_PREF, bytesToHex(newKey)) }
         return newKey
     }
 

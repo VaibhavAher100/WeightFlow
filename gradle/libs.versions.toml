@@ -24,11 +24,14 @@ firebaseCrashlyticsGradle = "3.0.2"
 # WorkManager
 workManager = "2.10.1"
 # SQLCipher — Room-compatible encrypted SQLite
-sqlcipher = "4.5.4"
+sqlcipher = "4.16.0"
 # kotlin-csv — RFC-4180 compliant CSV parser (pure Kotlin, no Android deps)
 kotlinCsv = "1.10.0"
 # zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
 zip4j = "2.11.6"
+# Static analysis
+detekt = "1.23.7"
+ktlint-plugin = "12.1.1"
 # security-crypto — EncryptedSharedPreferences for database passphrase storage
 securityCrypto = "1.1.0-alpha06"
 
@@ -101,6 +104,8 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
 # Uncomment both after placing google-services.json in app/ :
 # google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 # firebase-crashlytics-gradle = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsGradle" }

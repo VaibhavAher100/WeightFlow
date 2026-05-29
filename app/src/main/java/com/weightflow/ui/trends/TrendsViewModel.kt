@@ -26,6 +26,9 @@ class TrendsViewModel(
     private val _selectedRange = MutableStateFlow(TrendsTimeRange.DAYS_30)
     val selectedRange: StateFlow<TrendsTimeRange> = _selectedRange.asStateFlow()
 
+    private val _selectedChart = MutableStateFlow(ChartType.LINE)
+    val selectedChart: StateFlow<ChartType> = _selectedChart.asStateFlow()
+
     val uiState: StateFlow<TrendsUiState> = combine(
         weightRepository.getEntriesOldestFirst(),
         userPrefsDataStore.weightUnit,
@@ -65,6 +68,10 @@ class TrendsViewModel(
 
     fun onRangeSelected(range: TrendsTimeRange) {
         _selectedRange.value = range
+    }
+
+    fun onChartTypeSelected(type: ChartType) {
+        _selectedChart.value = type
     }
 
     private fun filterByRange(

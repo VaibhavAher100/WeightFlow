@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="build.gradle.kts">
+        <error line="18" column="19" source="standard:multiline-expression-wrapping" />
+        <error line="59" column="37" source="standard:trailing-comma-on-call-site" />
+        <error line="111" column="23" source="standard:multiline-expression-wrapping" />
+        <error line="111" column="23" source="standard:wrapping" />
+        <error line="126" column="17" source="standard:string-template-indent" />
+        <error line="126" column="32" source="standard:wrapping" />
+    </file>
+</baseline>

@@ -38,6 +38,10 @@ updates:
       - dependency-name: "com.android.tools.build:gradle"
       - dependency-name: "com.android.application"
       - dependency-name: "com.android.library"
+      # Vico 2.x/3.x are major API rewrites incompatible with the locked
+      # 1.13.1 chart API (see CLAUDE.md build gotchas). Major bumps are manual.
+      - dependency-name: "com.patrykandpatrick.vico:*"
+        update-types: ["version-update:semver-major"]
 
   # ── GitHub Actions ────────────────────────────────────────────────────────
   - package-ecosystem: github-actions
