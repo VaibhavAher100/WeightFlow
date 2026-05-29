@@ -188,6 +188,21 @@ class TrendsViewModelTest {
         assertEquals(TrendsTimeRange.DAYS_90, vm.selectedRange.value)
     }
 
+    // ── Chart type toggle ─────────────────────────────────────────────────────
+
+    @Test
+    fun `default chart type is LINE`() = runTest {
+        val vm = TrendsViewModel(weightRepository, userPrefsDataStore, userProfileRepository)
+        assertEquals(ChartType.LINE, vm.selectedChart.value)
+    }
+
+    @Test
+    fun `onChartTypeSelected updates selectedChart`() = runTest {
+        val vm = TrendsViewModel(weightRepository, userPrefsDataStore, userProfileRepository)
+        vm.onChartTypeSelected(ChartType.BAR)
+        assertEquals(ChartType.BAR, vm.selectedChart.value)
+    }
+
     // ── StatsSection ──────────────────────────────────────────────────────────
 
     @Test

@@ -2,6 +2,8 @@ package com.weightflow.ui.trends
 
 import com.weightflow.domain.WeightUnit
 
+enum class ChartType { LINE, BAR, AREA }
+
 enum class TrendsTimeRange(val labelDays: Int?) {
     DAYS_7(7),
     DAYS_30(30),

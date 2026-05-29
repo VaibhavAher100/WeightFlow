@@ -85,7 +85,8 @@
     <ID>FunctionNaming:TrendsScreen.kt$@Composable fun TrendsScreen(viewModel: TrendsViewModel)</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun ChartStat( value: String, label: String, unit: String, modifier: Modifier = Modifier, valueColor: Color = MaterialTheme.colorScheme.onBackground, )</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun ChartStatsRow(state: TrendsUiState.HasData)</ID>
-    <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun ChartView(state: TrendsUiState.HasData)</ID>
+    <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun ChartTypeRow(selected: ChartType, onSelect: (ChartType) -&gt; Unit)</ID>
+    <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType)</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun EmptyView()</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun FilterRow(selected: TrendsTimeRange, onSelect: (TrendsTimeRange) -&gt; Unit)</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable private fun LoadingView()</ID>
@@ -107,7 +108,7 @@
     <ID>LongMethod:SettingsDialogs.kt$@Composable internal fun EncryptedExportDialog( onExport: (CharArray) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -&gt; Unit)</ID>
     <ID>LongMethod:ShellScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ShellScreen(app: WeightFlowApp)</ID>
-    <ID>LongMethod:TrendsScreen.kt$@Composable private fun ChartView(state: TrendsUiState.HasData)</ID>
+    <ID>LongMethod:TrendsScreen.kt$@Composable private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType)</ID>
     <ID>LongMethod:TrendsScreen.kt$@Composable private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit)</ID>
     <ID>LongMethod:WheelPicker.kt$@Composable fun WheelPicker( items: List&lt;Int&gt;, initialIndex: Int, onItemSelected: (Int) -&gt; Unit, modifier: Modifier = Modifier, onScrollTick: () -&gt; Unit = {}, )</ID>
     <ID>LongParameterList:OnboardingScreen.kt$( currentStep: OnboardingStep, canAdvance: Boolean, onBack: () -&gt; Unit, onNext: () -&gt; Unit, onComplete: () -&gt; Unit, accent: Color, onPrimary: Color, )</ID>

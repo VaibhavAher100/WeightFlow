@@ -37,8 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
 import com.patrykandpatrick.vico.core.chart.line.LineChart as VicoLineChart
+import com.patrykandpatrick.vico.core.component.shape.LineComponent
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.weightflow.domain.WeightUnit
@@ -49,6 +53,7 @@ import kotlin.math.abs
 fun TrendsScreen(viewModel: TrendsViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedRange by viewModel.selectedRange.collectAsStateWithLifecycle()
+    val selectedChart by viewModel.selectedChart.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -56,10 +61,11 @@ fun TrendsScreen(viewModel: TrendsViewModel) {
             .background(MaterialTheme.colorScheme.background),
     ) {
         FilterRow(selected = selectedRange, onSelect = viewModel::onRangeSelected)
+        ChartTypeRow(selected = selectedChart, onSelect = viewModel::onChartTypeSelected)
         when (uiState) {
             is TrendsUiState.Loading -> LoadingView()
             is TrendsUiState.Empty   -> EmptyView()
-            is TrendsUiState.HasData -> ChartView(uiState as TrendsUiState.HasData)
+            is TrendsUiState.HasData -> ChartView(uiState as TrendsUiState.HasData, selectedChart)
         }
     }
 }
@@ -112,6 +118,32 @@ private fun TrendsTimeRange.toLabel() = when (this) {
     TrendsTimeRange.ALL      -> "All"
 }
 
+// ── Chart Type Row ────────────────────────────────────────────────────────────
+
+@Composable
+private fun ChartTypeRow(selected: ChartType, onSelect: (ChartType) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        ChartType.entries.forEach { type ->
+            RangePill(
+                label = type.toLabel(),
+                selected = type == selected,
+                onClick = { onSelect(type) },
+            )
+        }
+    }
+}
+
+private fun ChartType.toLabel() = when (this) {
+    ChartType.LINE -> "Line"
+    ChartType.BAR  -> "Bar"
+    ChartType.AREA -> "Area"
+}
+
 // ── Loading / Empty ───────────────────────────────────────────────────────────
 
 @Composable
@@ -141,7 +173,7 @@ private fun EmptyView() {
 // ── Chart View ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ChartView(state: TrendsUiState.HasData) {
+private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType) {
     val accent = MaterialTheme.colorScheme.primary
     val modelProducer = remember { ChartEntryModelProducer() }
     var producerReady by remember { mutableStateOf(false) }
@@ -169,15 +201,42 @@ private fun ChartView(state: TrendsUiState.HasData) {
                 .padding(14.dp),
         ) {
             if (producerReady) {
-                Chart(
-                    chart = lineChart(
+                val chart = when (chartType) {
+                    ChartType.LINE -> lineChart(
                         lines = listOf(
                             VicoLineChart.LineSpec(
                                 lineColor = accent.toArgb(),
                                 lineThicknessDp = 2f,
                             ),
                         ),
-                    ),
+                    )
+                    ChartType.BAR -> columnChart(
+                        columns = listOf(
+                            LineComponent(
+                                color = accent.toArgb(),
+                                thicknessDp = 16f,
+                            ),
+                        ),
+                    )
+                    ChartType.AREA -> lineChart(
+                        lines = listOf(
+                            VicoLineChart.LineSpec(
+                                lineColor = accent.toArgb(),
+                                lineThicknessDp = 2f,
+                                lineBackgroundShader = DynamicShaders.fromBrush(
+                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        colors = listOf(
+                                            accent.copy(alpha = 0.4f),
+                                            accent.copy(alpha = 0f),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    )
+                }
+                Chart(
+                    chart = chart,
                     chartModelProducer = modelProducer,
                     modifier = Modifier
                         .fillMaxWidth()
