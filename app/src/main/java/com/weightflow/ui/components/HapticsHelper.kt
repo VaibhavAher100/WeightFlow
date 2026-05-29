@@ -41,7 +41,7 @@ class WFHaptics(
                     -1,
                 ),
             )
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        } else {
             @Suppress("DEPRECATION")
             val vm = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
             vm.vibrate(
@@ -51,8 +51,6 @@ class WFHaptics(
                     -1,
                 ),
             )
-        } else {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 }
