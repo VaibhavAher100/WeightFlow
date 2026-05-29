@@ -24,7 +24,7 @@ firebaseCrashlyticsGradle = "3.0.2"
 # WorkManager
 workManager = "2.10.1"
 # SQLCipher — Room-compatible encrypted SQLite
-sqlcipher = "4.5.4"
+sqlcipher = "4.16.0"
 # kotlin-csv — RFC-4180 compliant CSV parser (pure Kotlin, no Android deps)
 kotlinCsv = "1.10.0"
 # zip4j — AES-256 encrypted ZIP export (dependency audit pending before merge)
