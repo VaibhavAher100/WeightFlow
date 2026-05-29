@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -34,8 +36,8 @@ fun WheelPicker(
     items: List<Int>,
     initialIndex: Int,
     onItemSelected: (Int) -> Unit,
-    onScrollTick: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onScrollTick: () -> Unit = {},
 ) {
     val clampedInitial = initialIndex.coerceIn(0, items.lastIndex)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = clampedInitial)
@@ -43,6 +45,9 @@ fun WheelPicker(
     val accent = MaterialTheme.colorScheme.primary
     val bg = MaterialTheme.colorScheme.background
     val onBg = MaterialTheme.colorScheme.onBackground
+    val centerIndex by remember {
+        derivedStateOf { listState.firstVisibleItemIndex + PADDING_ITEMS }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -65,9 +70,7 @@ fun WheelPicker(
         ) {
             items(PADDING_ITEMS) { Spacer(Modifier.height(ITEM_HEIGHT)) }
             itemsIndexed(items) { index, value ->
-                val distance = kotlin.math.abs(
-                    index - (listState.firstVisibleItemIndex + PADDING_ITEMS)
-                )
+                val distance = kotlin.math.abs(index - centerIndex)
                 val textSize = when (distance) { 0 -> 24.sp; 1 -> 15.sp; else -> 11.sp }
                 val alpha = when (distance) { 0 -> 1f; 1 -> 0.35f; 2 -> 0.15f; else -> 0.07f }
                 Box(Modifier.height(ITEM_HEIGHT), contentAlignment = Alignment.Center) {

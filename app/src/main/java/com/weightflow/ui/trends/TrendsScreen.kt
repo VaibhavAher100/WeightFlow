@@ -257,7 +257,7 @@ private fun ChartStatsRow(state: TrendsUiState.HasData) {
         ChartStat("%.1f".format(state.minDisplay), "MIN", unitLabel, modifier = Modifier.weight(1f))
         ChartStat("%.1f".format(state.maxDisplay), "MAX", unitLabel, modifier = Modifier.weight(1f))
         ChartStat("%.1f".format(avg),              "AVG", unitLabel, modifier = Modifier.weight(1f))
-        ChartStat(changeDisplay, "CHANGE", if (change != null) unitLabel else "", changeColor, Modifier.weight(1f))
+        ChartStat(changeDisplay, "CHANGE", if (change != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = changeColor)
     }
 }
 
@@ -266,8 +266,8 @@ private fun ChartStat(
     value: String,
     label: String,
     unit: String,
-    valueColor: Color = MaterialTheme.colorScheme.onBackground,
     modifier: Modifier = Modifier,
+    valueColor: Color = MaterialTheme.colorScheme.onBackground,
 ) {
     Column(
         modifier = modifier
@@ -342,11 +342,11 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
         ) {
             StatRow(
                 formatChange(stats.change7DDisplay), "7D CHANGE",
-                if (stats.change7DDisplay != null) unitLabel else "", change7DColor, Modifier.weight(1f),
+                if (stats.change7DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change7DColor,
             )
             StatRow(
                 formatChange(stats.change30DDisplay), "30D CHANGE",
-                if (stats.change30DDisplay != null) unitLabel else "", change30DColor, Modifier.weight(1f),
+                if (stats.change30DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change30DColor,
             )
         }
 
@@ -361,11 +361,11 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
         ) {
             StatRow(
                 formatChange(stats.avgChangePerWeekDisplay), "AVG / WEEK",
-                unitLabel, weekColor, Modifier.weight(1f),
+                unitLabel, modifier = Modifier.weight(1f), valueColor = weekColor,
             )
             StatRow(
                 formatChange(stats.avgChangePerMonthDisplay), "AVG / MONTH",
-                unitLabel, monthColor, Modifier.weight(1f),
+                unitLabel, modifier = Modifier.weight(1f), valueColor = monthColor,
             )
         }
 
@@ -428,8 +428,8 @@ private fun StatRow(
     value: String,
     label: String,
     unit: String,
-    valueColor: Color = MaterialTheme.colorScheme.onBackground,
     modifier: Modifier = Modifier,
+    valueColor: Color = MaterialTheme.colorScheme.onBackground,
 ) {
     Column(
         modifier = modifier
