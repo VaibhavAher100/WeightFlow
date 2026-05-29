@@ -48,33 +48,38 @@
     <ID>FunctionNaming:OnboardingScreen.kt$@Composable private fun UnitStep( selected: WeightUnit, onSelect: (WeightUnit) -&gt; Unit, accent: Color, onPrimary: Color, )</ID>
     <ID>FunctionNaming:OnboardingScreen.kt$@Composable private fun WeightStep( unit: WeightUnit, input: String, onInput: (String) -&gt; Unit, accent: Color, )</ID>
     <ID>FunctionNaming:ProfileScreen.kt$@Composable fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -&gt; Unit = {})</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun AchievementsHeader(earned: Int, total: Int)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun BadgeItem(badge: Badge, isEarned: Boolean, accent: Color)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun BadgeRow(earnedBadges: Set&lt;Badge&gt;)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun BmiContextCard(state: ProfileUiState.Loaded)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun BodyStatsGrid(state: ProfileUiState.Loaded)</ID>
     <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun DeleteDataSection(onDeleteAllData: () -&gt; Unit)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun JourneyCard(state: ProfileUiState.Loaded, accent: Color)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun JourneyValue(label: String, value: String, color: Color = Color.Unspecified)</ID>
     <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun PageHeader(onSettingsClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun ProfileContent( state: ProfileUiState.Loaded, onDeleteAllData: () -&gt; Unit, onSettingsClick: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun ProfileHero(state: ProfileUiState.Loaded)</ID>
-    <ID>FunctionNaming:ProfileScreen.kt$@Composable private fun SupportSection()</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun AchievementsHeader(earned: Int, total: Int)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun BadgeItem(badge: Badge, isEarned: Boolean, accent: Color)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun BadgeRow(earnedBadges: Set&lt;Badge&gt;)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun BmiContextCard(state: ProfileUiState.Loaded)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun BodyStatsGrid(state: ProfileUiState.Loaded)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun JourneyValue(label: String, value: String, color: Color = Color.Unspecified)</ID>
+    <ID>FunctionNaming:ProfileSections.kt$@Composable internal fun SupportSection()</ID>
+    <ID>FunctionNaming:SettingsContent.kt$@Composable internal fun SettingsDataSection( selectedExportFormat: ExportFormat, accent: Color, onFormatChanged: (ExportFormat) -&gt; Unit, onShowExportConfirm: () -&gt; Unit, onShowEncryptedExportDialog: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsContent.kt$@Composable internal fun SettingsLegalSection( onPrivacyClick: () -&gt; Unit, onTermsClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsContent.kt$@Composable internal fun SettingsNotificationsSection( reminderEnabled: Boolean, showPermissionDeniedBanner: Boolean, accent: Color, onReminderToggled: (Boolean) -&gt; Unit, onPermissionBannerDismiss: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsContent.kt$@Composable internal fun SettingsThemeSection( selectedPalette: String, accent: Color, onThemeSelected: (String) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsContent.kt$@Composable internal fun SettingsUnitSection( selectedUnit: WeightUnit, accent: Color, onUnitChanged: (WeightUnit) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsDialogs.kt$@Composable internal fun EncryptedExportDialog( onExport: (CharArray) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsDialogs.kt$@Composable internal fun PasswordStrengthIndicator(strength: PasswordStrength)</ID>
+    <ID>FunctionNaming:SettingsDialogs.kt$@Composable internal fun PlaintextExportConfirmDialog( format: ExportFormat, onConfirm: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:SettingsScreen.kt$@Composable fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -&gt; Unit)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun EncryptedExportDialog( onExport: (CharArray) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun EncryptedExportInfoBanner()</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun ExportFormatSelector( selected: ExportFormat, accent: Color, onFormatChanged: (ExportFormat) -&gt; Unit, )</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun InfoBanner(text: String, containerColor: Color, textColor: Color)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun MinimalCsvWarningBanner()</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun PasswordStrengthIndicator(strength: PasswordStrength)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun PermissionDeniedBanner(onDismiss: () -&gt; Unit)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun PlaintextExportConfirmDialog( format: ExportFormat, onConfirm: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun PlaintextWarningBanner()</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun SectionLabel(text: String)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun SettingsActionRow(title: String, subtitle: String, onClick: () -&gt; Unit)</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun SettingsToggleRow( title: String, subtitle: String, checked: Boolean, accent: Color, onCheckedChange: (Boolean) -&gt; Unit, )</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun ThemeGrid( selectedPalette: String, onThemeSelected: (String) -&gt; Unit, accent: Color, )</ID>
-    <ID>FunctionNaming:SettingsScreen.kt$@Composable private fun UnitChip(label: String, selected: Boolean, accent: Color, onClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun EncryptedExportInfoBanner()</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun ExportFormatSelector( selected: ExportFormat, accent: Color, onFormatChanged: (ExportFormat) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun InfoBanner(text: String, containerColor: Color, textColor: Color)</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun MinimalCsvWarningBanner()</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun PermissionDeniedBanner(onDismiss: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun PlaintextWarningBanner()</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun SectionLabel(text: String)</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun SettingsActionRow(title: String, subtitle: String, onClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun SettingsToggleRow( title: String, subtitle: String, checked: Boolean, accent: Color, onCheckedChange: (Boolean) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun ThemeGrid( selectedPalette: String, onThemeSelected: (String) -&gt; Unit, accent: Color, )</ID>
+    <ID>FunctionNaming:SettingsSections.kt$@Composable internal fun UnitChip(label: String, selected: Boolean, accent: Color, onClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:ShellScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ShellScreen(app: WeightFlowApp)</ID>
     <ID>FunctionNaming:Theme.kt$@Composable fun WeightFlowTheme( palette: String = "lime", content: @Composable () -&gt; Unit, )</ID>
     <ID>FunctionNaming:TrendsScreen.kt$@Composable fun TrendsScreen(viewModel: TrendsViewModel)</ID>
@@ -99,8 +104,8 @@
     <ID>LongMethod:OnboardingScreen.kt$@Composable fun OnboardingScreen( viewModel: OnboardingViewModel, onFinished: () -&gt; Unit, )</ID>
     <ID>LongMethod:OnboardingScreen.kt$@Composable private fun UnitStep( selected: WeightUnit, onSelect: (WeightUnit) -&gt; Unit, accent: Color, onPrimary: Color, )</ID>
     <ID>LongMethod:ProfileScreen.kt$@Composable private fun ProfileHero(state: ProfileUiState.Loaded)</ID>
+    <ID>LongMethod:SettingsDialogs.kt$@Composable internal fun EncryptedExportDialog( onExport: (CharArray) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -&gt; Unit)</ID>
-    <ID>LongMethod:SettingsScreen.kt$@Composable private fun EncryptedExportDialog( onExport: (CharArray) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
     <ID>LongMethod:ShellScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ShellScreen(app: WeightFlowApp)</ID>
     <ID>LongMethod:TrendsScreen.kt$@Composable private fun ChartView(state: TrendsUiState.HasData)</ID>
     <ID>LongMethod:TrendsScreen.kt$@Composable private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit)</ID>
@@ -257,6 +262,9 @@
     <ID>MagicNumber:ProfileViewModel.kt$ProfileViewModel$25.0</ID>
     <ID>MagicNumber:ProfileViewModel.kt$ProfileViewModel$30.0</ID>
     <ID>MagicNumber:ProfileViewModel.kt$ProfileViewModel$5_000</ID>
+    <ID>MagicNumber:SettingsDialogs.kt$0xFF4CAF50</ID>
+    <ID>MagicNumber:SettingsDialogs.kt$0xFFFF9800</ID>
+    <ID>MagicNumber:SettingsDialogs.kt$16</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFF00BCD4</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFF4CAF50</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFF80DEEA</ID>
@@ -264,9 +272,7 @@
     <ID>MagicNumber:SettingsScreen.kt$0xFFC8FF00</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFFFF4081</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFFFF6B35</ID>
-    <ID>MagicNumber:SettingsScreen.kt$0xFFFF9800</ID>
     <ID>MagicNumber:SettingsScreen.kt$0xFFFFD700</ID>
-    <ID>MagicNumber:SettingsScreen.kt$16</ID>
     <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$5_000</ID>
     <ID>MagicNumber:TrendsUiState.kt$TrendsTimeRange.DAYS_180$180</ID>
     <ID>MagicNumber:TrendsUiState.kt$TrendsTimeRange.DAYS_30$30</ID>
@@ -286,6 +292,8 @@
     <ID>MagicNumber:WheelPicker.kt$0.07f</ID>
     <ID>MagicNumber:WheelPicker.kt$0.15f</ID>
     <ID>MagicNumber:WheelPicker.kt$0.35f</ID>
+    <ID>MatchingDeclarationName:SettingsDialogs.kt$PasswordStrength</ID>
+    <ID>MatchingDeclarationName:SettingsSections.kt$FormatOption</ID>
     <ID>MaxLineLength:BadgeEngine.kt$BadgeEngine$val activatedDate = Instant.ofEpochMilli(profile.maintenanceModeActivatedAt).atZone(ZoneId.systemDefault()).toLocalDate()</ID>
     <ID>MaxLineLength:CsvParserFuzzTest.kt$CsvParserFuzzTest$assertTrue("Parser must not throw on UTF-8 BOM input", result is ParseResult.Success || result is ParseResult.Error)</ID>
     <ID>MaxLineLength:HomeScreen.kt$StatCard(label = "LOST", value = state.lostDisplay ?: "—", modifier = Modifier.weight(1f), valueColor = accent)</ID>
@@ -323,8 +331,7 @@
     <ID>TooGenericExceptionCaught:LogEntryViewModel.kt$LogEntryViewModel$e: Exception</ID>
     <ID>TooManyFunctions:HistoryScreen.kt$com.weightflow.ui.history.HistoryScreen.kt</ID>
     <ID>TooManyFunctions:HomeScreen.kt$com.weightflow.ui.home.HomeScreen.kt</ID>
-    <ID>TooManyFunctions:ProfileScreen.kt$com.weightflow.ui.profile.ProfileScreen.kt</ID>
-    <ID>TooManyFunctions:SettingsScreen.kt$com.weightflow.ui.settings.SettingsScreen.kt</ID>
+    <ID>TooManyFunctions:SettingsSections.kt$com.weightflow.ui.settings.SettingsSections.kt</ID>
     <ID>TooManyFunctions:TrendsScreen.kt$com.weightflow.ui.trends.TrendsScreen.kt</ID>
     <ID>UnusedPrivateMember:NavGraph.kt$@Composable private fun PlaceholderScreen(name: String)</ID>
     <ID>UnusedPrivateProperty:OnboardingViewModelTest.kt$OnboardingViewModelTest$i</ID>
