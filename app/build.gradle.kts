@@ -75,6 +75,10 @@ android {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 afterEvaluate {
     // Dedicated validation task
     tasks.register("validateReleaseSigning") {
