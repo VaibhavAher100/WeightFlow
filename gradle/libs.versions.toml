@@ -31,7 +31,7 @@ kotlinCsv = "1.10.0"
 zip4j = "2.11.6"
 # Static analysis
 detekt = "1.23.7"
-ktlint-plugin = "12.1.1"
+ktlint-plugin = "14.2.0"
 # security-crypto — EncryptedSharedPreferences for database passphrase storage
 securityCrypto = "1.1.0-alpha06"
 
