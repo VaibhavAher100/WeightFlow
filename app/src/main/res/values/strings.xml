@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">WeightFlow</string>
+    <string name="unit_suffix_kg">kg</string>
+    <string name="unit_suffix_lbs">lbs</string>
+    <string name="unit_suffix_st_stones">st</string>
+    <string name="unit_suffix_st_pounds">lb</string>
 </resources>
