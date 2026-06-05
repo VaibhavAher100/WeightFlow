@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,8 +47,11 @@ import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
+import com.weightflow.R
 import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.i18n.WeightFormatter
 import com.weightflow.ui.theme.WFTokens
+import java.util.Locale
 import kotlin.math.abs
 
 @Composable
@@ -109,14 +114,17 @@ private fun RangePill(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-private fun TrendsTimeRange.toLabel() = when (this) {
-    TrendsTimeRange.DAYS_7   -> "7D"
-    TrendsTimeRange.DAYS_30  -> "30D"
-    TrendsTimeRange.DAYS_90  -> "3M"
-    TrendsTimeRange.DAYS_180 -> "6M"
-    TrendsTimeRange.DAYS_365 -> "1Y"
-    TrendsTimeRange.ALL      -> "All"
-}
+@Composable
+private fun TrendsTimeRange.toLabel(): String = stringResource(
+    when (this) {
+        TrendsTimeRange.DAYS_7   -> R.string.trends_range_7d
+        TrendsTimeRange.DAYS_30  -> R.string.trends_range_30d
+        TrendsTimeRange.DAYS_90  -> R.string.trends_range_3m
+        TrendsTimeRange.DAYS_180 -> R.string.trends_range_6m
+        TrendsTimeRange.DAYS_365 -> R.string.trends_range_1y
+        TrendsTimeRange.ALL      -> R.string.trends_range_all
+    },
+)
 
 // ── Chart Type Row ────────────────────────────────────────────────────────────
 
@@ -138,11 +146,14 @@ private fun ChartTypeRow(selected: ChartType, onSelect: (ChartType) -> Unit) {
     }
 }
 
-private fun ChartType.toLabel() = when (this) {
-    ChartType.LINE -> "Line"
-    ChartType.BAR  -> "Bar"
-    ChartType.AREA -> "Area"
-}
+@Composable
+private fun ChartType.toLabel(): String = stringResource(
+    when (this) {
+        ChartType.LINE -> R.string.trends_chart_line
+        ChartType.BAR  -> R.string.trends_chart_bar
+        ChartType.AREA -> R.string.trends_chart_area
+    },
+)
 
 // ── Loading / Empty ───────────────────────────────────────────────────────────
 
@@ -162,7 +173,7 @@ private fun EmptyView() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Log at least two weights to see your trend",
+            text = stringResource(R.string.trends_empty),
             style = MaterialTheme.typography.bodyLarge,
             color = WFTokens.Text2,
             textAlign = TextAlign.Center,
@@ -263,7 +274,24 @@ private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType) {
             Spacer(modifier = Modifier.height(16.dp))
             StatisticsSection(stats, state.weightUnit)
         }
-        state.coachingSentence?.let { sentence ->
+        val coachingGoalKg = state.coachingGoalWeightKg
+        val coachingEta = state.coachingEtaDays
+        if (coachingGoalKg != null && coachingEta != null) {
+            val locale = LocalConfiguration.current.locales[0]
+            val goalDisplay = WeightFormatter.format(
+                kg = coachingGoalKg,
+                unit = state.weightUnit,
+                locale = locale,
+                kgSuffix = stringResource(R.string.unit_suffix_kg),
+                lbsSuffix = stringResource(R.string.unit_suffix_lbs),
+                stSuffix = stringResource(R.string.unit_suffix_st_stones),
+                lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
+            )
+            val sentence = if (coachingEta < 14) {
+                stringResource(R.string.trends_coaching_almost_there, goalDisplay)
+            } else {
+                stringResource(R.string.trends_coaching_eta_weeks, goalDisplay, coachingEta / 7)
+            }
             Spacer(Modifier.height(10.dp))
             Box(
                 modifier = Modifier
@@ -290,18 +318,15 @@ private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType) {
 
 @Composable
 private fun ChartStatsRow(state: TrendsUiState.HasData) {
-    val unitLabel = when (state.weightUnit) {
-        WeightUnit.KG  -> "kg"
-        WeightUnit.LBS -> "lbs"
-        WeightUnit.ST  -> "lbs"
-    }
+    val locale = LocalConfiguration.current.locales[0]
+    val unitLabel = unitSuffix(state.weightUnit)
     val avg = state.chartPoints.map { it.displayValue }.average().toFloat()
     val change = if (state.chartPoints.size >= 2)
         state.chartPoints.last().displayValue - state.chartPoints.first().displayValue
     else null
 
     val changeDisplay = change?.let {
-        if (it < 0f) "−${"%.1f".format(abs(it))}" else "+${"%.1f".format(it)}"
+        if (it < 0f) "−${oneDecimal(abs(it), locale)}" else "+${oneDecimal(it, locale)}"
     } ?: "—"
     val changeColor = change?.let {
         if (it < 0f) WFTokens.Success else WFTokens.Danger
@@ -313,11 +338,28 @@ private fun ChartStatsRow(state: TrendsUiState.HasData) {
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        ChartStat("%.1f".format(state.minDisplay), "MIN", unitLabel, modifier = Modifier.weight(1f))
-        ChartStat("%.1f".format(state.maxDisplay), "MAX", unitLabel, modifier = Modifier.weight(1f))
-        ChartStat("%.1f".format(avg),              "AVG", unitLabel, modifier = Modifier.weight(1f))
-        ChartStat(changeDisplay, "CHANGE", if (change != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = changeColor)
+        ChartStat(oneDecimal(state.minDisplay, locale), stringResource(R.string.trends_stat_min).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
+        ChartStat(oneDecimal(state.maxDisplay, locale), stringResource(R.string.trends_stat_max).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
+        ChartStat(oneDecimal(avg, locale),              stringResource(R.string.trends_stat_avg).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
+        ChartStat(changeDisplay, stringResource(R.string.trends_stat_change).uppercase(locale), if (change != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = changeColor)
     }
+}
+
+@Composable
+private fun unitSuffix(unit: WeightUnit): String = stringResource(
+    when (unit) {
+        WeightUnit.KG  -> R.string.unit_suffix_kg
+        WeightUnit.LBS -> R.string.unit_suffix_lbs
+        WeightUnit.ST  -> R.string.unit_suffix_lbs
+    },
+)
+
+private fun oneDecimal(value: Float, locale: Locale): String =
+    String.format(locale, "%.1f", value)
+
+private fun formatChange(value: Float?, locale: Locale): String {
+    if (value == null) return "—"
+    return if (value < 0f) "−${oneDecimal(abs(value), locale)}" else "+${oneDecimal(value, locale)}"
 }
 
 @Composable
@@ -366,28 +408,25 @@ private fun ChartStat(
 
 @Composable
 private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
-    val unitLabel = when (weightUnit) {
-        WeightUnit.KG  -> "kg"
-        WeightUnit.LBS -> "lbs"
-        WeightUnit.ST  -> "lbs"
-    }
+    val locale = LocalConfiguration.current.locales[0]
+    val unitLabel = unitSuffix(weightUnit)
     val accent = MaterialTheme.colorScheme.primary
 
     Column(modifier = Modifier.padding(horizontal = 14.dp)) {
-        StatsSectionHeader("All Time")
+        StatsSectionHeader(stringResource(R.string.trends_section_all_time))
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            StatRow("%.1f".format(stats.allTimeHighDisplay), "HIGH", unitLabel, modifier = Modifier.weight(1f))
-            StatRow("%.1f".format(stats.allTimeLowDisplay),  "LOW",  unitLabel, modifier = Modifier.weight(1f))
-            StatRow("%.1f".format(stats.allTimeAvgDisplay),  "AVG",  unitLabel, modifier = Modifier.weight(1f))
-            StatRow("${stats.totalEntries}",                  "LOGS", "",        modifier = Modifier.weight(1f))
+            StatRow(oneDecimal(stats.allTimeHighDisplay, locale), stringResource(R.string.trends_stat_high).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
+            StatRow(oneDecimal(stats.allTimeLowDisplay, locale),  stringResource(R.string.trends_stat_low).uppercase(locale),  unitLabel, modifier = Modifier.weight(1f))
+            StatRow(oneDecimal(stats.allTimeAvgDisplay, locale),  stringResource(R.string.trends_stat_avg).uppercase(locale),  unitLabel, modifier = Modifier.weight(1f))
+            StatRow("${stats.totalEntries}",                       stringResource(R.string.trends_stat_logs).uppercase(locale), "",        modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(14.dp))
-        StatsSectionHeader("Progress")
+        StatsSectionHeader(stringResource(R.string.trends_section_progress))
         Spacer(modifier = Modifier.height(8.dp))
 
         val change7DColor = stats.change7DDisplay?.let { if (it < 0f) WFTokens.Success else WFTokens.Danger }
@@ -400,11 +439,11 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             StatRow(
-                formatChange(stats.change7DDisplay), "7D CHANGE",
+                formatChange(stats.change7DDisplay, locale), stringResource(R.string.trends_stat_7d_change).uppercase(locale),
                 if (stats.change7DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change7DColor,
             )
             StatRow(
-                formatChange(stats.change30DDisplay), "30D CHANGE",
+                formatChange(stats.change30DDisplay, locale), stringResource(R.string.trends_stat_30d_change).uppercase(locale),
                 if (stats.change30DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change30DColor,
             )
         }
@@ -419,11 +458,11 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             StatRow(
-                formatChange(stats.avgChangePerWeekDisplay), "AVG / WEEK",
+                formatChange(stats.avgChangePerWeekDisplay, locale), stringResource(R.string.trends_stat_avg_per_week).uppercase(locale),
                 unitLabel, modifier = Modifier.weight(1f), valueColor = weekColor,
             )
             StatRow(
-                formatChange(stats.avgChangePerMonthDisplay), "AVG / MONTH",
+                formatChange(stats.avgChangePerMonthDisplay, locale), stringResource(R.string.trends_stat_avg_per_month).uppercase(locale),
                 unitLabel, modifier = Modifier.weight(1f), valueColor = monthColor,
             )
         }
@@ -445,7 +484,7 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
                 ) {
                     Column {
                         Text(
-                            text = "ESTIMATED DAYS TO GOAL",
+                            text = stringResource(R.string.trends_estimated_days_to_goal).uppercase(locale),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.6.sp,
@@ -453,13 +492,13 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "At your current rate",
+                            text = stringResource(R.string.trends_estimated_subtitle),
                             fontSize = 11.sp,
                             color = WFTokens.Text2,
                         )
                     }
                     Text(
-                        text = "$days",
+                        text = String.format(locale, "%d", days),
                         fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
                         fontSize = 34.sp,
                         fontWeight = FontWeight.Bold,
@@ -473,8 +512,9 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
 
 @Composable
 private fun StatsSectionHeader(title: String) {
+    val locale = LocalConfiguration.current.locales[0]
     Text(
-        text = title.uppercase(),
+        text = title.uppercase(locale),
         fontSize = 10.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.5.sp,
@@ -517,9 +557,4 @@ private fun StatRow(
             textAlign = TextAlign.Center,
         )
     }
-}
-
-private fun formatChange(value: Float?): String {
-    if (value == null) return "—"
-    return if (value < 0f) "−${"%.1f".format(abs(value))}" else "+${"%.1f".format(value)}"
 }

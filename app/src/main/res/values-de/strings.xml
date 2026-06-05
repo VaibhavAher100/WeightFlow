@@ -64,6 +64,8 @@
     <string name="trends_chart_area">Fläche</string>
     <string name="trends_chart_bar">Balken</string>
     <string name="trends_chart_line">Linie</string>
+    <string name="trends_coaching_almost_there">Du bist fast am Ziel — %1$s ist zum Greifen nah.</string>
+    <string name="trends_coaching_eta_weeks">In diesem Tempo erreichst du %1$s in etwa %2$d Wochen.</string>
     <string name="trends_empty">Trage mindestens zwei Gewichte ein, um deinen Trend zu sehen</string>
     <string name="trends_estimated_days_to_goal">Geschätzte Tage bis zum Ziel</string>
     <string name="trends_estimated_subtitle">Bei deinem aktuellen Tempo</string>

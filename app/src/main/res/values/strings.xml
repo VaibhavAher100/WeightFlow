@@ -64,6 +64,8 @@
     <string name="trends_chart_area">Area</string>
     <string name="trends_chart_bar">Bar</string>
     <string name="trends_chart_line">Line</string>
+    <string name="trends_coaching_almost_there">You\'re almost there — goal %1$s is within reach.</string>
+    <string name="trends_coaching_eta_weeks">At this rate you\'ll reach %1$s in about %2$d weeks.</string>
     <string name="trends_empty">Log at least two weights to see your trend</string>
     <string name="trends_estimated_days_to_goal">Estimated days to goal</string>
     <string name="trends_estimated_subtitle">At your current rate</string>
