@@ -36,10 +36,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.ui.theme.WFTokens
 import com.weightflow.worker.WeightReminderWorker
 import kotlinx.coroutines.Dispatchers
@@ -49,15 +51,21 @@ import java.time.LocalDate
 internal const val PRIVACY_URL = "https://vaibhavaher100.github.io/WeightFlow/privacy-policy/"
 internal const val TERMS_URL   = "https://vaibhavaher100.github.io/WeightFlow/terms-of-service/"
 
+internal data class ThemeOption(
+    val key: String,
+    @param:androidx.annotation.StringRes val labelRes: Int,
+    val dotColor: Color,
+)
+
 internal val THEME_OPTIONS = listOf(
-    Triple("lime",   "Lime",   Color(0xFFC8FF00)),
-    Triple("rose",   "Rose",   Color(0xFFFF4081)),
-    Triple("forest", "Forest", Color(0xFF4CAF50)),
-    Triple("violet", "Violet", Color(0xFFBB86FC)),
-    Triple("ocean",  "Ocean",  Color(0xFF00BCD4)),
-    Triple("gold",   "Gold",   Color(0xFFFFD700)),
-    Triple("sunset", "Sunset", Color(0xFFFF6B35)),
-    Triple("ice",    "Ice",    Color(0xFF80DEEA)),
+    ThemeOption("lime",   R.string.settings_theme_lime,    Color(0xFFC8FF00)),
+    ThemeOption("rose",   R.string.settings_theme_rose,    Color(0xFFFF4081)),
+    ThemeOption("forest", R.string.settings_theme_forest,  Color(0xFF4CAF50)),
+    ThemeOption("violet", R.string.settings_theme_violet,  Color(0xFFBB86FC)),
+    ThemeOption("ocean",  R.string.settings_theme_ocean,   Color(0xFF00BCD4)),
+    ThemeOption("gold",   R.string.settings_theme_gold,    Color(0xFFFFD700)),
+    ThemeOption("sunset", R.string.settings_theme_sunset,  Color(0xFFFF6B35)),
+    ThemeOption("ice",    R.string.settings_theme_ice,     Color(0xFF80DEEA)),
 )
 
 @Composable
@@ -191,10 +199,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     encryptionErrorMessage?.let { msg ->
         AlertDialog(
             onDismissRequest = { encryptionErrorMessage = null },
-            title = { Text("Export failed") },
+            title = { Text(stringResource(R.string.settings_dialog_export_failed_title)) },
             text = { Text(msg, style = MaterialTheme.typography.bodyMedium) },
             confirmButton = {
-                TextButton(onClick = { encryptionErrorMessage = null }) { Text("OK") }
+                TextButton(onClick = { encryptionErrorMessage = null }) {
+                    Text(stringResource(R.string.common_ok))
+                }
             },
         )
     }
@@ -213,10 +223,14 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = WFTokens.Text2)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.common_back),
+                    tint = WFTokens.Text2,
+                )
             }
             Text(
-                "Settings",
+                stringResource(R.string.settings_title),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -241,6 +255,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 accent = accent,
                 onThemeSelected = viewModel::onThemeSelected,
             )
+
+            SettingsLanguageSection()
 
             SettingsNotificationsSection(
                 reminderEnabled = state.reminderEnabled,

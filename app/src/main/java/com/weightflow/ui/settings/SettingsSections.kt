@@ -31,34 +31,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.weightflow.R
 import com.weightflow.ui.theme.WFTokens
 
 // ── Export format selector data ───────────────────────────────────────────────
 
 internal data class FormatOption(
     val format: ExportFormat,
-    val label: String,
-    val description: String,
+    @param:androidx.annotation.StringRes val labelRes: Int,
+    @param:androidx.annotation.StringRes val descriptionRes: Int,
 )
 
 internal val FORMAT_OPTIONS = listOf(
     FormatOption(
         ExportFormat.PLAINTEXT,
-        "Plaintext CSV",
-        "Full history, no encryption. All columns.",
+        R.string.settings_export_format_plaintext_label,
+        R.string.settings_export_format_plaintext_desc,
     ),
     FormatOption(
         ExportFormat.ENCRYPTED_ZIP,
-        "Encrypted ZIP",
-        "AES-256 password-protected. 12+ character password required.",
+        R.string.settings_export_format_encrypted_label,
+        R.string.settings_export_format_encrypted_desc,
     ),
     FormatOption(
         ExportFormat.MINIMAL_CSV,
-        "Minimal CSV",
-        "Date + weight only. No profile or notes. Still quasi-identifying.",
+        R.string.settings_export_format_minimal_label,
+        R.string.settings_export_format_minimal_desc,
     ),
 )
 
@@ -114,7 +116,9 @@ internal fun ThemeGrid(
             .padding(horizontal = 0.dp)
             .heightIn(max = 320.dp),
     ) {
-        items(THEME_OPTIONS) { (key, name, dotColor) ->
+        items(THEME_OPTIONS) { option ->
+            val key = option.key
+            val dotColor = option.dotColor
             val isSelected = key == selectedPalette
             Row(
                 modifier = Modifier
@@ -139,7 +143,7 @@ internal fun ThemeGrid(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = name,
+                    text = stringResource(option.labelRes),
                     fontSize = 12.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     color = if (isSelected) MaterialTheme.colorScheme.onBackground else WFTokens.Text2,
@@ -202,14 +206,14 @@ internal fun PermissionDeniedBanner(onDismiss: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "Notifications require permission. Grant in Settings.",
+            text = stringResource(R.string.settings_permission_denied_banner),
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = "Dismiss",
+            text = stringResource(R.string.settings_permission_banner_dismiss),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error,
@@ -270,7 +274,7 @@ internal fun InfoBanner(text: String, containerColor: Color, textColor: Color) {
 @Composable
 internal fun PlaintextWarningBanner() {
     InfoBanner(
-        text = "This export is not encrypted. Keep the file secure and only share with apps you trust.",
+        text = stringResource(R.string.settings_plaintext_warning_banner),
         containerColor = MaterialTheme.colorScheme.errorContainer,
         textColor = MaterialTheme.colorScheme.onErrorContainer,
     )
@@ -279,8 +283,7 @@ internal fun PlaintextWarningBanner() {
 @Composable
 internal fun EncryptedExportInfoBanner() {
     InfoBanner(
-        text = "AES-256 encrypted ZIP. Readable by 7-Zip, WinRAR, The Unarchiver. " +
-            "Not supported by macOS Archive Utility.",
+        text = stringResource(R.string.settings_encrypted_info_banner),
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         textColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
@@ -289,8 +292,7 @@ internal fun EncryptedExportInfoBanner() {
 @Composable
 internal fun MinimalCsvWarningBanner() {
     InfoBanner(
-        text = "Removes profile, goal, and note data. Date and weight alone may still identify " +
-            "you when combined with other information.",
+        text = stringResource(R.string.settings_minimal_warning_banner),
         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
         textColor = MaterialTheme.colorScheme.onTertiaryContainer,
     )
@@ -332,12 +334,12 @@ internal fun ExportFormatSelector(
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text(
-                        option.label,
+                        stringResource(option.labelRes),
                         fontSize = 14.sp,
                         fontWeight = if (selected == option.format) FontWeight.Bold else FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
-                    Text(option.description, fontSize = 11.sp, color = WFTokens.Text2)
+                    Text(stringResource(option.descriptionRes), fontSize = 11.sp, color = WFTokens.Text2)
                 }
             }
         }
