@@ -194,6 +194,7 @@
 
     <!-- Onboarding -->
     <string name="onboarding_age_gate_error">You must be 18 or older to use WeightFlow.</string>
+    <string name="onboarding_age_gate_snackbar_13">You must be 13 or older to use WeightFlow.</string>
     <string name="onboarding_age_gate_subtitle">Your data stays on your device.\nNo subscriptions. No cloud required.</string>
     <string name="onboarding_age_gate_title">WELCOME.</string>
     <string name="onboarding_back">← Back</string>

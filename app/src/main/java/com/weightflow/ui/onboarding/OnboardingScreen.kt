@@ -35,11 +35,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.domain.WeightUnit
 import com.weightflow.ui.theme.WFTokens
 
@@ -52,13 +54,14 @@ fun OnboardingScreen(
     val accent = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
     val snackbarHostState = remember { SnackbarHostState() }
+    val ageDeclinedMessage = stringResource(R.string.onboarding_age_gate_snackbar_13)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is OnboardingEvent.Finished    -> onFinished()
                 is OnboardingEvent.AgeDeclined ->
-                    snackbarHostState.showSnackbar("You must be 13 or older to use WeightFlow.")
+                    snackbarHostState.showSnackbar(ageDeclinedMessage)
             }
         }
     }
@@ -94,7 +97,7 @@ fun OnboardingScreen(
             letterSpacing = 4.sp,
         )
         Text(
-            text = "TRACK · REFLECT · IMPROVE",
+            text = stringResource(R.string.onboarding_tagline),
             fontSize = 9.sp,
             letterSpacing = 2.5.sp,
             fontWeight = FontWeight.Bold,
@@ -169,12 +172,12 @@ private fun PrivacyFooter() {
     ) {
         TextButton(onClick = {
             runCatching { uriHandler.openUri("https://vaibhavaher100.github.io/WeightFlow/privacy-policy") }
-        }) { Text("Privacy Policy", fontSize = 11.sp, color = WFTokens.Text3) }
+        }) { Text(stringResource(R.string.onboarding_privacy_policy), fontSize = 11.sp, color = WFTokens.Text3) }
         Text("·", fontSize = 11.sp, color = WFTokens.Text3,
             modifier = Modifier.align(androidx.compose.ui.Alignment.CenterVertically))
         TextButton(onClick = {
             runCatching { uriHandler.openUri("https://vaibhavaher100.github.io/WeightFlow/terms-of-service") }
-        }) { Text("Terms of Service", fontSize = 11.sp, color = WFTokens.Text3) }
+        }) { Text(stringResource(R.string.onboarding_terms_of_service), fontSize = 11.sp, color = WFTokens.Text3) }
     }
 }
 
@@ -183,7 +186,7 @@ private fun PrivacyFooter() {
 @Composable
 private fun StepEyebrow(stepNumber: Int, accent: Color) {
     Text(
-        text = "STEP $stepNumber OF ${OnboardingStep.entries.size}",
+        text = stringResource(R.string.onboarding_step_eyebrow, stepNumber, OnboardingStep.entries.size),
         fontSize = 9.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 2.sp,
@@ -237,7 +240,7 @@ private fun AgeGateStep(
 
     Column {
         Text(
-            text = "WELCOME.",
+            text = stringResource(R.string.onboarding_age_gate_title),
             fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
@@ -245,7 +248,7 @@ private fun AgeGateStep(
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Your data stays on your device.\nNo subscriptions. No cloud required.",
+            text = stringResource(R.string.onboarding_age_gate_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = WFTokens.Text2,
             lineHeight = 22.sp,
@@ -257,13 +260,13 @@ private fun AgeGateStep(
             onValueChange = { input ->
                 if (input.length <= 4 && input.all { it.isDigit() }) onBirthYearInput(input)
             },
-            label = { Text("Year of birth") },
-            placeholder = { Text("e.g. 1995") },
+            label = { Text(stringResource(R.string.onboarding_birth_year_label)) },
+            placeholder = { Text(stringResource(R.string.onboarding_birth_year_placeholder)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             isError = isUnderage,
             supportingText = if (isUnderage) {
-                { Text("You must be 18 or older to use WeightFlow.", color = MaterialTheme.colorScheme.error) }
+                { Text(stringResource(R.string.onboarding_underage_error), color = MaterialTheme.colorScheme.error) }
             } else null,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
@@ -286,7 +289,7 @@ private fun UnitStep(
 ) {
     Column {
         Text(
-            text = "YOUR UNIT",
+            text = stringResource(R.string.onboarding_unit_title),
             fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
@@ -294,7 +297,7 @@ private fun UnitStep(
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Can be changed in Settings anytime.",
+            text = stringResource(R.string.onboarding_unit_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = WFTokens.Text2,
         )
@@ -304,9 +307,9 @@ private fun UnitStep(
             WeightUnit.entries.forEach { unit ->
                 val isSelected = unit == selected
                 val (fullName, shortName) = when (unit) {
-                    WeightUnit.KG  -> "Kilograms" to "kg"
-                    WeightUnit.LBS -> "Pounds" to "lbs"
-                    WeightUnit.ST  -> "Stone" to "st"
+                    WeightUnit.KG  -> stringResource(R.string.unit_kg_full) to stringResource(R.string.unit_suffix_kg)
+                    WeightUnit.LBS -> stringResource(R.string.unit_lbs_full) to stringResource(R.string.unit_suffix_lbs)
+                    WeightUnit.ST  -> stringResource(R.string.unit_st_full) to stringResource(R.string.unit_suffix_st_stones)
                 }
                 Row(
                     modifier = Modifier
@@ -357,13 +360,13 @@ private fun WeightStep(
     accent: Color,
 ) {
     val unitLabel = when (unit) {
-        WeightUnit.KG  -> "kg"
-        WeightUnit.LBS -> "lbs"
-        WeightUnit.ST  -> "st"
+        WeightUnit.KG  -> stringResource(R.string.unit_suffix_kg)
+        WeightUnit.LBS -> stringResource(R.string.unit_suffix_lbs)
+        WeightUnit.ST  -> stringResource(R.string.unit_suffix_st_stones)
     }
     Column {
         Text(
-            text = "CURRENT\nWEIGHT",
+            text = stringResource(R.string.onboarding_weight_title),
             fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
@@ -371,7 +374,7 @@ private fun WeightStep(
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Stored in kg internally, displayed in $unitLabel.",
+            text = stringResource(R.string.onboarding_weight_subtitle, unitLabel),
             style = MaterialTheme.typography.bodyMedium,
             color = WFTokens.Text2,
         )
@@ -379,7 +382,7 @@ private fun WeightStep(
         OutlinedTextField(
             value = input,
             onValueChange = onInput,
-            label = { Text("Weight in $unitLabel") },
+            label = { Text(stringResource(R.string.onboarding_weight_label, unitLabel)) },
             suffix = { Text(unitLabel, color = WFTokens.Text2) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
@@ -403,13 +406,13 @@ private fun GoalStep(
     accent: Color,
 ) {
     val unitLabel = when (unit) {
-        WeightUnit.KG  -> "kg"
-        WeightUnit.LBS -> "lbs"
-        WeightUnit.ST  -> "st"
+        WeightUnit.KG  -> stringResource(R.string.unit_suffix_kg)
+        WeightUnit.LBS -> stringResource(R.string.unit_suffix_lbs)
+        WeightUnit.ST  -> stringResource(R.string.unit_suffix_st_stones)
     }
     Column {
         Text(
-            text = "YOUR GOAL",
+            text = stringResource(R.string.onboarding_goal_title),
             fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             fontSize = 52.sp,
             color = MaterialTheme.colorScheme.onSurface,
@@ -417,7 +420,7 @@ private fun GoalStep(
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Optional — skip this and set it later in Profile.",
+            text = stringResource(R.string.onboarding_goal_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = WFTokens.Text2,
         )
@@ -425,7 +428,7 @@ private fun GoalStep(
         OutlinedTextField(
             value = input,
             onValueChange = onInput,
-            label = { Text("Goal weight in $unitLabel (optional)") },
+            label = { Text(stringResource(R.string.onboarding_goal_weight_label, unitLabel)) },
             suffix = { Text(unitLabel, color = WFTokens.Text2) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
@@ -438,7 +441,7 @@ private fun GoalStep(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "Set realistic goals. Rapid weight loss can be harmful. If you're struggling with disordered eating, please seek professional support.",
+            text = stringResource(R.string.onboarding_goal_disclaimer),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -471,7 +474,7 @@ private fun BottomBar(
     ) {
         if (!isFirst) {
             TextButton(onClick = onBack) {
-                Text("← Back", color = WFTokens.Text2)
+                Text(stringResource(R.string.onboarding_back), color = WFTokens.Text2)
             }
         } else {
             Spacer(Modifier.weight(1f))
@@ -490,7 +493,7 @@ private fun BottomBar(
             modifier = Modifier.height(48.dp),
         ) {
             Text(
-                text = if (isLast) "GET STARTED →" else "Next →",
+                text = if (isLast) stringResource(R.string.onboarding_get_started) else stringResource(R.string.onboarding_next),
                 fontWeight = FontWeight.Bold,
                 letterSpacing = if (isLast) 1.5.sp else 0.sp,
             )
