@@ -6,11 +6,13 @@ import com.weightflow.domain.Badge
 import com.weightflow.domain.BadgeObserver
 import com.weightflow.domain.HomeDataAggregator
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -19,8 +21,15 @@ class HomeViewModel(
     private val badgeObserver: BadgeObserver,
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = aggregator.homeData
-        .map { HomeUiStateMapper.map(it) }
+    private val strings = MutableStateFlow<HomeStrings?>(null)
+
+    /** Called by the UI with locale-resolved strings; updates live on locale change. */
+    fun setStrings(value: HomeStrings) { strings.value = value }
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        aggregator.homeData,
+        strings.filterNotNull(),
+    ) { data, s -> HomeUiStateMapper.map(data, s) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

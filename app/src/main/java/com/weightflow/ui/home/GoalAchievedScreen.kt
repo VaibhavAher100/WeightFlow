@@ -22,11 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.weightflow.R
 import com.weightflow.domain.WeightUnit
 import com.weightflow.ui.components.rememberWFHaptics
 import com.weightflow.ui.theme.WFTokens
@@ -68,7 +70,7 @@ fun GoalAchievedScreen(
             Text(text = "🏆", fontSize = 48.sp)
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Goal Reached",
+                text = stringResource(R.string.goal_achieved_title),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Black,
                 color = accent,
@@ -76,7 +78,7 @@ fun GoalAchievedScreen(
                 fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             )
             Text(
-                text = "You did it",
+                text = stringResource(R.string.goal_achieved_you_did_it),
                 fontSize = 14.sp,
                 color = WFTokens.Text2,
                 modifier = Modifier.padding(top = 4.dp),
@@ -94,10 +96,10 @@ fun GoalAchievedScreen(
             )
             Text(
                 text = when (state.weightUnit) {
-                    WeightUnit.KG  -> "KILOGRAMS"
-                    WeightUnit.LBS -> "POUNDS"
-                    WeightUnit.ST  -> "STONE"
-                },
+                    WeightUnit.KG  -> stringResource(R.string.unit_kg_full)
+                    WeightUnit.LBS -> stringResource(R.string.unit_lbs_full)
+                    WeightUnit.ST  -> stringResource(R.string.unit_st_full)
+                }.uppercase(),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 3.sp,
@@ -108,13 +110,13 @@ fun GoalAchievedScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                JourneyCell(value = state.startDisplay ?: "—", label = "STARTED")
-                JourneyCell(value = state.lostDisplay ?: "—", label = "LOST", valueColor = accent)
-                JourneyCell(value = "${state.streakDays}d", label = "STREAK")
+                JourneyCell(value = state.startDisplay ?: "—", label = stringResource(R.string.goal_achieved_stat_started).uppercase())
+                JourneyCell(value = state.lostDisplay ?: "—", label = stringResource(R.string.goal_achieved_stat_lost).uppercase(), valueColor = accent)
+                JourneyCell(value = "${state.streakDays}d", label = stringResource(R.string.goal_achieved_stat_streak).uppercase())
             }
             Spacer(Modifier.height(20.dp))
             Text(
-                text = "Keep going. Maintenance is the next milestone.",
+                text = stringResource(R.string.goal_achieved_keep_going),
                 fontSize = 13.sp,
                 color = WFTokens.Text2,
                 textAlign = TextAlign.Center,
@@ -131,7 +133,7 @@ fun GoalAchievedScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "SET NEW GOAL  →",
+                    text = "${stringResource(R.string.goal_achieved_set_new_goal).uppercase()}  →",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp,

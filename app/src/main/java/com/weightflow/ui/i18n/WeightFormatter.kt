@@ -1,5 +1,9 @@
 package com.weightflow.ui.i18n
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.weightflow.R
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
 import java.util.Locale
@@ -29,4 +33,22 @@ object WeightFormatter {
 
     private fun oneDecimal(value: Double, locale: Locale): String =
         String.format(locale, "%.1f", value)
+}
+
+/**
+ * Compose helper for screens that format a weight directly in the UI (not via a
+ * ViewModel UiState). Resolves the active locale + unit suffixes from resources.
+ */
+@Composable
+fun rememberWeightString(kg: Double, unit: WeightUnit): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return WeightFormatter.format(
+        kg = kg,
+        unit = unit,
+        locale = locale,
+        kgSuffix = stringResource(R.string.unit_suffix_kg),
+        lbsSuffix = stringResource(R.string.unit_suffix_lbs),
+        stSuffix = stringResource(R.string.unit_suffix_st_stones),
+        lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
+    )
 }

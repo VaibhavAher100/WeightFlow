@@ -23,18 +23,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.i18n.BadgeStrings
 import com.weightflow.ui.theme.WFTokens
 import java.time.LocalDate
 import java.time.LocalTime
@@ -47,10 +50,27 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val locale = LocalConfiguration.current.locales[0]
+    val homeStrings = HomeStrings(
+        locale = locale,
+        kgSuffix = stringResource(R.string.unit_suffix_kg),
+        lbsSuffix = stringResource(R.string.unit_suffix_lbs),
+        stSuffix = stringResource(R.string.unit_suffix_st_stones),
+        lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
+        today = stringResource(R.string.common_today),
+        yesterday = stringResource(R.string.common_yesterday),
+    )
+    LaunchedEffect(homeStrings) { viewModel.setStrings(homeStrings) }
+
+    val badgeUnlockedTemplate = stringResource(R.string.shell_badge_unlocked)
+    val badgeNames = com.weightflow.domain.Badge.entries.associateWith {
+        stringResource(BadgeStrings.resFor(it).nameRes)
+    }
     LaunchedEffect(Unit) {
         viewModel.badgeEvents.collect { badges ->
-            val names = badges.joinToString(", ") { it.name.replace('_', ' ').lowercase().replaceFirstChar { c -> c.uppercase() } }
-            snackbarHostState.showSnackbar("Badge unlocked: $names")
+            val names = badges.joinToString(", ") { badgeNames[it] ?: "" }
+            snackbarHostState.showSnackbar(String.format(badgeUnlockedTemplate, names))
             viewModel.onBadgeShown(badges)
         }
     }
@@ -109,7 +129,7 @@ private fun EmptyView(state: HomeUiState.Empty) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Log your first weight to start tracking",
+            text = stringResource(R.string.home_empty_prompt),
             style = MaterialTheme.typography.bodyLarge,
             color = WFTokens.Text2,
             textAlign = TextAlign.Center,
@@ -117,7 +137,7 @@ private fun EmptyView(state: HomeUiState.Empty) {
         if (state.goalWeightDisplay != null) {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Goal: ${state.goalWeightDisplay}",
+                text = stringResource(R.string.home_empty_goal, state.goalWeightDisplay),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -147,7 +167,7 @@ private fun DataView(state: HomeUiState.HasData) {
         }
         item {
             Text(
-                text = "WeightFlow is not a medical device. Consult a healthcare professional before making health decisions.",
+                text = stringResource(R.string.home_medical_disclaimer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 textAlign = TextAlign.Center,
@@ -163,17 +183,14 @@ private fun DataView(state: HomeUiState.HasData) {
 
 @Composable
 private fun DashboardHeader() {
-    val dateStr = remember {
-        LocalDate.now()
-            .format(DateTimeFormatter.ofPattern("EEEE, d MMM"))
-            .uppercase()
-    }
-    val greeting = remember {
-        when {
-            LocalTime.now().hour < 12 -> "Good morning"
-            LocalTime.now().hour < 17 -> "Good afternoon"
-            else                      -> "Good evening"
-        }
+    val locale = LocalConfiguration.current.locales[0]
+    val dateStr = LocalDate.now()
+        .format(DateTimeFormatter.ofPattern("EEEE, d MMM", locale))
+        .uppercase(locale)
+    val greeting = when {
+        LocalTime.now().hour < 12 -> stringResource(R.string.home_greeting_morning)
+        LocalTime.now().hour < 17 -> stringResource(R.string.home_greeting_afternoon)
+        else                      -> stringResource(R.string.home_greeting_evening)
     }
     Column(
         modifier = Modifier
@@ -202,9 +219,9 @@ private fun DashboardHeader() {
 private fun HeroWeightCard(state: HomeUiState.HasData) {
     val accent = MaterialTheme.colorScheme.primary
     val unitLabel = when (state.weightUnit) {
-        WeightUnit.KG  -> "Kilograms"
-        WeightUnit.LBS -> "Pounds"
-        WeightUnit.ST  -> "Stone"
+        WeightUnit.KG  -> stringResource(R.string.unit_kg_full)
+        WeightUnit.LBS -> stringResource(R.string.unit_lbs_full)
+        WeightUnit.ST  -> stringResource(R.string.unit_st_full)
     }
     val numberText = state.latestWeightDisplay
         .replace(" kg", "").replace(" lbs", "").replace(" st", "")
@@ -216,7 +233,7 @@ private fun HeroWeightCard(state: HomeUiState.HasData) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "CURRENT WEIGHT",
+            text = stringResource(R.string.home_current_weight).uppercase(),
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 2.sp,
@@ -269,7 +286,7 @@ private fun HeroWeightCard(state: HomeUiState.HasData) {
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = "$arrow ${state.deltaDisplay} this week",
+                    text = "$arrow ${stringResource(R.string.home_delta_this_week, state.deltaDisplay)}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = color,
@@ -295,7 +312,7 @@ private fun SparklineCard(points: List<Float>, accent: Color) {
     ) {
         Column {
             Text(
-                text = "30-DAY TREND",
+                text = stringResource(R.string.home_trend_30_day).uppercase(),
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp,
@@ -378,7 +395,7 @@ private fun GoalProgressBar(progress: Float, accent: Color) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
-                text = "GOAL PROGRESS",
+                text = stringResource(R.string.home_goal_progress).uppercase(),
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp,
@@ -419,9 +436,9 @@ private fun StatsTrio(state: HomeUiState.HasData) {
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StatCard(label = "START", value = state.startDisplay ?: "—", modifier = Modifier.weight(1f))
-        StatCard(label = "LOST",  value = state.lostDisplay  ?: "—", modifier = Modifier.weight(1f), valueColor = accent)
-        StatCard(label = "GOAL",  value = state.goalWeightDisplay ?: "—", modifier = Modifier.weight(1f))
+        StatCard(label = stringResource(R.string.home_stat_start).uppercase(), value = state.startDisplay ?: "—", modifier = Modifier.weight(1f))
+        StatCard(label = stringResource(R.string.home_stat_lost).uppercase(),  value = state.lostDisplay  ?: "—", modifier = Modifier.weight(1f), valueColor = accent)
+        StatCard(label = stringResource(R.string.home_stat_goal).uppercase(),  value = state.goalWeightDisplay ?: "—", modifier = Modifier.weight(1f))
     }
 }
 
