@@ -1,7 +1,252 @@
 <resources>
+
+    <!-- App -->
     <string name="app_name">WeightFlow</string>
+
+    <!-- Unit suffixes -->
     <string name="unit_suffix_kg">kg</string>
     <string name="unit_suffix_lbs">lbs</string>
     <string name="unit_suffix_st_stones">st</string>
     <string name="unit_suffix_st_pounds">lb</string>
+
+    <!-- Common (shared) -->
+    <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_export">Export</string>
+    <string name="common_ok">OK</string>
+    <string name="common_save">Save</string>
+    <string name="common_search">Search</string>
+    <string name="common_today">Today</string>
+    <string name="common_yesterday">Yesterday</string>
+
+    <!-- Unit names -->
+    <string name="unit_kg_full">Kilograms</string>
+    <string name="unit_lbs_full">Pounds</string>
+    <string name="unit_st_full">Stone</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_history">History</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_trends">Trends</string>
+
+    <!-- Shell -->
+    <string name="shell_badge_unlocked">Badge unlocked: %1$s</string>
+    <string name="shell_log_weight">Log weight</string>
+
+    <!-- Home -->
+    <string name="home_current_weight">Current weight</string>
+    <string name="home_delta_this_week">%1$s this week</string>
+    <string name="home_empty_goal">Goal: %1$s</string>
+    <string name="home_empty_prompt">Log your first weight to start tracking</string>
+    <string name="home_goal_progress">Goal progress</string>
+    <string name="home_greeting_afternoon">Good afternoon</string>
+    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_greeting_morning">Good morning</string>
+    <string name="home_medical_disclaimer">WeightFlow is not a medical device. Consult a healthcare professional before making health decisions.</string>
+    <string name="home_stat_goal">Goal</string>
+    <string name="home_stat_lost">Lost</string>
+    <string name="home_stat_start">Start</string>
+    <string name="home_trend_30_day">30-day trend</string>
+
+    <!-- Goal Achieved -->
+    <string name="goal_achieved_keep_going">Keep going. Maintenance is the next milestone.</string>
+    <string name="goal_achieved_set_new_goal">Set new goal</string>
+    <string name="goal_achieved_stat_lost">Lost</string>
+    <string name="goal_achieved_stat_started">Started</string>
+    <string name="goal_achieved_stat_streak">Streak</string>
+    <string name="goal_achieved_title">Goal Reached</string>
+    <string name="goal_achieved_you_did_it">You did it</string>
+
+    <!-- Trends -->
+    <string name="trends_chart_area">Area</string>
+    <string name="trends_chart_bar">Bar</string>
+    <string name="trends_chart_line">Line</string>
+    <string name="trends_empty">Log at least two weights to see your trend</string>
+    <string name="trends_estimated_days_to_goal">Estimated days to goal</string>
+    <string name="trends_estimated_subtitle">At your current rate</string>
+    <string name="trends_range_1y">1Y</string>
+    <string name="trends_range_30d">30D</string>
+    <string name="trends_range_3m">3M</string>
+    <string name="trends_range_6m">6M</string>
+    <string name="trends_range_7d">7D</string>
+    <string name="trends_range_all">All</string>
+    <string name="trends_section_all_time">All Time</string>
+    <string name="trends_section_progress">Progress</string>
+    <string name="trends_stat_30d_change">30D change</string>
+    <string name="trends_stat_7d_change">7D change</string>
+    <string name="trends_stat_avg">Avg</string>
+    <string name="trends_stat_avg_per_month">Avg / month</string>
+    <string name="trends_stat_avg_per_week">Avg / week</string>
+    <string name="trends_stat_change">Change</string>
+    <string name="trends_stat_high">High</string>
+    <string name="trends_stat_logs">Logs</string>
+    <string name="trends_stat_low">Low</string>
+    <string name="trends_stat_max">Max</string>
+    <string name="trends_stat_min">Min</string>
+
+    <!-- History -->
+    <string name="history_delete_entry_desc">Delete entry for %1$s</string>
+    <string name="history_edit_entry_title">Edit entry</string>
+    <string name="history_edit_weight_label">Weight (%1$s)</string>
+    <string name="history_empty">No entries yet — log your first weight!</string>
+    <string name="history_entry_desc">%1$s on %2$s</string>
+    <string name="history_search_placeholder">Search entries…</string>
+
+    <!-- Profile -->
+    <string name="profile_achievements">Achievements</string>
+    <string name="profile_bmi_above_range">+%1$s above range</string>
+    <string name="profile_bmi_below_range">−%1$s below range</string>
+    <string name="profile_bmi_category_normal">Normal</string>
+    <string name="profile_bmi_category_overweight">Overweight</string>
+    <string name="profile_bmi_category_underweight">Underweight</string>
+    <string name="profile_bmi_normal_range">Normal: %1$s – %2$s</string>
+    <string name="profile_day_streak">day streak</string>
+    <string name="profile_delete_all_data">Delete all my data</string>
+    <string name="profile_delete_all_subtitle">Permanently removes all entries, profile, and preferences from this device.</string>
+    <string name="profile_delete_dialog_body">This permanently deletes all weight entries, your profile, and preferences from this device. This cannot be undone.</string>
+    <string name="profile_delete_dialog_title">Delete all data?</string>
+    <string name="profile_entries_logged">%1$d entries logged</string>
+    <string name="profile_eta_to_go">~%1$dd to go</string>
+    <string name="profile_no_profile">Complete onboarding to see your profile</string>
+    <string name="profile_percent_complete">%1$d%% complete</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_stat_bmi">BMI</string>
+    <string name="profile_stat_days">%1$d days</string>
+    <string name="profile_stat_goal">Goal</string>
+    <string name="profile_stat_height">Height</string>
+    <string name="profile_stat_height_cm">%1$d cm</string>
+    <string name="profile_stat_logged">Logged</string>
+    <string name="profile_stat_logged_days">%1$d days</string>
+    <string name="profile_stat_now">Now</string>
+    <string name="profile_stat_start">Start</string>
+    <string name="profile_stat_streak">Streak</string>
+    <string name="profile_support_development">Support development</string>
+    <string name="profile_title">Profile</string>
+
+    <!-- Settings -->
+    <string name="settings_data_export_csv_subtitle">Download as CSV</string>
+    <string name="settings_data_export_encrypt_subtitle">AES-256 protected ZIP</string>
+    <string name="settings_data_export_encrypt_title">Export &amp; Encrypt</string>
+    <string name="settings_data_export_history_title">Export weight history</string>
+    <string name="settings_data_export_minimal_subtitle">Date + weight only</string>
+    <string name="settings_data_export_minimal_title">Export Minimal CSV</string>
+    <string name="settings_data_section">Data</string>
+    <string name="settings_dialog_encrypt_button">Export &amp; Encrypt</string>
+    <string name="settings_dialog_encrypt_info">Your export will be protected with AES-256 encryption.</string>
+    <string name="settings_dialog_encrypt_mac_note">Note: This format is NOT supported by macOS Archive Utility. Use 7-Zip, WinRAR, or The Unarchiver to open the file.</string>
+    <string name="settings_dialog_encrypt_title">Set export password</string>
+    <string name="settings_dialog_export_failed_title">Export failed</string>
+    <string name="settings_dialog_export_full_body">This file contains your full weight history. Once saved, the app you choose can read this data. Only share with apps you trust.</string>
+    <string name="settings_dialog_export_full_title">Export weight history?</string>
+    <string name="settings_dialog_export_minimal_body">This file contains dates and weights only. No profile or goal data is included. Even so, a date+weight series may identify you when combined with other information. Only share with apps you trust.</string>
+    <string name="settings_dialog_export_minimal_title">Export Minimal CSV?</string>
+    <string name="settings_dialog_password_label">Password (%1$d+ characters)</string>
+    <string name="settings_dialog_password_too_short">Must be at least %1$d characters</string>
+    <string name="settings_encrypted_info_banner">AES-256 encrypted ZIP. Readable by 7-Zip, WinRAR, The Unarchiver. Not supported by macOS Archive Utility.</string>
+    <string name="settings_export_format_encrypted_desc">AES-256 password-protected. 12+ character password required.</string>
+    <string name="settings_export_format_encrypted_label">Encrypted ZIP</string>
+    <string name="settings_export_format_minimal_desc">Date + weight only. No profile or notes. Still quasi-identifying.</string>
+    <string name="settings_export_format_minimal_label">Minimal CSV</string>
+    <string name="settings_export_format_plaintext_desc">Full history, no encryption. All columns.</string>
+    <string name="settings_export_format_plaintext_label">Plaintext CSV</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_german">Deutsch</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_legal_privacy_subtitle">How we handle your data</string>
+    <string name="settings_legal_privacy_title">Privacy Policy</string>
+    <string name="settings_legal_section">Legal</string>
+    <string name="settings_legal_terms_subtitle">Usage terms</string>
+    <string name="settings_legal_terms_title">Terms of Service</string>
+    <string name="settings_minimal_warning_banner">Removes profile, goal, and note data. Date and weight alone may still identify you when combined with other information.</string>
+    <string name="settings_notifications_reminder_subtitle">Reminds you to log each day</string>
+    <string name="settings_notifications_reminder_title">Daily reminder</string>
+    <string name="settings_notifications_section">Notifications</string>
+    <string name="settings_password_strength">Password strength: %1$s</string>
+    <string name="settings_password_strength_medium">Medium</string>
+    <string name="settings_password_strength_strong">Strong</string>
+    <string name="settings_password_strength_weak">Weak</string>
+    <string name="settings_permission_banner_dismiss">Dismiss</string>
+    <string name="settings_permission_denied_banner">Notifications require permission. Grant in Settings.</string>
+    <string name="settings_plaintext_warning_banner">This export is not encrypted. Keep the file secure and only share with apps you trust.</string>
+    <string name="settings_theme_section">Theme</string>
+    <string name="settings_theme_forest">Forest</string>
+    <string name="settings_theme_gold">Gold</string>
+    <string name="settings_theme_ice">Ice</string>
+    <string name="settings_theme_lime">Lime</string>
+    <string name="settings_theme_ocean">Ocean</string>
+    <string name="settings_theme_rose">Rose</string>
+    <string name="settings_theme_sunset">Sunset</string>
+    <string name="settings_theme_violet">Violet</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_unit_section">Weight Unit</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_age_gate_error">You must be 18 or older to use WeightFlow.</string>
+    <string name="onboarding_age_gate_subtitle">Your data stays on your device.\nNo subscriptions. No cloud required.</string>
+    <string name="onboarding_age_gate_title">WELCOME.</string>
+    <string name="onboarding_back">← Back</string>
+    <string name="onboarding_birth_year_label">Year of birth</string>
+    <string name="onboarding_birth_year_placeholder">e.g. 1995</string>
+    <string name="onboarding_get_started">GET STARTED →</string>
+    <string name="onboarding_goal_disclaimer">Set realistic goals. Rapid weight loss can be harmful. If you\'re struggling with disordered eating, please seek professional support.</string>
+    <string name="onboarding_goal_subtitle">Optional — skip this and set it later in Profile.</string>
+    <string name="onboarding_goal_title">YOUR GOAL</string>
+    <string name="onboarding_goal_weight_label">Goal weight in %1$s (optional)</string>
+    <string name="onboarding_next">Next →</string>
+    <string name="onboarding_privacy_policy">Privacy Policy</string>
+    <string name="onboarding_step_eyebrow">STEP %1$d OF %2$d</string>
+    <string name="onboarding_tagline">TRACK · REFLECT · IMPROVE</string>
+    <string name="onboarding_terms_of_service">Terms of Service</string>
+    <string name="onboarding_underage_error">You must be 18 or older to use WeightFlow.</string>
+    <string name="onboarding_unit_subtitle">Can be changed in Settings anytime.</string>
+    <string name="onboarding_unit_title">YOUR UNIT</string>
+    <string name="onboarding_weight_label">Weight in %1$s</string>
+    <string name="onboarding_weight_subtitle">Stored in kg internally, displayed in %1$s.</string>
+    <string name="onboarding_weight_title">CURRENT\nWEIGHT</string>
+
+    <!-- Log Entry -->
+    <string name="log_entry_last_logged">Last logged %1$s</string>
+    <string name="log_entry_logged">✓  Logged</string>
+    <string name="log_entry_new_low">New Low</string>
+    <string name="log_entry_new_low_button">New Low 🏆</string>
+    <string name="log_entry_save">Save Entry</string>
+    <string name="log_entry_saving">Saving…</string>
+    <string name="log_entry_unit_kg">Kilograms</string>
+    <string name="log_entry_unit_lbs">Pounds</string>
+    <string name="log_entry_unit_st">Stone</string>
+
+    <!-- Badges -->
+    <string name="badge_comeback_desc">Returned after a 14-day break</string>
+    <string name="badge_comeback_name">Comeback</string>
+    <string name="badge_first_weigh_in_desc">Logged your first weigh-in</string>
+    <string name="badge_first_weigh_in_name">First Step</string>
+    <string name="badge_fifty_logs_desc">Logged 50 weigh-ins</string>
+    <string name="badge_fifty_logs_name">50 Logs</string>
+    <string name="badge_goal_crusher_desc">Reached your goal weight</string>
+    <string name="badge_goal_crusher_name">Goal Crusher</string>
+    <string name="badge_goal_set_desc">Set your first goal weight</string>
+    <string name="badge_goal_set_name">Goal Set</string>
+    <string name="badge_halfway_there_desc">Halfway to your goal</string>
+    <string name="badge_halfway_there_name">Halfway There</string>
+    <string name="badge_hundred_day_streak_desc">Logged 100 days in a row</string>
+    <string name="badge_hundred_day_streak_name">100-Day Streak</string>
+    <string name="badge_seven_day_streak_desc">Logged 7 days in a row</string>
+    <string name="badge_seven_day_streak_name">7-Day Streak</string>
+    <string name="badge_steady_state_desc">Maintained your weight for 30 days</string>
+    <string name="badge_steady_state_name">Steady State</string>
+    <string name="badge_ten_logs_desc">Logged 10 weigh-ins</string>
+    <string name="badge_ten_logs_name">10 Logs</string>
+    <string name="badge_thirty_day_streak_desc">Logged 30 days in a row</string>
+    <string name="badge_thirty_day_streak_name">30-Day Streak</string>
+    <string name="badge_three_sixty_five_logs_desc">Logged 365 weigh-ins</string>
+    <string name="badge_three_sixty_five_logs_name">365 Logs</string>
+
+    <!-- Reminder notification -->
+    <string name="reminder_notification_body">Log today\'s weight to keep your streak going.</string>
+    <string name="reminder_notification_title">Time to weigh in</string>
+
 </resources>
