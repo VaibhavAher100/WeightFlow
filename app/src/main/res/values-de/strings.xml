@@ -100,10 +100,12 @@
     <string name="history_search_placeholder">Einträge suchen…</string>
 
     <!-- Profile -->
+    <string name="profile_achievement_count">%1$d / %2$d</string>
     <string name="profile_achievements">Erfolge</string>
     <string name="profile_bmi_above_range">+%1$s über dem Bereich</string>
     <string name="profile_bmi_below_range">−%1$s unter dem Bereich</string>
     <string name="profile_bmi_category_normal">Normal</string>
+    <string name="profile_bmi_category_obese">Adipositas</string>
     <string name="profile_bmi_category_overweight">Übergewicht</string>
     <string name="profile_bmi_category_underweight">Untergewicht</string>
     <string name="profile_bmi_normal_range">Normal: %1$s – %2$s</string>
@@ -112,8 +114,10 @@
     <string name="profile_delete_all_subtitle">Entfernt dauerhaft alle Einträge, das Profil und die Einstellungen von diesem Gerät.</string>
     <string name="profile_delete_dialog_body">Dadurch werden alle Gewichtseinträge, dein Profil und deine Einstellungen dauerhaft von diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden.</string>
     <string name="profile_delete_dialog_title">Alle Daten löschen?</string>
+    <string name="profile_dash">—</string>
     <string name="profile_entries_logged">%1$d Einträge erfasst</string>
     <string name="profile_eta_to_go">~noch %1$d T</string>
+    <string name="profile_goal_summary">−%1$s in %2$d Tagen  %3$s</string>
     <string name="profile_no_profile">Schließe die Einrichtung ab, um dein Profil zu sehen</string>
     <string name="profile_percent_complete">%1$d%% abgeschlossen</string>
     <string name="profile_settings">Einstellungen</string>

@@ -100,10 +100,12 @@
     <string name="history_search_placeholder">Search entries…</string>
 
     <!-- Profile -->
+    <string name="profile_achievement_count">%1$d / %2$d</string>
     <string name="profile_achievements">Achievements</string>
     <string name="profile_bmi_above_range">+%1$s above range</string>
     <string name="profile_bmi_below_range">−%1$s below range</string>
     <string name="profile_bmi_category_normal">Normal</string>
+    <string name="profile_bmi_category_obese">Obese</string>
     <string name="profile_bmi_category_overweight">Overweight</string>
     <string name="profile_bmi_category_underweight">Underweight</string>
     <string name="profile_bmi_normal_range">Normal: %1$s – %2$s</string>
@@ -112,8 +114,10 @@
     <string name="profile_delete_all_subtitle">Permanently removes all entries, profile, and preferences from this device.</string>
     <string name="profile_delete_dialog_body">This permanently deletes all weight entries, your profile, and preferences from this device. This cannot be undone.</string>
     <string name="profile_delete_dialog_title">Delete all data?</string>
+    <string name="profile_dash">—</string>
     <string name="profile_entries_logged">%1$d entries logged</string>
     <string name="profile_eta_to_go">~%1$dd to go</string>
+    <string name="profile_goal_summary">−%1$s over %2$d days  %3$s</string>
     <string name="profile_no_profile">Complete onboarding to see your profile</string>
     <string name="profile_percent_complete">%1$d%% complete</string>
     <string name="profile_settings">Settings</string>

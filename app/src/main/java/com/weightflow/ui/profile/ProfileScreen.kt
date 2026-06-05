@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,11 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.domain.Badge
 import com.weightflow.ui.theme.WFTokens
 
@@ -48,13 +52,28 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
+    val locale = LocalConfiguration.current.locales[0]
+    val profileStrings = ProfileStrings(
+        locale = locale,
+        kgSuffix = stringResource(R.string.unit_suffix_kg),
+        lbsSuffix = stringResource(R.string.unit_suffix_lbs),
+        stSuffix = stringResource(R.string.unit_suffix_st_stones),
+        lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
+        bmiUnderweight = stringResource(R.string.profile_bmi_category_underweight),
+        bmiNormal = stringResource(R.string.profile_bmi_category_normal),
+        bmiOverweight = stringResource(R.string.profile_bmi_category_overweight),
+        bmiObese = stringResource(R.string.profile_bmi_category_obese),
+        goalSummaryTemplate = stringResource(R.string.profile_goal_summary),
+    )
+    LaunchedEffect(profileStrings) { viewModel.setStrings(profileStrings) }
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete all data?") },
+            title = { Text(stringResource(R.string.profile_delete_dialog_title)) },
             text = {
                 Text(
-                    "This permanently deletes all weight entries, your profile, and preferences from this device. This cannot be undone.",
+                    stringResource(R.string.profile_delete_dialog_body),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -63,12 +82,12 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
                     viewModel.deleteAllData()
                     showDeleteDialog = false
                 }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -90,7 +109,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {})
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "Complete onboarding to see your profile",
+                    text = stringResource(R.string.profile_no_profile),
                     style = MaterialTheme.typography.bodyLarge,
                     color = WFTokens.Text2,
                     textAlign = TextAlign.Center,
@@ -158,7 +177,7 @@ private fun PageHeader(onSettingsClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "Profile",
+            text = stringResource(R.string.profile_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -166,7 +185,7 @@ private fun PageHeader(onSettingsClick: () -> Unit) {
         IconButton(onClick = onSettingsClick) {
             Icon(
                 imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
+                contentDescription = stringResource(R.string.profile_settings),
                 tint = WFTokens.Text2,
             )
         }
@@ -218,7 +237,7 @@ private fun ProfileHero(state: ProfileUiState.Loaded) {
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = "${state.totalEntriesCount} entries logged",
+                text = stringResource(R.string.profile_entries_logged, state.totalEntriesCount),
                 fontSize = 12.sp,
                 color = WFTokens.Text2,
             )
@@ -235,7 +254,7 @@ private fun ProfileHero(state: ProfileUiState.Loaded) {
                         color = WFTokens.Success,
                     )
                     Text(
-                        text = "day streak",
+                        text = stringResource(R.string.profile_day_streak),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = WFTokens.Text3,
@@ -267,7 +286,7 @@ private fun DeleteDataSection(onDeleteAllData: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = "Delete all my data",
+                text = stringResource(R.string.profile_delete_all_data),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.Medium,
@@ -275,7 +294,7 @@ private fun DeleteDataSection(onDeleteAllData: () -> Unit) {
             Text(text = "→", fontSize = 16.sp, color = MaterialTheme.colorScheme.error.copy(alpha = 0.6f))
         }
         Text(
-            text = "Permanently removes all entries, profile, and preferences from this device.",
+            text = stringResource(R.string.profile_delete_all_subtitle),
             fontSize = 10.sp,
             color = WFTokens.Text3,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),

@@ -27,6 +27,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
+import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest {
@@ -72,9 +73,22 @@ class ProfileViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val englishStrings = ProfileStrings(
+        locale = Locale.ENGLISH,
+        kgSuffix = "kg",
+        lbsSuffix = "lbs",
+        stSuffix = "st",
+        lbSuffix = "lb",
+        bmiUnderweight = "Underweight",
+        bmiNormal = "Normal",
+        bmiOverweight = "Overweight",
+        bmiObese = "Obese",
+        goalSummaryTemplate = "−%1\$s over %2\$d days  %3\$s",
+    )
+
     private fun makeViewModel() = ProfileViewModel(
         userProfileRepository, userPrefsDataStore, weightRepository, badgeObserver,
-    )
+    ).also { it.setStrings(englishStrings) }
 
     private suspend fun app.cash.turbine.TurbineTestContext<ProfileUiState>.awaitRealState(): ProfileUiState {
         val first = awaitItem()

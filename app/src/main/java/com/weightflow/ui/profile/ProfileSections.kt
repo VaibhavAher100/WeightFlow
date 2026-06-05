@@ -25,13 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.weightflow.R
 import com.weightflow.domain.Badge
-import com.weightflow.domain.WeightConverter
+import com.weightflow.ui.i18n.WeightFormatter
 import com.weightflow.ui.theme.WFTokens
 
 // ── Journey card ──────────────────────────────────────────────────────────────
@@ -50,9 +53,20 @@ internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            JourneyValue(label = "START", value = state.startWeightDisplay ?: "—")
-            JourneyValue(label = "NOW", value = state.currentWeightDisplay ?: "—", color = accent)
-            JourneyValue(label = "GOAL", value = state.goalWeightDisplay ?: "—")
+            val dash = stringResource(R.string.profile_dash)
+            JourneyValue(
+                label = stringResource(R.string.profile_stat_start).uppercase(),
+                value = state.startWeightDisplay ?: dash,
+            )
+            JourneyValue(
+                label = stringResource(R.string.profile_stat_now).uppercase(),
+                value = state.currentWeightDisplay ?: dash,
+                color = accent,
+            )
+            JourneyValue(
+                label = stringResource(R.string.profile_stat_goal).uppercase(),
+                value = state.goalWeightDisplay ?: dash,
+            )
         }
         if (state.goalProgressPercent != null) {
             Spacer(Modifier.height(12.dp))
@@ -75,14 +89,17 @@ internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = "${(state.goalProgressPercent * 100).toInt()}% complete",
+                    text = stringResource(
+                        R.string.profile_percent_complete,
+                        (state.goalProgressPercent * 100).toInt(),
+                    ),
                     fontSize = 8.sp,
                     color = WFTokens.Text3,
                     fontWeight = FontWeight.Bold,
                 )
                 if (state.etaDays != null) {
                     Text(
-                        text = "~${state.etaDays}d to go",
+                        text = stringResource(R.string.profile_eta_to_go, state.etaDays),
                         fontSize = 8.sp,
                         color = accent.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Bold,
@@ -119,11 +136,30 @@ internal fun JourneyValue(label: String, value: String, color: Color = Color.Uns
 @Composable
 internal fun BodyStatsGrid(state: ProfileUiState.Loaded) {
     val accent = MaterialTheme.colorScheme.primary
+    val dash = stringResource(R.string.profile_dash)
     val cells = buildList {
-        add(Triple("Height", state.heightCm?.let { "${it.toInt()} cm" } ?: "—", false))
-        add(Triple("BMI", state.bmiDisplay ?: "—", state.bmiDisplay != null))
-        add(Triple("Logged", "${state.totalEntriesCount} days", false))
-        add(Triple("Streak", if (state.streakDays > 0) "${state.streakDays} days" else "—", false))
+        add(
+            Triple(
+                stringResource(R.string.profile_stat_height),
+                state.heightCm?.let { stringResource(R.string.profile_stat_height_cm, it.toInt()) } ?: dash,
+                false,
+            ),
+        )
+        add(Triple(stringResource(R.string.profile_stat_bmi), state.bmiDisplay ?: dash, state.bmiDisplay != null))
+        add(
+            Triple(
+                stringResource(R.string.profile_stat_logged),
+                stringResource(R.string.profile_stat_logged_days, state.totalEntriesCount),
+                false,
+            ),
+        )
+        add(
+            Triple(
+                stringResource(R.string.profile_stat_streak),
+                if (state.streakDays > 0) stringResource(R.string.profile_stat_days, state.streakDays) else dash,
+                false,
+            ),
+        )
     }
 
     Row(
@@ -179,20 +215,36 @@ internal fun BodyStatsGrid(state: ProfileUiState.Loaded) {
 @Composable
 internal fun BmiContextCard(state: ProfileUiState.Loaded) {
     val category = state.bmiCategory ?: return
-    val categoryColor = when (category) {
-        "Normal"      -> WFTokens.Success
-        "Underweight" -> MaterialTheme.colorScheme.primary
-        else          -> WFTokens.Danger
+    val categoryColor = when (state.bmiCategoryKind) {
+        BmiCategoryKind.NORMAL      -> WFTokens.Success
+        BmiCategoryKind.UNDERWEIGHT -> MaterialTheme.colorScheme.primary
+        else                        -> WFTokens.Danger
     }
+    val locale = LocalConfiguration.current.locales[0]
+    val kgSuffix = stringResource(R.string.unit_suffix_kg)
+    val lbsSuffix = stringResource(R.string.unit_suffix_lbs)
+    val stSuffix = stringResource(R.string.unit_suffix_st_stones)
+    val lbSuffix = stringResource(R.string.unit_suffix_st_pounds)
+    fun fmt(kg: Double) = WeightFormatter.format(
+        kg = kg,
+        unit = state.weightUnit,
+        locale = locale,
+        kgSuffix = kgSuffix,
+        lbsSuffix = lbsSuffix,
+        stSuffix = stSuffix,
+        lbSuffix = lbSuffix,
+    )
     val normalRangeText = if (state.bmiNormalRangeLow != null && state.bmiNormalRangeHigh != null) {
-        val low = WeightConverter.format(state.bmiNormalRangeLow, state.weightUnit)
-        val high = WeightConverter.format(state.bmiNormalRangeHigh, state.weightUnit)
-        "Normal: $low – $high"
+        stringResource(
+            R.string.profile_bmi_normal_range,
+            fmt(state.bmiNormalRangeLow),
+            fmt(state.bmiNormalRangeHigh),
+        )
     } else null
     val diffText = state.bmiDifferenceFromNormal?.let { diff ->
         if (diff == 0.0) null
-        else if (diff > 0) "+${WeightConverter.format(diff, state.weightUnit)} above range"
-        else "−${WeightConverter.format(kotlin.math.abs(diff), state.weightUnit)} below range"
+        else if (diff > 0) stringResource(R.string.profile_bmi_above_range, fmt(diff))
+        else stringResource(R.string.profile_bmi_below_range, fmt(kotlin.math.abs(diff)))
     }
 
     Row(
@@ -235,14 +287,14 @@ internal fun AchievementsHeader(earned: Int, total: Int) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "ACHIEVEMENTS",
+            text = stringResource(R.string.profile_achievements).uppercase(),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.5.sp,
             color = WFTokens.Text3,
         )
         Text(
-            text = "$earned / $total",
+            text = stringResource(R.string.profile_achievement_count, earned, total),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = WFTokens.Text3,
@@ -293,7 +345,7 @@ internal fun BadgeItem(badge: Badge, isEarned: Boolean, accent: Color) {
             )
         }
         Text(
-            text = badge.shortName(),
+            text = stringResource(com.weightflow.ui.i18n.BadgeStrings.resFor(badge).nameRes),
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             color = WFTokens.Text3,
@@ -319,7 +371,7 @@ internal fun SupportSection() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            text = "SUPPORT DEVELOPMENT",
+            text = stringResource(R.string.profile_support_development).uppercase(),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.5.sp,
@@ -384,17 +436,3 @@ internal fun Badge.emoji(): String = when (this) {
     Badge.STEADY_STATE        -> "⭐"
 }
 
-internal fun Badge.shortName(): String = when (this) {
-    Badge.FIRST_WEIGH_IN      -> "First Log"
-    Badge.GOAL_SET            -> "Goal Set"
-    Badge.SEVEN_DAY_STREAK    -> "7-Day"
-    Badge.THIRTY_DAY_STREAK   -> "30-Day"
-    Badge.HUNDRED_DAY_STREAK  -> "100 Days"
-    Badge.TEN_LOGS            -> "10 Logs"
-    Badge.FIFTY_LOGS          -> "50 Logs"
-    Badge.THREE_SIXTY_FIVE_LOGS -> "365 Logs"
-    Badge.HALFWAY_THERE       -> "Halfway"
-    Badge.GOAL_CRUSHER        -> "Goal Hit"
-    Badge.COMEBACK            -> "Comeback"
-    Badge.STEADY_STATE        -> "Steady"
-}
