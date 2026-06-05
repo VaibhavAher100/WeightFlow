@@ -4,53 +4,67 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.WeightRepository
-import com.weightflow.domain.WeightConverter
-import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.i18n.DateFormatters
+import com.weightflow.ui.i18n.WeightFormatter
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 class HistoryViewModel(
     private val weightRepository: WeightRepository,
     private val userPrefsDataStore: UserPrefsDataStore,
 ) : ViewModel() {
 
-    private val dateFmt = DateTimeFormatter.ofPattern("d MMM yyyy")
+    private val strings = MutableStateFlow<HistoryStrings?>(null)
+
+    /** Called by the UI with locale-resolved strings; updates live on locale change. */
+    fun setStrings(value: HistoryStrings) { strings.value = value }
 
     val uiState: StateFlow<HistoryUiState> = combine(
         weightRepository.getEntriesNewestFirst(),
         userPrefsDataStore.weightUnit,
-    ) { entries, unit ->
+        strings.filterNotNull(),
+    ) { entries, unit, s ->
         if (entries.isEmpty()) return@combine HistoryUiState.Empty
 
         val displayList = entries.mapIndexed { i, entry ->
             val olderEntry = entries.getOrNull(i + 1)
             val deltaKg = olderEntry?.let { entry.weightKg - it.weightKg }
             val deltaDisplay = deltaKg?.let { delta ->
-                val absKg = kotlin.math.abs(delta)
-                when (unit) {
-                    WeightUnit.KG  -> "%.1f kg".format(absKg)
-                    WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(absKg))
-                    WeightUnit.ST  -> {
-                        val r = WeightConverter.kgToStones(absKg)
-                        "${r.stones}st ${r.pounds}lb"
-                    }
-                }
+                WeightFormatter.format(
+                    kg = kotlin.math.abs(delta),
+                    unit = unit,
+                    locale = s.locale,
+                    kgSuffix = s.kgSuffix,
+                    lbsSuffix = s.lbsSuffix,
+                    stSuffix = s.stSuffix,
+                    lbSuffix = s.lbSuffix,
+                )
             }
             HistoryEntryDisplay(
                 id = entry.id,
                 weightKg = entry.weightKg,
-                weightDisplay = WeightConverter.format(entry.weightKg, unit),
-                dateDisplay = formatDate(entry.timestamp),
+                weightDisplay = WeightFormatter.format(
+                    kg = entry.weightKg,
+                    unit = unit,
+                    locale = s.locale,
+                    kgSuffix = s.kgSuffix,
+                    lbsSuffix = s.lbsSuffix,
+                    stSuffix = s.stSuffix,
+                    lbSuffix = s.lbSuffix,
+                ),
+                dateDisplay = formatDate(entry.timestamp, s),
                 timestamp = entry.timestamp,
                 deltaDisplay = deltaDisplay,
                 deltaIsDown = deltaKg?.let { it < 0 },
+                deltaIsZero = deltaKg?.let { kotlin.math.abs(it) < 0.05 },
             )
         }
         HistoryUiState.HasData(entries = displayList, weightUnit = unit)
@@ -72,10 +86,14 @@ class HistoryViewModel(
         }
     }
 
-    private fun formatDate(timestamp: Long): String {
+    private fun formatDate(timestamp: Long, s: HistoryStrings): String {
         val date = Instant.ofEpochMilli(timestamp)
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
-        return if (date == LocalDate.now()) "Today" else date.format(dateFmt)
+        return if (date == LocalDate.now()) {
+            s.today
+        } else {
+            date.format(DateFormatters.fullDate(s.locale))
+        }
     }
 }

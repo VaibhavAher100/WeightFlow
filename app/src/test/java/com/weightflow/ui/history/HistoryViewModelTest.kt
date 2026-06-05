@@ -23,6 +23,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
+import java.util.Locale
 
 /**
  * TDD: Written BEFORE HistoryViewModel exists.
@@ -52,7 +53,17 @@ class HistoryViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val englishStrings = HistoryStrings(
+        locale = Locale.ENGLISH,
+        kgSuffix = "kg",
+        lbsSuffix = "lbs",
+        stSuffix = "st",
+        lbSuffix = "lb",
+        today = "Today",
+    )
+
     private fun makeViewModel() = HistoryViewModel(weightRepository, userPrefsDataStore)
+        .also { it.setStrings(englishStrings) }
 
     private fun entryAt(daysAgo: Int, weightKg: Double) = WeightEntry(
         id = daysAgo.toLong(),

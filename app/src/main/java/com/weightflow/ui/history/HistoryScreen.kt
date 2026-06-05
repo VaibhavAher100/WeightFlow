@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -48,12 +51,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.domain.isValidWeightKg
+import com.weightflow.ui.i18n.DateFormatters
 import com.weightflow.ui.theme.WFTokens
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun HistoryScreen(viewModel: HistoryViewModel) {
@@ -61,23 +65,34 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
     var editingEntry by rememberSaveable { mutableStateOf<Long?>(null) }
     var editInput by rememberSaveable { mutableStateOf("") }
 
+    val locale = LocalConfiguration.current.locales[0]
+    val historyStrings = HistoryStrings(
+        locale = locale,
+        kgSuffix = stringResource(R.string.unit_suffix_kg),
+        lbsSuffix = stringResource(R.string.unit_suffix_lbs),
+        stSuffix = stringResource(R.string.unit_suffix_st_stones),
+        lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
+        today = stringResource(R.string.common_today),
+    )
+    LaunchedEffect(historyStrings) { viewModel.setStrings(historyStrings) }
+
     val currentState = uiState as? HistoryUiState.HasData
 
     editingEntry?.let { editId ->
         val entry = currentState?.entries?.firstOrNull { it.id == editId }
         val unitLabel = when (currentState?.weightUnit) {
-            com.weightflow.domain.WeightUnit.LBS -> "lbs"
-            com.weightflow.domain.WeightUnit.ST  -> "st"
-            else                                 -> "kg"
+            com.weightflow.domain.WeightUnit.LBS -> stringResource(R.string.unit_suffix_lbs)
+            com.weightflow.domain.WeightUnit.ST  -> stringResource(R.string.unit_suffix_st_stones)
+            else                                 -> stringResource(R.string.unit_suffix_kg)
         }
         AlertDialog(
             onDismissRequest = { editingEntry = null; editInput = "" },
-            title = { Text("Edit entry") },
+            title = { Text(stringResource(R.string.history_edit_entry_title)) },
             text = {
                 OutlinedTextField(
                     value = editInput,
                     onValueChange = { editInput = it },
-                    label = { Text("Weight ($unitLabel)") },
+                    label = { Text(stringResource(R.string.history_edit_weight_label, unitLabel)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 )
@@ -97,11 +112,11 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
                         editingEntry = null
                         editInput = ""
                     },
-                ) { Text("Save") }
+                ) { Text(stringResource(R.string.common_save)) }
             },
             dismissButton = {
                 TextButton(onClick = { editingEntry = null; editInput = "" }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
         )
@@ -160,7 +175,7 @@ private fun EmptyView() {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "No entries yet — log your first weight!",
+            text = stringResource(R.string.history_empty),
             style = MaterialTheme.typography.bodyLarge,
             color = WFTokens.Text2,
             textAlign = TextAlign.Center,
@@ -176,14 +191,15 @@ private fun DataView(
     onDelete: (Long) -> Unit,
     onEdit: (HistoryEntryDisplay) -> Unit,
 ) {
-    val monthFmt = remember { DateTimeFormatter.ofPattern("MMMM yyyy") }
-    val grouped = remember(state.entries) {
+    val locale = LocalConfiguration.current.locales[0]
+    val monthFmt = remember(locale) { DateFormatters.monthYear(locale) }
+    val grouped = remember(state.entries, locale) {
         state.entries.groupBy { entry ->
             Instant.ofEpochMilli(entry.timestamp)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate()
                 .format(monthFmt)
-                .uppercase()
+                .uppercase(locale)
         }
     }
 
@@ -229,7 +245,7 @@ private fun SearchBar() {
             modifier = Modifier.size(14.dp),
         )
         Text(
-            text = "Search entries…",
+            text = stringResource(R.string.history_search_placeholder),
             fontSize = 13.sp,
             color = WFTokens.Text3,
         )
@@ -261,15 +277,17 @@ private fun HistoryEntryRow(
     onDelete: () -> Unit,
     onEdit: () -> Unit,
 ) {
+    val locale = LocalConfiguration.current.locales[0]
     val zone = remember { ZoneId.systemDefault() }
-    val dayFmt = remember { DateTimeFormatter.ofPattern("EEE") }
+    val dayFmt = remember(locale) { DateFormatters.weekday(locale) }
     val localDate = remember(entry.timestamp) {
         Instant.ofEpochMilli(entry.timestamp).atZone(zone).toLocalDate()
     }
     val isToday = remember(localDate) { localDate == LocalDate.now() }
     val dayNum = remember(localDate) { localDate.dayOfMonth.toString() }
-    val dayName = remember(localDate, isToday) {
-        if (isToday) "TODAY" else localDate.format(dayFmt).uppercase()
+    val todayShort = stringResource(R.string.history_day_today_short)
+    val dayName = remember(localDate, isToday, todayShort, locale) {
+        if (isToday) todayShort else localDate.format(dayFmt).uppercase(locale)
     }
 
     val accent = MaterialTheme.colorScheme.primary
@@ -290,6 +308,11 @@ private fun HistoryEntryRow(
         }
     }
 
+    val entryDesc = stringResource(
+        R.string.history_entry_desc, entry.weightDisplay, entry.dateDisplay,
+    )
+    val deleteDesc = stringResource(R.string.history_delete_entry_desc, entry.dateDisplay)
+
     Column {
         Row(
             modifier = Modifier
@@ -298,7 +321,7 @@ private fun HistoryEntryRow(
                 .clickable(onClick = onEdit)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
                 .semantics {
-                    contentDescription = "${entry.weightDisplay} on ${entry.dateDisplay}"
+                    contentDescription = entryDesc
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -351,14 +374,18 @@ private fun HistoryEntryRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                DeltaChip(display = entry.deltaDisplay, isDown = entry.deltaIsDown)
+                DeltaChip(
+                    display = entry.deltaDisplay,
+                    isDown = entry.deltaIsDown,
+                    isZero = entry.deltaIsZero,
+                )
                 IconButton(
                     onClick = onDelete,
                     modifier = Modifier.size(48.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete entry for ${entry.dateDisplay}",
+                        contentDescription = deleteDesc,
                         tint = WFTokens.Text3,
                         modifier = Modifier.size(16.dp),
                     )
@@ -379,14 +406,15 @@ private fun HistoryEntryRow(
 // ── Delta Chip ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun DeltaChip(display: String?, isDown: Boolean?) {
+private fun DeltaChip(display: String?, isDown: Boolean?, isZero: Boolean?) {
+    val sameLabel = stringResource(R.string.history_delta_same)
     val (bg, borderColor, chipColor, label) = when {
         display == null -> return
         isDown == null  -> Quad(
             WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— $display",
         )
-        display == "0.0 kg" || display == "0.0 lbs" || display == "0.0 st" -> Quad(
-            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— same",
+        isZero == true -> Quad(
+            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— $sameLabel",
         )
         isDown -> Quad(
             WFTokens.Success.copy(alpha = 0.10f),

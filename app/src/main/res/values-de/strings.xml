@@ -90,6 +90,8 @@
     <string name="trends_stat_min">Min</string>
 
     <!-- History -->
+    <string name="history_day_today_short">HEUTE</string>
+    <string name="history_delta_same">gleich</string>
     <string name="history_delete_entry_desc">Eintrag für %1$s löschen</string>
     <string name="history_edit_entry_title">Eintrag bearbeiten</string>
     <string name="history_edit_weight_label">Gewicht (%1$s)</string>

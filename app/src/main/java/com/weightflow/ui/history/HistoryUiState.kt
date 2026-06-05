@@ -10,6 +10,7 @@ data class HistoryEntryDisplay(
     val timestamp: Long,
     val deltaDisplay: String? = null,
     val deltaIsDown: Boolean? = null,
+    val deltaIsZero: Boolean? = null,
 )
 
 sealed class HistoryUiState {
