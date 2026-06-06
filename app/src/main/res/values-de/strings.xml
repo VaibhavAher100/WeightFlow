@@ -222,7 +222,9 @@
     <string name="log_entry_logged">✓  Eingetragen</string>
     <string name="log_entry_new_low">Neuer Tiefstwert</string>
     <string name="log_entry_new_low_button">Neuer Tiefstwert 🏆</string>
+    <string name="log_entry_new_low_unit">Neuer Tiefstwert · %1$s</string>
     <string name="log_entry_save">Eintrag speichern</string>
+    <string name="log_entry_save_failed">Speichern fehlgeschlagen — bitte erneut versuchen</string>
     <string name="log_entry_saving">Speichern…</string>
     <string name="log_entry_unit_kg">Kilogramm</string>
     <string name="log_entry_unit_lbs">Pfund</string>

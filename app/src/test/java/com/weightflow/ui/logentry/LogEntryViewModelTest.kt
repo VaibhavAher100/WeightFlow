@@ -1,6 +1,7 @@
 package com.weightflow.ui.logentry
 
 import app.cash.turbine.test
+import com.weightflow.R
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.WeightRepository
 import com.weightflow.domain.WeightUnit
@@ -254,7 +255,7 @@ class LogEntryViewModelTest {
         advanceUntilIdle()
         vm.onSave()
         advanceUntilIdle()
-        assertEquals("Failed to save — please try again", vm.uiState.value.errorMessage)
+        assertEquals(R.string.log_entry_save_failed, vm.uiState.value.errorMessageRes)
         assertFalse(vm.uiState.value.isSaving)
     }
 
@@ -265,7 +266,7 @@ class LogEntryViewModelTest {
         advanceUntilIdle()
         vm.onSave()
         advanceUntilIdle()
-        assertEquals(null, vm.uiState.value.errorMessage)
+        assertEquals(null, vm.uiState.value.errorMessageRes)
     }
 
     @Test

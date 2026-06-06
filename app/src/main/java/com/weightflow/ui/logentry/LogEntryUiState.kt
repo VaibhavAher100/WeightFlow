@@ -1,5 +1,6 @@
 package com.weightflow.ui.logentry
 
+import androidx.annotation.StringRes
 import com.weightflow.domain.WeightUnit
 import java.time.LocalDate
 
@@ -12,7 +13,7 @@ data class LogEntryUiState(
     val isSaved: Boolean = false,
     val isNewPersonalLow: Boolean = false,
     val lastLoggedWeightKg: Double? = null,
-    val errorMessage: String? = null,
+    @StringRes val errorMessageRes: Int? = null,
 )
 
 sealed class LogEntryEvent {

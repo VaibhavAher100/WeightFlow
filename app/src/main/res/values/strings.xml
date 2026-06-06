@@ -222,7 +222,9 @@
     <string name="log_entry_logged">✓  Logged</string>
     <string name="log_entry_new_low">New Low</string>
     <string name="log_entry_new_low_button">New Low 🏆</string>
+    <string name="log_entry_new_low_unit">New Low · %1$s</string>
     <string name="log_entry_save">Save Entry</string>
+    <string name="log_entry_save_failed">Failed to save — please try again</string>
     <string name="log_entry_saving">Saving…</string>
     <string name="log_entry_unit_kg">Kilograms</string>
     <string name="log_entry_unit_lbs">Pounds</string>
