@@ -134,12 +134,17 @@ fun HistoryScreen(viewModel: HistoryViewModel) {
                 state = uiState as HistoryUiState.HasData,
                 onDelete = { id -> viewModel.onDelete(id) },
                 onEdit = { entry ->
-                    editInput = "%.1f".format(
+                    // Prefill with a dot decimal (Locale.US): the confirm handler parses
+                    // via toDoubleOrNull(), which only accepts '.'. A locale comma (de:
+                    // "72,5") would make the parse return null and silently drop the edit.
+                    editInput = String.format(
+                        java.util.Locale.US,
+                        "%.1f",
                         when ((uiState as HistoryUiState.HasData).weightUnit) {
                             com.weightflow.domain.WeightUnit.LBS ->
                                 com.weightflow.domain.WeightConverter.kgToLbs(entry.weightKg)
                             else -> entry.weightKg
-                        }
+                        },
                     )
                     editingEntry = entry.id
                 },
