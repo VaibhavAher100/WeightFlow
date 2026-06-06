@@ -64,7 +64,7 @@ class HistoryViewModel(
                 timestamp = entry.timestamp,
                 deltaDisplay = deltaDisplay,
                 deltaIsDown = deltaKg?.let { it < 0 },
-                deltaIsZero = deltaKg?.let { kotlin.math.abs(it) < 0.05 },
+                deltaIsZero = deltaKg?.let { kotlin.math.abs(it) < DELTA_ZERO_THRESHOLD_KG },
             )
         }
         HistoryUiState.HasData(entries = displayList, weightUnit = unit)
@@ -95,5 +95,10 @@ class HistoryViewModel(
         } else {
             date.format(DateFormatters.fullDate(s.locale))
         }
+    }
+
+    private companion object {
+        /** Deltas smaller than this (in kg) are treated as "no change" for the UI chip. */
+        const val DELTA_ZERO_THRESHOLD_KG = 0.05
     }
 }

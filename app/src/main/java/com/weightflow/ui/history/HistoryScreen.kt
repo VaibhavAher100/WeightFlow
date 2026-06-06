@@ -405,48 +405,56 @@ private fun HistoryEntryRow(
 
 // ── Delta Chip ────────────────────────────────────────────────────────────────
 
+@Suppress("FunctionNaming") // PascalCase @Composable per Compose convention
 @Composable
 private fun DeltaChip(display: String?, isDown: Boolean?, isZero: Boolean?) {
+    if (display == null) return
     val sameLabel = stringResource(R.string.history_delta_same)
-    val (bg, borderColor, chipColor, label) = when {
-        display == null -> return
-        isDown == null  -> Quad(
-            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— $display",
+    val style = when {
+        isDown == null -> DeltaChipStyle(
+            background = WFTokens.Elevated,
+            borderColor = WFTokens.Text3.copy(alpha = 0.2f),
+            contentColor = WFTokens.Text3,
+            label = "— $display",
         )
-        isZero == true -> Quad(
-            WFTokens.Elevated, WFTokens.Text3.copy(alpha = 0.2f), WFTokens.Text3, "— $sameLabel",
+        isZero == true -> DeltaChipStyle(
+            background = WFTokens.Elevated,
+            borderColor = WFTokens.Text3.copy(alpha = 0.2f),
+            contentColor = WFTokens.Text3,
+            label = "— $sameLabel",
         )
-        isDown -> Quad(
-            WFTokens.Success.copy(alpha = 0.10f),
-            WFTokens.Success.copy(alpha = 0.20f),
-            WFTokens.Success,
-            "▼ $display",
+        isDown -> DeltaChipStyle(
+            background = WFTokens.Success.copy(alpha = 0.10f),
+            borderColor = WFTokens.Success.copy(alpha = 0.20f),
+            contentColor = WFTokens.Success,
+            label = "▼ $display",
         )
-        else -> Quad(
-            WFTokens.Danger.copy(alpha = 0.10f),
-            WFTokens.Danger.copy(alpha = 0.20f),
-            WFTokens.Danger,
-            "▲ $display",
+        else -> DeltaChipStyle(
+            background = WFTokens.Danger.copy(alpha = 0.10f),
+            borderColor = WFTokens.Danger.copy(alpha = 0.20f),
+            contentColor = WFTokens.Danger,
+            label = "▲ $display",
         )
     }
     Box(
         modifier = Modifier
-            .background(bg, RoundedCornerShape(999.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(999.dp))
+            .background(style.background, RoundedCornerShape(999.dp))
+            .border(1.dp, style.borderColor, RoundedCornerShape(999.dp))
             .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
         Text(
-            text = label,
+            text = style.label,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            color = chipColor,
+            color = style.contentColor,
         )
     }
 }
 
-/** Tiny data holder to make destructuring four values readable in [DeltaChip]. */
-private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
-private operator fun <A, B, C, D> Quad<A, B, C, D>.component1() = first
-private operator fun <A, B, C, D> Quad<A, B, C, D>.component2() = second
-private operator fun <A, B, C, D> Quad<A, B, C, D>.component3() = third
-private operator fun <A, B, C, D> Quad<A, B, C, D>.component4() = fourth
+/** Resolved visual style for a single [DeltaChip], accessed by name (no destructuring). */
+private data class DeltaChipStyle(
+    val background: Color,
+    val borderColor: Color,
+    val contentColor: Color,
+    val label: String,
+)

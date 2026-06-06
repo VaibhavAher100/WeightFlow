@@ -436,9 +436,22 @@ private fun StatsTrio(state: HomeUiState.HasData) {
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StatCard(label = stringResource(R.string.home_stat_start).uppercase(), value = state.startDisplay ?: "—", modifier = Modifier.weight(1f))
-        StatCard(label = stringResource(R.string.home_stat_lost).uppercase(),  value = state.lostDisplay  ?: "—", modifier = Modifier.weight(1f), valueColor = accent)
-        StatCard(label = stringResource(R.string.home_stat_goal).uppercase(),  value = state.goalWeightDisplay ?: "—", modifier = Modifier.weight(1f))
+        StatCard(
+            label = stringResource(R.string.home_stat_start).uppercase(),
+            value = state.startDisplay ?: "—",
+            modifier = Modifier.weight(1f),
+        )
+        StatCard(
+            label = stringResource(R.string.home_stat_lost).uppercase(),
+            value = state.lostDisplay ?: "—",
+            modifier = Modifier.weight(1f),
+            valueColor = accent,
+        )
+        StatCard(
+            label = stringResource(R.string.home_stat_goal).uppercase(),
+            value = state.goalWeightDisplay ?: "—",
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

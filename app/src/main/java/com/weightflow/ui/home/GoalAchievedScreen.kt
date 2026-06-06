@@ -110,9 +110,19 @@ fun GoalAchievedScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                JourneyCell(value = state.startDisplay ?: "—", label = stringResource(R.string.goal_achieved_stat_started).uppercase())
-                JourneyCell(value = state.lostDisplay ?: "—", label = stringResource(R.string.goal_achieved_stat_lost).uppercase(), valueColor = accent)
-                JourneyCell(value = "${state.streakDays}d", label = stringResource(R.string.goal_achieved_stat_streak).uppercase())
+                JourneyCell(
+                    value = state.startDisplay ?: "—",
+                    label = stringResource(R.string.goal_achieved_stat_started).uppercase(),
+                )
+                JourneyCell(
+                    value = state.lostDisplay ?: "—",
+                    label = stringResource(R.string.goal_achieved_stat_lost).uppercase(),
+                    valueColor = accent,
+                )
+                JourneyCell(
+                    value = "${state.streakDays}d",
+                    label = stringResource(R.string.goal_achieved_stat_streak).uppercase(),
+                )
             }
             Spacer(Modifier.height(20.dp))
             Text(

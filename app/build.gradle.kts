@@ -15,9 +15,10 @@ plugins {
 android {
     namespace = "com.weightflow"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -56,7 +57,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("release")
         }
@@ -112,7 +113,8 @@ afterEvaluate {
             if (keyPassword.isNullOrBlank()) missing.add("keyPassword (KEY_PASSWORD)")
 
             if (missing.isNotEmpty()) {
-                error("""
+                error(
+                    """
                     Release signing validation failed. Missing credentials:
                     ${missing.joinToString("\n    ") { "  - $it" }}
 
@@ -127,7 +129,8 @@ afterEvaluate {
                       KEYSTORE_PASSWORD=your-keystore-password
                       KEY_ALIAS=your-key-alias
                       KEY_PASSWORD=your-key-password
-                """.trimIndent())
+                    """.trimIndent(),
+                )
             }
         }
     }

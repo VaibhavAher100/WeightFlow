@@ -37,8 +37,13 @@ import com.weightflow.domain.Badge
 import com.weightflow.ui.i18n.WeightFormatter
 import com.weightflow.ui.theme.WFTokens
 
+/** Multiplier to convert a 0..1 progress fraction into a whole-number percentage. */
+private const val PERCENT_MULTIPLIER = 100
+
 // ── Journey card ──────────────────────────────────────────────────────────────
 
+// PascalCase @Composable per Compose convention; single cohesive card.
+@Suppress("LongMethod", "FunctionNaming")
 @Composable
 internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
     Column(
@@ -91,7 +96,7 @@ internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
                 Text(
                     text = stringResource(
                         R.string.profile_percent_complete,
-                        (state.goalProgressPercent * 100).toInt(),
+                        (state.goalProgressPercent * PERCENT_MULTIPLIER).toInt(),
                     ),
                     fontSize = 8.sp,
                     color = WFTokens.Text3,
@@ -133,6 +138,8 @@ internal fun JourneyValue(label: String, value: String, color: Color = Color.Uns
 
 // ── Body stats grid ───────────────────────────────────────────────────────────
 
+// PascalCase @Composable per Compose convention; builds a fixed 2x2 stat grid inline.
+@Suppress("LongMethod", "FunctionNaming")
 @Composable
 internal fun BodyStatsGrid(state: ProfileUiState.Loaded) {
     val accent = MaterialTheme.colorScheme.primary

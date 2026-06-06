@@ -54,6 +54,12 @@ import com.weightflow.ui.theme.WFTokens
 import java.util.Locale
 import kotlin.math.abs
 
+/** Below this many days remaining, the coaching banner shows an "almost there" message. */
+private const val COACHING_ALMOST_THERE_DAYS = 14
+
+/** Days per week, used to convert the coaching ETA from days to weeks. */
+private const val DAYS_PER_WEEK = 7
+
 @Composable
 fun TrendsScreen(viewModel: TrendsViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -287,10 +293,10 @@ private fun ChartView(state: TrendsUiState.HasData, chartType: ChartType) {
                 stSuffix = stringResource(R.string.unit_suffix_st_stones),
                 lbSuffix = stringResource(R.string.unit_suffix_st_pounds),
             )
-            val sentence = if (coachingEta < 14) {
+            val sentence = if (coachingEta < COACHING_ALMOST_THERE_DAYS) {
                 stringResource(R.string.trends_coaching_almost_there, goalDisplay)
             } else {
-                stringResource(R.string.trends_coaching_eta_weeks, goalDisplay, coachingEta / 7)
+                stringResource(R.string.trends_coaching_eta_weeks, goalDisplay, coachingEta / DAYS_PER_WEEK)
             }
             Spacer(Modifier.height(10.dp))
             Box(
@@ -338,10 +344,31 @@ private fun ChartStatsRow(state: TrendsUiState.HasData) {
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        ChartStat(oneDecimal(state.minDisplay, locale), stringResource(R.string.trends_stat_min).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
-        ChartStat(oneDecimal(state.maxDisplay, locale), stringResource(R.string.trends_stat_max).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
-        ChartStat(oneDecimal(avg, locale),              stringResource(R.string.trends_stat_avg).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
-        ChartStat(changeDisplay, stringResource(R.string.trends_stat_change).uppercase(locale), if (change != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = changeColor)
+        ChartStat(
+            oneDecimal(state.minDisplay, locale),
+            stringResource(R.string.trends_stat_min).uppercase(locale),
+            unitLabel,
+            modifier = Modifier.weight(1f),
+        )
+        ChartStat(
+            oneDecimal(state.maxDisplay, locale),
+            stringResource(R.string.trends_stat_max).uppercase(locale),
+            unitLabel,
+            modifier = Modifier.weight(1f),
+        )
+        ChartStat(
+            oneDecimal(avg, locale),
+            stringResource(R.string.trends_stat_avg).uppercase(locale),
+            unitLabel,
+            modifier = Modifier.weight(1f),
+        )
+        ChartStat(
+            changeDisplay,
+            stringResource(R.string.trends_stat_change).uppercase(locale),
+            if (change != null) unitLabel else "",
+            modifier = Modifier.weight(1f),
+            valueColor = changeColor,
+        )
     }
 }
 
@@ -419,10 +446,30 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            StatRow(oneDecimal(stats.allTimeHighDisplay, locale), stringResource(R.string.trends_stat_high).uppercase(locale), unitLabel, modifier = Modifier.weight(1f))
-            StatRow(oneDecimal(stats.allTimeLowDisplay, locale),  stringResource(R.string.trends_stat_low).uppercase(locale),  unitLabel, modifier = Modifier.weight(1f))
-            StatRow(oneDecimal(stats.allTimeAvgDisplay, locale),  stringResource(R.string.trends_stat_avg).uppercase(locale),  unitLabel, modifier = Modifier.weight(1f))
-            StatRow("${stats.totalEntries}",                       stringResource(R.string.trends_stat_logs).uppercase(locale), "",        modifier = Modifier.weight(1f))
+            StatRow(
+                oneDecimal(stats.allTimeHighDisplay, locale),
+                stringResource(R.string.trends_stat_high).uppercase(locale),
+                unitLabel,
+                modifier = Modifier.weight(1f),
+            )
+            StatRow(
+                oneDecimal(stats.allTimeLowDisplay, locale),
+                stringResource(R.string.trends_stat_low).uppercase(locale),
+                unitLabel,
+                modifier = Modifier.weight(1f),
+            )
+            StatRow(
+                oneDecimal(stats.allTimeAvgDisplay, locale),
+                stringResource(R.string.trends_stat_avg).uppercase(locale),
+                unitLabel,
+                modifier = Modifier.weight(1f),
+            )
+            StatRow(
+                "${stats.totalEntries}",
+                stringResource(R.string.trends_stat_logs).uppercase(locale),
+                "",
+                modifier = Modifier.weight(1f),
+            )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -439,12 +486,18 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             StatRow(
-                formatChange(stats.change7DDisplay, locale), stringResource(R.string.trends_stat_7d_change).uppercase(locale),
-                if (stats.change7DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change7DColor,
+                formatChange(stats.change7DDisplay, locale),
+                stringResource(R.string.trends_stat_7d_change).uppercase(locale),
+                if (stats.change7DDisplay != null) unitLabel else "",
+                modifier = Modifier.weight(1f),
+                valueColor = change7DColor,
             )
             StatRow(
-                formatChange(stats.change30DDisplay, locale), stringResource(R.string.trends_stat_30d_change).uppercase(locale),
-                if (stats.change30DDisplay != null) unitLabel else "", modifier = Modifier.weight(1f), valueColor = change30DColor,
+                formatChange(stats.change30DDisplay, locale),
+                stringResource(R.string.trends_stat_30d_change).uppercase(locale),
+                if (stats.change30DDisplay != null) unitLabel else "",
+                modifier = Modifier.weight(1f),
+                valueColor = change30DColor,
             )
         }
 
@@ -458,12 +511,18 @@ private fun StatisticsSection(stats: StatsSection, weightUnit: WeightUnit) {
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             StatRow(
-                formatChange(stats.avgChangePerWeekDisplay, locale), stringResource(R.string.trends_stat_avg_per_week).uppercase(locale),
-                unitLabel, modifier = Modifier.weight(1f), valueColor = weekColor,
+                formatChange(stats.avgChangePerWeekDisplay, locale),
+                stringResource(R.string.trends_stat_avg_per_week).uppercase(locale),
+                unitLabel,
+                modifier = Modifier.weight(1f),
+                valueColor = weekColor,
             )
             StatRow(
-                formatChange(stats.avgChangePerMonthDisplay, locale), stringResource(R.string.trends_stat_avg_per_month).uppercase(locale),
-                unitLabel, modifier = Modifier.weight(1f), valueColor = monthColor,
+                formatChange(stats.avgChangePerMonthDisplay, locale),
+                stringResource(R.string.trends_stat_avg_per_month).uppercase(locale),
+                unitLabel,
+                modifier = Modifier.weight(1f),
+                valueColor = monthColor,
             )
         }
 

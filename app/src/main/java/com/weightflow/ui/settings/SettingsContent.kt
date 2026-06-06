@@ -144,6 +144,7 @@ internal fun languageLabelRes(language: LocaleManager.AppLanguage): Int = when (
     LocaleManager.AppLanguage.GERMAN  -> R.string.settings_language_german
 }
 
+@Suppress("FunctionNaming") // PascalCase @Composable per Compose convention
 @Composable
 internal fun SettingsLanguageSection() {
     var showDialog by remember { mutableStateOf(false) }

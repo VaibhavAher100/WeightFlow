@@ -47,6 +47,8 @@ import com.weightflow.R
 import com.weightflow.domain.Badge
 import com.weightflow.ui.theme.WFTokens
 
+// PascalCase @Composable per Compose convention; cohesive screen scaffold.
+@Suppress("LongMethod", "FunctionNaming")
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, onSettingsClick: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

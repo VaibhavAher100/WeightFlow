@@ -40,7 +40,8 @@ internal enum class PasswordStrength { WEAK, MEDIUM, STRONG }
 @Composable
 internal fun PasswordStrengthIndicator(strength: PasswordStrength) {
     val (label, color) = when (strength) {
-        PasswordStrength.WEAK   -> stringResource(R.string.settings_password_strength_weak) to MaterialTheme.colorScheme.error
+        PasswordStrength.WEAK ->
+            stringResource(R.string.settings_password_strength_weak) to MaterialTheme.colorScheme.error
         PasswordStrength.MEDIUM -> stringResource(R.string.settings_password_strength_medium) to Color(0xFFFF9800)
         PasswordStrength.STRONG -> stringResource(R.string.settings_password_strength_strong) to Color(0xFF4CAF50)
     }
@@ -178,6 +179,7 @@ internal fun EncryptedExportDialog(
 
 // ── Language picker dialog ────────────────────────────────────────────────────
 
+@Suppress("FunctionNaming") // PascalCase @Composable per Compose convention
 @Composable
 internal fun LanguagePickerDialog(
     selected: LocaleManager.AppLanguage,

@@ -307,9 +307,12 @@ private fun UnitStep(
             WeightUnit.entries.forEach { unit ->
                 val isSelected = unit == selected
                 val (fullName, shortName) = when (unit) {
-                    WeightUnit.KG  -> stringResource(R.string.unit_kg_full) to stringResource(R.string.unit_suffix_kg)
-                    WeightUnit.LBS -> stringResource(R.string.unit_lbs_full) to stringResource(R.string.unit_suffix_lbs)
-                    WeightUnit.ST  -> stringResource(R.string.unit_st_full) to stringResource(R.string.unit_suffix_st_stones)
+                    WeightUnit.KG ->
+                        stringResource(R.string.unit_kg_full) to stringResource(R.string.unit_suffix_kg)
+                    WeightUnit.LBS ->
+                        stringResource(R.string.unit_lbs_full) to stringResource(R.string.unit_suffix_lbs)
+                    WeightUnit.ST ->
+                        stringResource(R.string.unit_st_full) to stringResource(R.string.unit_suffix_st_stones)
                 }
                 Row(
                     modifier = Modifier
@@ -493,7 +496,11 @@ private fun BottomBar(
             modifier = Modifier.height(48.dp),
         ) {
             Text(
-                text = if (isLast) stringResource(R.string.onboarding_get_started) else stringResource(R.string.onboarding_next),
+                text = if (isLast) {
+                    stringResource(R.string.onboarding_get_started)
+                } else {
+                    stringResource(R.string.onboarding_next)
+                },
                 fontWeight = FontWeight.Bold,
                 letterSpacing = if (isLast) 1.5.sp else 0.sp,
             )

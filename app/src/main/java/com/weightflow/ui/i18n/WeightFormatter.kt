@@ -14,6 +14,9 @@ import java.util.Locale
  */
 object WeightFormatter {
 
+    // Four cohesive unit-suffix strings plus kg/unit/locale; kept flat so the function
+    // stays pure and trivially testable without an Android Context.
+    @Suppress("LongParameterList")
     fun format(
         kg: Double,
         unit: WeightUnit,

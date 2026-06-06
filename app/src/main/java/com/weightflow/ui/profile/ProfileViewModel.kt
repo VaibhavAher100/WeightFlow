@@ -170,16 +170,22 @@ class ProfileViewModel(
         progressPercent: Float?,
         s: ProfileStrings,
     ): String? {
-        if (oldestEntry == null || newestEntry == null) return null
-        val lostKg = oldestEntry.weightKg - newestEntry.weightKg
-        if (lostKg <= 0.0) return null
-        val lostDisplay = formatWeight(lostKg, unit, s)
-        val days = ChronoUnit.DAYS.between(
-            Instant.ofEpochMilli(oldestEntry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate(),
-            Instant.ofEpochMilli(newestEntry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate(),
-        )
-        val pct = progressPercent?.let { "${(it * 100).toInt()}%" } ?: ""
-        return String.format(s.locale, s.goalSummaryTemplate, lostDisplay, days, pct).trim()
+        val lostKg = if (oldestEntry != null && newestEntry != null) {
+            oldestEntry.weightKg - newestEntry.weightKg
+        } else {
+            0.0
+        }
+        return if (oldestEntry == null || newestEntry == null || lostKg <= 0.0) {
+            null
+        } else {
+            val lostDisplay = formatWeight(lostKg, unit, s)
+            val days = ChronoUnit.DAYS.between(
+                Instant.ofEpochMilli(oldestEntry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate(),
+                Instant.ofEpochMilli(newestEntry.timestamp).atZone(ZoneId.systemDefault()).toLocalDate(),
+            )
+            val pct = progressPercent?.let { "${(it * 100).toInt()}%" } ?: ""
+            String.format(s.locale, s.goalSummaryTemplate, lostDisplay, days, pct).trim()
+        }
     }
 
     private fun computeStreak(entries: List<WeightEntry>): Int {
