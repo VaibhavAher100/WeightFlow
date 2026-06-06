@@ -1,5 +1,6 @@
 package com.weightflow.ui.shell
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,6 +41,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.weightflow.R
 import com.weightflow.WeightFlowApp
 import com.weightflow.ui.logentry.LogEntrySheet
 import com.weightflow.ui.logentry.LogEntryViewModel
@@ -49,15 +52,15 @@ import kotlinx.coroutines.launch
 
 private data class Tab(
     val screen: Screen,
-    val label: String,
+    @param:StringRes val labelRes: Int,
     val icon: ImageVector,
 )
 
 private val tabs = listOf(
-    Tab(Screen.Home,    "Home",    Icons.Filled.Home),
-    Tab(Screen.Trends,  "Trends",  Icons.AutoMirrored.Filled.TrendingUp),
-    Tab(Screen.History, "History", Icons.AutoMirrored.Filled.List),
-    Tab(Screen.Profile, "Profile", Icons.Filled.Person),
+    Tab(Screen.Home,    R.string.nav_home,    Icons.Filled.Home),
+    Tab(Screen.Trends,  R.string.nav_trends,  Icons.AutoMirrored.Filled.TrendingUp),
+    Tab(Screen.History, R.string.nav_history, Icons.AutoMirrored.Filled.List),
+    Tab(Screen.Profile, R.string.nav_profile, Icons.Filled.Person),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,6 +105,7 @@ fun ShellScreen(app: WeightFlowApp) {
                     tabs.forEach { tab ->
                         val selected = currentDestination?.hierarchy
                             ?.any { it.route == tab.screen.route } == true
+                        val label = stringResource(tab.labelRes)
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -113,8 +117,8 @@ fun ShellScreen(app: WeightFlowApp) {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) },
+                            icon = { Icon(tab.icon, contentDescription = label) },
+                            label = { Text(label) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.primary,
                                 selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -137,7 +141,7 @@ fun ShellScreen(app: WeightFlowApp) {
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Log weight")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.shell_log_weight))
                 }
             }
         },
