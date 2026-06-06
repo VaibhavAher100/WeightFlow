@@ -13,6 +13,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.weightflow.R
 import java.util.concurrent.TimeUnit
 
 class WeightReminderWorker(
@@ -26,15 +27,15 @@ class WeightReminderWorker(
 
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Weight Reminders",
+            applicationContext.getString(R.string.reminder_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply { description = "Daily reminder to log your weight" }
+        ).apply { description = applicationContext.getString(R.string.reminder_channel_description) }
         notificationManager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Time to weigh in!")
-            .setContentText("Log your weight to keep your streak going.")
+            .setContentTitle(applicationContext.getString(R.string.reminder_notification_title))
+            .setContentText(applicationContext.getString(R.string.reminder_notification_body))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()
