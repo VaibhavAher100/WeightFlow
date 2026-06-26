@@ -31,10 +31,6 @@ class UserPrefsDataStore(private val dataStore: DataStore<Preferences>) {
         prefs[THEME_PALETTE] ?: "lime"
     }
 
-    val onboardingComplete: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[ONBOARDING_COMPLETE] ?: false
-    }
-
     /** Null = DataStore not yet loaded (Compose initial value only). Once loaded: false = show onboarding, true = show shell. */
     val onboardingState: Flow<Boolean?> = dataStore.data.map { prefs ->
         prefs[ONBOARDING_COMPLETE] ?: false
