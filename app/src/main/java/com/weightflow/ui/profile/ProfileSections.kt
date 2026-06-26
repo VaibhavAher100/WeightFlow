@@ -102,14 +102,6 @@ internal fun JourneyCard(state: ProfileUiState.Loaded, accent: Color) {
                     color = WFTokens.Text3,
                     fontWeight = FontWeight.Bold,
                 )
-                if (state.etaDays != null) {
-                    Text(
-                        text = stringResource(R.string.profile_eta_to_go, state.etaDays),
-                        fontSize = 8.sp,
-                        color = accent.copy(alpha = 0.7f),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
             }
         }
     }
