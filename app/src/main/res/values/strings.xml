@@ -45,7 +45,7 @@
     <string name="home_greeting_afternoon">Good afternoon</string>
     <string name="home_greeting_evening">Good evening</string>
     <string name="home_greeting_morning">Good morning</string>
-    <string name="home_medical_disclaimer">WeightFlow is not a medical device. Consult a healthcare professional before making health decisions.</string>
+    <string name="home_medical_disclaimer">WeightFlow is not a medical device and does not diagnose, treat, cure, or prevent any condition. Consult a healthcare professional before making health decisions.</string>
     <string name="home_stat_goal">Goal</string>
     <string name="home_stat_lost">Lost</string>
     <string name="home_stat_start">Start</string>
