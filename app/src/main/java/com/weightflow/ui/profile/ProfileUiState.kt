@@ -33,6 +33,5 @@ sealed class ProfileUiState {
         val bmiNormalRangeLow: Double? = null,
         val bmiNormalRangeHigh: Double? = null,
         val bmiDifferenceFromNormal: Double? = null,
-        val etaDays: Int? = null,
     ) : ProfileUiState()
 }
