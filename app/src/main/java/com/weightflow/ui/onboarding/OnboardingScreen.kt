@@ -236,7 +236,7 @@ private fun AgeGateStep(
 ) {
     val currentYear = java.time.LocalDate.now().year
     val age = birthYearInput.toIntOrNull()?.let { currentYear - it }
-    val isUnderage = age != null && age < 18
+    val isUnderage = age != null && age < 13
 
     Column {
         Text(
