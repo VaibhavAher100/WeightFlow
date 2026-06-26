@@ -4,6 +4,9 @@ import com.weightflow.domain.Badge
 import com.weightflow.domain.WeightUnit
 import java.time.LocalDate
 
+/** Stable, locale-independent BMI bucket used by the UI for colour decisions. */
+enum class BmiCategoryKind { UNDERWEIGHT, NORMAL, OVERWEIGHT, OBESE }
+
 sealed class ProfileUiState {
     data object Loading : ProfileUiState()
 
@@ -26,6 +29,7 @@ sealed class ProfileUiState {
         val goalSummaryLabel: String? = null,
         val bmiDisplay: String? = null,
         val bmiCategory: String? = null,
+        val bmiCategoryKind: BmiCategoryKind? = null,
         val bmiNormalRangeLow: Double? = null,
         val bmiNormalRangeHigh: Double? = null,
         val bmiDifferenceFromNormal: Double? = null,

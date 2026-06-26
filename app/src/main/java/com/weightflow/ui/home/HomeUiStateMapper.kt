@@ -3,105 +3,138 @@ package com.weightflow.ui.home
 import com.weightflow.domain.GoalState
 import com.weightflow.domain.GoalStateMachine
 import com.weightflow.domain.HomeData
-import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
+import com.weightflow.ui.i18n.DateFormatters
+import com.weightflow.ui.i18n.WeightFormatter
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
+// Cohesive mapper decomposed into small, single-purpose private helpers.
+@Suppress("TooManyFunctions")
 object HomeUiStateMapper {
 
     private const val MAX_RECENT_ENTRIES = 5
-    private val DATE_FMT = DateTimeFormatter.ofPattern("d MMM")
+    private const val SPARKLINE_POINTS = 30
+    private const val AVG_WINDOW_MILLIS = 7L * 24 * 60 * 60 * 1000
 
-    fun map(data: HomeData): HomeUiState {
-        val goalDisplay = data.profile?.goalWeightKg?.let { WeightConverter.format(it, data.unit) }
+    fun map(data: HomeData, strings: HomeStrings): HomeUiState {
+        val goalDisplay = data.profile?.goalWeightKg?.let { formatWeight(it, data.unit, strings) }
+        return if (data.entries.isEmpty()) {
+            HomeUiState.Empty(goalWeightDisplay = goalDisplay)
+        } else {
+            buildHasData(data, strings, goalDisplay)
+        }
+    }
 
-        if (data.entries.isEmpty()) return HomeUiState.Empty(goalWeightDisplay = goalDisplay)
-
+    private fun buildHasData(
+        data: HomeData,
+        strings: HomeStrings,
+        goalDisplay: String?,
+    ): HomeUiState.HasData {
         val latest = data.entries.first()
-        val previous = data.entries.getOrNull(1)
+        val deltaKg = data.entries.getOrNull(1)?.let { latest.weightKg - it.weightKg }
+        val goalState = if (data.profile != null) {
+            GoalStateMachine.rehydrate(data.profile)
+        } else {
+            GoalState.NoGoal
+        }
 
-        val deltaKg = previous?.let { latest.weightKg - it.weightKg }
-        val deltaDisplay = deltaKg?.let { formatDelta(it, data.unit) }
-        val deltaIsDown = deltaKg?.let { it < 0 }
+        return HomeUiState.HasData(
+            latestWeightDisplay = formatWeight(latest.weightKg, data.unit, strings),
+            weightUnit = data.unit,
+            recentEntries = buildRecentEntries(data, strings),
+            goalWeightDisplay = goalDisplay,
+            goalState = goalState,
+            deltaDisplay = deltaKg?.let { formatDelta(it, data.unit, strings) },
+            deltaIsDown = deltaKg?.let { it < 0 },
+            streakDays = computeStreak(data.entries),
+            avgDisplay = computeAvgDisplay(data, strings),
+            goalProgress = computeGoalProgress(data, latest),
+            startDisplay = computeStartDisplay(data, strings),
+            lostDisplay = computeLostDisplay(data, strings),
+            isGoalAchieved = goalState is GoalState.Active &&
+                data.entries.first().weightKg <= goalState.goalWeightKg,
+            sparklinePoints = data.entries
+                .takeLast(SPARKLINE_POINTS)
+                .map { it.weightKg.toFloat() }
+                .reversed(),
+        )
+    }
 
-        val recentEntries = data.entries.take(MAX_RECENT_ENTRIES).mapIndexed { i, entry ->
-            val prev = data.entries.getOrNull(i + 1)
-            val entryDelta = prev?.let { entry.weightKg - it.weightKg }
+    private fun buildRecentEntries(data: HomeData, strings: HomeStrings): List<RecentEntryDisplay> =
+        data.entries.take(MAX_RECENT_ENTRIES).mapIndexed { i, entry ->
+            val entryDelta = data.entries.getOrNull(i + 1)?.let { entry.weightKg - it.weightKg }
             RecentEntryDisplay(
                 id = entry.id,
-                weightDisplay = WeightConverter.format(entry.weightKg, data.unit),
-                dateDisplay = formatDate(entry.timestamp),
+                weightDisplay = formatWeight(entry.weightKg, data.unit, strings),
+                dateDisplay = formatDate(entry.timestamp, strings),
                 timestamp = entry.timestamp,
-                deltaDisplay = entryDelta?.let { formatDelta(it, data.unit) },
+                deltaDisplay = entryDelta?.let { formatDelta(it, data.unit, strings) },
                 deltaIsDown = entryDelta?.let { it < 0 },
             )
         }
 
-        val streakDays = computeStreak(data.entries)
-
-        val cutoff = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+    private fun computeAvgDisplay(data: HomeData, strings: HomeStrings): String? {
+        val cutoff = System.currentTimeMillis() - AVG_WINDOW_MILLIS
         val recentForAvg = data.entries.filter { it.timestamp >= cutoff }
-        val avgDisplay = if (recentForAvg.size >= 2) {
-            WeightConverter.format(recentForAvg.map { it.weightKg }.average(), data.unit)
-        } else null
+        return if (recentForAvg.size >= 2) {
+            formatWeight(recentForAvg.map { it.weightKg }.average(), data.unit, strings)
+        } else {
+            null
+        }
+    }
 
-        val goalProgress = data.profile?.goalWeightKg?.let { goal ->
-            if (data.entries.size < 2) null
-            else {
+    private fun computeGoalProgress(data: HomeData, latest: WeightEntry): Float? =
+        data.profile?.goalWeightKg?.let { goal ->
+            if (data.entries.size < 2) {
+                null
+            } else {
                 val start = data.entries.last().weightKg
-                val current = latest.weightKg
-                if (start == goal) 1f
-                else ((start - current) / (start - goal)).toFloat().coerceIn(0f, 1f)
+                if (start == goal) {
+                    1f
+                } else {
+                    ((start - latest.weightKg) / (start - goal)).toFloat().coerceIn(0f, 1f)
+                }
             }
         }
 
-        val goalState = if (data.profile != null) GoalStateMachine.rehydrate(data.profile)
-        else GoalState.NoGoal
+    private fun computeStartDisplay(data: HomeData, strings: HomeStrings): String? =
+        if (data.entries.size >= 2) {
+            formatWeight(data.entries.last().weightKg, data.unit, strings)
+        } else {
+            null
+        }
 
-        val entries = data.entries
-        val startDisplay = if (entries.size >= 2) {
-            WeightConverter.format(entries.last().weightKg, data.unit)
-        } else null
-        val lostDisplay = if (entries.size >= 2) {
-            val startKg = entries.last().weightKg
-            val currentKg = entries.first().weightKg
-            val diff = startKg - currentKg
-            if (diff > 0) "−${"%.1f".format(diff)}" else "+${"%.1f".format(-diff)}"
-        } else null
-        val isGoalAchieved = goalState is GoalState.Active &&
-            entries.isNotEmpty() &&
-            entries.first().weightKg <= goalState.goalWeightKg
-        val sparklinePoints = entries
-            .takeLast(30)
-            .map { it.weightKg.toFloat() }
-            .reversed()
+    private fun computeLostDisplay(data: HomeData, strings: HomeStrings): String? {
+        if (data.entries.size < 2) return null
+        val diff = data.entries.last().weightKg - data.entries.first().weightKg
+        return if (diff > 0) {
+            "−${oneDecimal(diff, strings)}"
+        } else {
+            "+${oneDecimal(-diff, strings)}"
+        }
+    }
 
-        return HomeUiState.HasData(
-            latestWeightDisplay = WeightConverter.format(latest.weightKg, data.unit),
-            weightUnit = data.unit,
-            recentEntries = recentEntries,
-            goalWeightDisplay = goalDisplay,
-            goalState = goalState,
-            deltaDisplay = deltaDisplay,
-            deltaIsDown = deltaIsDown,
-            streakDays = streakDays,
-            avgDisplay = avgDisplay,
-            goalProgress = goalProgress,
-            startDisplay = startDisplay,
-            lostDisplay = lostDisplay,
-            isGoalAchieved = isGoalAchieved,
-            sparklinePoints = sparklinePoints,
+    private fun formatWeight(kg: Double, unit: WeightUnit, strings: HomeStrings): String =
+        WeightFormatter.format(
+            kg = kg,
+            unit = unit,
+            locale = strings.locale,
+            kgSuffix = strings.kgSuffix,
+            lbsSuffix = strings.lbsSuffix,
+            stSuffix = strings.stSuffix,
+            lbSuffix = strings.lbSuffix,
         )
+
+    private fun formatDelta(deltaKg: Double, unit: WeightUnit, strings: HomeStrings): String {
+        val sign = if (deltaKg < 0) "−" else "+"
+        return "$sign${formatWeight(Math.abs(deltaKg), unit, strings)}"
     }
 
-    private fun formatDelta(deltaKg: Double, unit: WeightUnit): String {
-        val sign = if (deltaKg < 0) "\u2212" else "+"
-        return "$sign${WeightConverter.format(Math.abs(deltaKg), unit)}"
-    }
+    private fun oneDecimal(value: Double, strings: HomeStrings): String =
+        String.format(strings.locale, "%.1f", value)
 
     private fun computeStreak(entries: List<WeightEntry>): Int {
         if (entries.isEmpty()) return 0
@@ -118,8 +151,12 @@ object HomeUiStateMapper {
         return streak
     }
 
-    private fun formatDate(timestamp: Long): String {
+    private fun formatDate(timestamp: Long, strings: HomeStrings): String {
         val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-        return if (date == LocalDate.now()) "Today" else date.format(DATE_FMT)
+        return when (DateFormatters.relativeDay(date)) {
+            DateFormatters.RelativeDay.TODAY -> strings.today
+            DateFormatters.RelativeDay.YESTERDAY -> strings.yesterday
+            DateFormatters.RelativeDay.OTHER -> date.format(DateFormatters.dayMonth(strings.locale))
+        }
     }
 }

@@ -42,6 +42,12 @@ import java.time.LocalDate
  *     2. The real state       — after the upstream coroutine runs
  *   Use awaitRealState() to skip the Loading item and get the meaningful state.
  */
+private val EN_STRINGS = HomeStrings(
+    locale = java.util.Locale.ENGLISH,
+    kgSuffix = "kg", lbsSuffix = "lbs", stSuffix = "st", lbSuffix = "lb",
+    today = "Today", yesterday = "Yesterday",
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
@@ -73,7 +79,7 @@ class HomeViewModelTest {
     }
 
     private fun makeViewModel(aggregator: HomeDataAggregator = fakeAggregator()): HomeViewModel =
-        HomeViewModel(aggregator, badgeObserver)
+        HomeViewModel(aggregator, badgeObserver).apply { setStrings(EN_STRINGS) }
 
     private fun entryAt(daysAgo: Int, weightKg: Double): WeightEntry = WeightEntry(
         id = daysAgo.toLong(),
@@ -248,7 +254,7 @@ class HomeViewModelTest {
         val aggregator = object : HomeDataAggregator {
             override val homeData = dataFlow
         }
-        val vm = HomeViewModel(aggregator, badgeObserver)
+        val vm = HomeViewModel(aggregator, badgeObserver).apply { setStrings(EN_STRINGS) }
 
         vm.uiState.test {
             awaitRealState() // Empty state

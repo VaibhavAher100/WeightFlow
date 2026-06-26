@@ -31,18 +31,22 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.weightflow.R
 import com.weightflow.domain.WeightConverter
 import com.weightflow.domain.WeightUnit
 import com.weightflow.ui.components.WheelPicker
 import com.weightflow.ui.components.rememberWFHaptics
+import com.weightflow.ui.i18n.DateFormatters
+import com.weightflow.ui.i18n.rememberWeightString
 import com.weightflow.ui.theme.WFTokens
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private val WHOLE_PARTS_KG  = (20..300).toList()
 private val WHOLE_PARTS_LBS = (44..660).toList()
@@ -140,10 +144,15 @@ fun LogEntrySheet(
                     letterSpacing = (-3).sp,
                     fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
                 )
-                val unitLabel = when (uiState.weightUnit) {
-                    WeightUnit.KG  -> if (uiState.isNewPersonalLow) "New Low · Kilograms" else "Kilograms"
-                    WeightUnit.LBS -> if (uiState.isNewPersonalLow) "New Low · Pounds" else "Pounds"
-                    WeightUnit.ST  -> if (uiState.isNewPersonalLow) "New Low · Stone" else "Stone"
+                val unitName = when (uiState.weightUnit) {
+                    WeightUnit.KG  -> stringResource(R.string.log_entry_unit_kg)
+                    WeightUnit.LBS -> stringResource(R.string.log_entry_unit_lbs)
+                    WeightUnit.ST  -> stringResource(R.string.log_entry_unit_st)
+                }
+                val unitLabel = if (uiState.isNewPersonalLow) {
+                    stringResource(R.string.log_entry_new_low_unit, unitName)
+                } else {
+                    unitName
                 }
                 Box(
                     modifier = Modifier
@@ -160,13 +169,9 @@ fun LogEntrySheet(
                     )
                 }
                 uiState.lastLoggedWeightKg?.let { lastKgVal ->
-                    val displayLast = when (uiState.weightUnit) {
-                        WeightUnit.KG  -> "%.1f kg".format(lastKgVal)
-                        WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(lastKgVal))
-                        WeightUnit.ST  -> "%.1f kg".format(lastKgVal)
-                    }
+                    val displayLast = rememberWeightString(lastKgVal, uiState.weightUnit)
                     Text(
-                        text = "Last logged $displayLast",
+                        text = stringResource(R.string.log_entry_last_logged, displayLast),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Normal,
                         color = WFTokens.Text3,
@@ -230,8 +235,9 @@ fun LogEntrySheet(
                             )
                         }
                 }
+                val locale = LocalConfiguration.current.locales[0]
                 Text(
-                    text = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d")),
+                    text = LocalDate.now().format(DateFormatters.dayMonth(locale)),
                     fontSize = 9.sp,
                     color = WFTokens.Text3,
                 )
@@ -242,10 +248,10 @@ fun LogEntrySheet(
 
         // ── Save button ──
         val btnLabel = when {
-            uiState.isSaved && uiState.isNewPersonalLow -> "New Low 🏆"
-            uiState.isSaved                             -> "✓  Logged"
-            uiState.isSaving                            -> "Saving…"
-            else                                        -> "Save Entry"
+            uiState.isSaved && uiState.isNewPersonalLow -> stringResource(R.string.log_entry_new_low_button)
+            uiState.isSaved                             -> stringResource(R.string.log_entry_logged)
+            uiState.isSaving                            -> stringResource(R.string.log_entry_saving)
+            else                                        -> stringResource(R.string.log_entry_save)
         }
         val btnBg = if (uiState.isSaved) Color.Transparent else accent
         val btnTextColor = if (uiState.isSaved) accent else MaterialTheme.colorScheme.onPrimary
@@ -276,9 +282,9 @@ fun LogEntrySheet(
             )
         }
 
-        if (uiState.errorMessage != null) {
+        uiState.errorMessageRes?.let { errorRes ->
             Text(
-                text = uiState.errorMessage!!,
+                text = stringResource(errorRes),
                 fontSize = 11.sp,
                 color = WFTokens.Danger,
                 modifier = Modifier.padding(top = 8.dp, start = 20.dp, end = 20.dp),

@@ -12,6 +12,12 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
 
+private val EN_STRINGS = HomeStrings(
+    locale = java.util.Locale.ENGLISH,
+    kgSuffix = "kg", lbsSuffix = "lbs", stSuffix = "st", lbSuffix = "lb",
+    today = "Today", yesterday = "Yesterday",
+)
+
 class HomeUiStateMapperTest {
 
     private fun profile(goalWeightKg: Double) = UserProfile(
@@ -46,7 +52,7 @@ class HomeUiStateMapperTest {
             profile = profile(goalWeightKg = 70.0),
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals("regression on gain goal must report 0 progress", 0f, state.goalProgress!!, 0.001f)
     }
 
@@ -61,7 +67,7 @@ class HomeUiStateMapperTest {
             profile = profile(goalWeightKg = 70.0),
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals(0.5f, state.goalProgress!!, 0.001f)
     }
 
@@ -76,7 +82,7 @@ class HomeUiStateMapperTest {
             profile = profile(goalWeightKg = 70.0),
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals(0.5f, state.goalProgress!!, 0.001f)
     }
 
@@ -91,7 +97,7 @@ class HomeUiStateMapperTest {
             profile = profile(goalWeightKg = 70.0),
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals(0f, state.goalProgress!!, 0.001f)
     }
 
@@ -107,7 +113,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertNotNull("entry from 6 days ago must be included in 7-day avg", state.avgDisplay)
     }
 
@@ -121,7 +127,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertNull("entry from 8 days ago must be excluded from 7-day avg", state.avgDisplay)
     }
 
@@ -139,7 +145,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertNotNull(
             "start-of-day 6 days ago must be included regardless of current time-of-day",
             state.avgDisplay
@@ -160,7 +166,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals("85.0 kg", state.startDisplay)
     }
 
@@ -177,7 +183,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals("−5.0", state.lostDisplay)
     }
 
@@ -194,7 +200,7 @@ class HomeUiStateMapperTest {
             profile = profile(goalWeightKg = 75.0),
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertTrue("isGoalAchieved must be true when current weight <= goal", state.isGoalAchieved)
     }
 
@@ -210,7 +216,7 @@ class HomeUiStateMapperTest {
             profile = null,
             unit = WeightUnit.KG,
         )
-        val state = HomeUiStateMapper.map(data) as HomeUiState.HasData
+        val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals("sparklinePoints must be capped at 30 entries", 30, state.sparklinePoints.size)
         // oldest entry (highest daysAgo among retained) should be first
         assertTrue(

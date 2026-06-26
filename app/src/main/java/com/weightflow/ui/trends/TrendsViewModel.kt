@@ -54,11 +54,8 @@ class TrendsViewModel(
             minDisplay = points.minOf { it.displayValue },
             maxDisplay = points.maxOf { it.displayValue },
             statsSection = stats,
-            coachingSentence = buildCoachingSentence(
-                goalWeightKg = profile?.goalWeightKg,
-                etaDays = stats.estimatedDaysToGoal,
-                unit = unit,
-            ),
+            coachingGoalWeightKg = if (stats.estimatedDaysToGoal != null) profile?.goalWeightKg else null,
+            coachingEtaDays = stats.estimatedDaysToGoal,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -151,20 +148,5 @@ class TrendsViewModel(
             avgChangePerMonthDisplay = monthlyRateDisplay,
             estimatedDaysToGoal     = etaDays,
         )
-    }
-
-    private fun buildCoachingSentence(
-        goalWeightKg: Double?,
-        etaDays: Int?,
-        unit: WeightUnit,
-    ): String? {
-        if (goalWeightKg == null || etaDays == null) return null
-        val goalDisplay = when (unit) {
-            WeightUnit.KG  -> "%.1f kg".format(goalWeightKg)
-            WeightUnit.LBS -> "%.1f lbs".format(WeightConverter.kgToLbs(goalWeightKg))
-            WeightUnit.ST  -> "%.1f kg".format(goalWeightKg)
-        }
-        return if (etaDays < 14) "You're almost there — goal $goalDisplay is within reach."
-        else "At this rate you'll reach $goalDisplay in about ${etaDays / 7} weeks."
     }
 }

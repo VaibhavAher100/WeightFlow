@@ -2,6 +2,7 @@ package com.weightflow.ui.logentry
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.weightflow.R
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.WeightRepository
 import com.weightflow.domain.WeightConverter
@@ -75,7 +76,7 @@ class LogEntryViewModel(
         // Read unit from the combined uiState so it reflects the DataStore value
         val currentUnit = uiState.value.weightUnit
         if (!state.isInputValid || state.isSaving) return
-        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        _uiState.update { it.copy(isSaving = true, errorMessageRes = null) }
         viewModelScope.launch {
             try {
                 val raw = state.weightInput.toDouble()
@@ -103,7 +104,7 @@ class LogEntryViewModel(
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        errorMessage = "Failed to save — please try again",
+                        errorMessageRes = R.string.log_entry_save_failed,
                     )
                 }
             }
