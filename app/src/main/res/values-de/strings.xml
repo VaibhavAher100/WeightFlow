@@ -116,7 +116,6 @@
     <string name="profile_delete_dialog_title">Alle Daten löschen?</string>
     <string name="profile_dash">—</string>
     <string name="profile_entries_logged">%1$d Einträge erfasst</string>
-    <string name="profile_eta_to_go">~noch %1$d T</string>
     <string name="profile_goal_summary">−%1$s in %2$d Tagen  %3$s</string>
     <string name="profile_no_profile">Schließe die Einrichtung ab, um dein Profil zu sehen</string>
     <string name="profile_percent_complete">%1$d%% abgeschlossen</string>
