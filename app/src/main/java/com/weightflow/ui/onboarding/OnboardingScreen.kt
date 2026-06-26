@@ -226,7 +226,10 @@ private fun StepDots(currentStep: OnboardingStep, accent: Color) {
     }
 }
 
-// ── Step 1: Age Gate (COPPA / DPDP — 18+ year-of-birth picker) ───────────────
+// ── Step 1: Age Gate (COPPA minimum — 13+ year-of-birth picker) ──────────────
+
+/** COPPA minimum age. Users must be at least this old to onboard. */
+private const val MIN_AGE_YEARS = 13
 
 @Composable
 private fun AgeGateStep(
@@ -236,7 +239,7 @@ private fun AgeGateStep(
 ) {
     val currentYear = java.time.LocalDate.now().year
     val age = birthYearInput.toIntOrNull()?.let { currentYear - it }
-    val isUnderage = age != null && age < 18
+    val isUnderage = age != null && age < MIN_AGE_YEARS
 
     Column {
         Text(

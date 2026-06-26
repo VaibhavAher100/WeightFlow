@@ -193,7 +193,7 @@
     <string name="settings_unit_section">Weight Unit</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_age_gate_error">You must be 18 or older to use WeightFlow.</string>
+    <string name="onboarding_age_gate_error">You must be 13 or older to use WeightFlow.</string>
     <string name="onboarding_age_gate_snackbar_13">You must be 13 or older to use WeightFlow.</string>
     <string name="onboarding_age_gate_subtitle">Your data stays on your device.\nNo subscriptions. No cloud required.</string>
     <string name="onboarding_age_gate_title">WELCOME.</string>
@@ -210,7 +210,7 @@
     <string name="onboarding_step_eyebrow">STEP %1$d OF %2$d</string>
     <string name="onboarding_tagline">TRACK · REFLECT · IMPROVE</string>
     <string name="onboarding_terms_of_service">Terms of Service</string>
-    <string name="onboarding_underage_error">You must be 18 or older to use WeightFlow.</string>
+    <string name="onboarding_underage_error">You must be 13 or older to use WeightFlow.</string>
     <string name="onboarding_unit_subtitle">Can be changed in Settings anytime.</string>
     <string name="onboarding_unit_title">YOUR UNIT</string>
     <string name="onboarding_weight_label">Weight in %1$s</string>
