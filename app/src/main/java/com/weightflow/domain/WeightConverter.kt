@@ -31,12 +31,4 @@ object WeightConverter {
         return lbsToKg(totalLbs)
     }
 
-    fun format(kg: Double, unit: WeightUnit): String = when (unit) {
-        WeightUnit.KG -> "${"%.1f".format(kg)} kg"
-        WeightUnit.LBS -> "${"%.1f".format(kgToLbs(kg))} lbs"
-        WeightUnit.ST -> {
-            val r = kgToStones(kg)
-            "${r.stones}st ${r.pounds}lb"
-        }
-    }
 }

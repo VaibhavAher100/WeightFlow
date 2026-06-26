@@ -72,31 +72,6 @@ class WeightConverterTest {
         assertEquals(original, roundTripped, 0.5)
     }
 
-    // ── format() ────────────────────────────────────────────────────────────
-
-    @Test
-    fun `format in kg returns value with kg suffix`() {
-        assertEquals("80.0 kg", WeightConverter.format(80.0, WeightUnit.KG))
-    }
-
-    @Test
-    fun `format in lbs returns converted value with lbs suffix`() {
-        assertEquals("176.4 lbs", WeightConverter.format(80.0, WeightUnit.LBS))
-    }
-
-    @Test
-    fun `format in stones returns stones and pounds`() {
-        val result = WeightConverter.format(80.0, WeightUnit.ST)
-        assertEquals("12st 8lb", result)
-    }
-
-    @Test
-    fun `format 0kg in all units`() {
-        assertEquals("0.0 kg", WeightConverter.format(0.0, WeightUnit.KG))
-        assertEquals("0.0 lbs", WeightConverter.format(0.0, WeightUnit.LBS))
-        assertEquals("0st 0lb", WeightConverter.format(0.0, WeightUnit.ST))
-    }
-
     // ── stToKg (decimal stones input) ───────────────────────────────────────
 
     @Test

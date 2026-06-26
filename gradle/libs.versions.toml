@@ -17,10 +17,7 @@ coroutines = "1.8.1"
 appcompat = "1.7.1"
 mockk = "1.14.11"
 turbine = "1.2.1"
-# Firebase — add google-services.json to app/ and apply plugins below to activate
-firebaseBom = "33.7.0"
-googleServices = "4.4.2"
-firebaseCrashlyticsGradle = "3.0.2"
+# Firebase — version keys removed (dead until google-services.json added; see commented aliases below)
 # WorkManager
 workManager = "2.11.2"
 # SQLCipher — Room-compatible encrypted SQLite

@@ -12,8 +12,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,12 +72,12 @@ class UserPrefsDataStoreTest {
 
     @Test
     fun defaultOnboardingCompleteIsFalse() = runTest(testDispatcher) {
-        assertFalse(userPrefs.onboardingComplete.first())
+        assertEquals(false, userPrefs.onboardingState.first())
     }
 
     @Test
     fun setOnboardingCompletePersistsTrue() = runTest(testDispatcher) {
         userPrefs.setOnboardingComplete()
-        assertTrue(userPrefs.onboardingComplete.first())
+        assertEquals(true, userPrefs.onboardingState.first())
     }
 }

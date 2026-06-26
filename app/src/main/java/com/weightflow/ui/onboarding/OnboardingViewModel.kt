@@ -81,8 +81,6 @@ class OnboardingViewModel(
 
     fun onNextStep() {
         val state = _uiState.value
-        val steps = OnboardingStep.entries
-        val currentIndex = steps.indexOf(state.currentStep)
 
         when (state.currentStep) {
             OnboardingStep.AGE_GATE -> {
