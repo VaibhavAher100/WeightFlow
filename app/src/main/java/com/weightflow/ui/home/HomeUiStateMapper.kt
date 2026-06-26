@@ -5,6 +5,7 @@ import com.weightflow.domain.GoalStateMachine
 import com.weightflow.domain.HomeData
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
+import com.weightflow.domain.computeStreak
 import com.weightflow.ui.i18n.DateFormatters
 import com.weightflow.ui.i18n.WeightFormatter
 import java.time.Instant
@@ -135,21 +136,6 @@ object HomeUiStateMapper {
 
     private fun oneDecimal(value: Double, strings: HomeStrings): String =
         String.format(strings.locale, "%.1f", value)
-
-    private fun computeStreak(entries: List<WeightEntry>): Int {
-        if (entries.isEmpty()) return 0
-        val days = entries.map {
-            Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-        }.toSet()
-        var streak = 0
-        var current = LocalDate.now()
-        if (!days.contains(current)) current = current.minusDays(1)
-        while (days.contains(current)) {
-            streak++
-            current = current.minusDays(1)
-        }
-        return streak
-    }
 
     private fun formatDate(timestamp: Long, strings: HomeStrings): String {
         val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()

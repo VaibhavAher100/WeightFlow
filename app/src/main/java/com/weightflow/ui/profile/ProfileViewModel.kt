@@ -9,6 +9,7 @@ import com.weightflow.domain.Badge
 import com.weightflow.domain.BadgeObserver
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
+import com.weightflow.domain.computeStreak
 import com.weightflow.ui.i18n.WeightFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -186,21 +187,5 @@ class ProfileViewModel(
             val pct = progressPercent?.let { "${(it * 100).toInt()}%" } ?: ""
             String.format(s.locale, s.goalSummaryTemplate, lostDisplay, days, pct).trim()
         }
-    }
-
-    private fun computeStreak(entries: List<WeightEntry>): Int {
-        if (entries.isEmpty()) return 0
-        val zone = ZoneId.systemDefault()
-        val days = entries.map {
-            Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate()
-        }.toSet()
-        var streak = 0
-        var current = LocalDate.now()
-        if (!days.contains(current)) current = current.minusDays(1)
-        while (days.contains(current)) {
-            streak++
-            current = current.minusDays(1)
-        }
-        return streak
     }
 }
