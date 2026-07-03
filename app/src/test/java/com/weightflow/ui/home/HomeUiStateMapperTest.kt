@@ -5,6 +5,7 @@ import com.weightflow.domain.UserProfile
 import com.weightflow.domain.WeightEntry
 import com.weightflow.domain.WeightUnit
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -207,9 +208,12 @@ class HomeUiStateMapperTest {
     // ── sparklinePoints ───────────────────────────────────────────────────────
 
     @Test
-    fun `sparklinePoints contains up to 30 float values oldest first`() {
-        // 35 entries newest-first → takeLast(30) keeps entries 6..35 (oldest 30),
-        // then reversed() → oldest first; size must be 30
+    fun `sparklinePoints keeps the 30 most recent entries in chronological order`() {
+        // 35 entries newest-first, weight = 70 + daysAgo, so:
+        //   newest (daysAgo 0) = 70.0, oldest (daysAgo 34) = 104.0
+        // The sparkline must plot the 30 MOST RECENT entries (weights 70..99),
+        // chronological (oldest-of-window first → newest last), and must NOT
+        // contain the 5 oldest entries (weights 100..104).
         val entries = (0L until 35L).map { daysAgo -> entryDaysAgo(daysAgo, 70.0 + daysAgo) }
         val data = HomeData(
             entries = entries,
@@ -218,10 +222,11 @@ class HomeUiStateMapperTest {
         )
         val state = HomeUiStateMapper.map(data, EN_STRINGS) as HomeUiState.HasData
         assertEquals("sparklinePoints must be capped at 30 entries", 30, state.sparklinePoints.size)
-        // oldest entry (highest daysAgo among retained) should be first
-        assertTrue(
-            "sparklinePoints must be oldest-first (first value >= last value for descending weight)",
-            state.sparklinePoints.first() >= state.sparklinePoints.last()
-        )
+        // Last point = newest entry (right edge of the sparkline)
+        assertEquals("last point must be the newest entry", 70.0f, state.sparklinePoints.last())
+        // First point = oldest entry WITHIN the 30-entry window (daysAgo 29 → 99.0)
+        assertEquals("first point must be the oldest entry in the recent window", 99.0f, state.sparklinePoints.first())
+        // The 5 oldest entries must be excluded, not frozen into the chart
+        assertFalse("oldest entry (104.0) must not appear once past the cap", state.sparklinePoints.contains(104.0f))
     }
 }

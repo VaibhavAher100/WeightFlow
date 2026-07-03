@@ -57,8 +57,11 @@ object HomeUiStateMapper {
             lostDisplay = computeLostDisplay(data, strings),
             isGoalAchieved = goalState is GoalState.Active &&
                 data.entries.first().weightKg <= goalState.goalWeightKg,
+            // entries is newest-first: take() the most recent N, then reverse to
+            // chronological order for the chart. takeLast() would freeze the chart
+            // on the oldest N entries once the user logs more than N.
             sparklinePoints = data.entries
-                .takeLast(SPARKLINE_POINTS)
+                .take(SPARKLINE_POINTS)
                 .map { it.weightKg.toFloat() }
                 .reversed(),
         )
