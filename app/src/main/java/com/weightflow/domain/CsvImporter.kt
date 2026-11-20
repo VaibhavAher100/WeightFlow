@@ -80,6 +80,11 @@ object CsvImporter {
         // Try WeightFit last (generic: just "date" + "weight")
         val weightFitResult = WeightFitParser.parse(csv, existingEntries)
         if (weightFitResult is ParseResult.Success) {
+            // A header match with no readable row is a format we do not understand. Report it
+            // instead of a silent "0 imported" success. An all-duplicate file is still a success.
+            if (weightFitResult.entries.isEmpty() && weightFitResult.duplicatesSkipped == 0) {
+                return ParseResult.Error("No readable rows found")
+            }
             return weightFitResult.copy(format = CsvFormat.WEIGHT_FIT)
         }
 

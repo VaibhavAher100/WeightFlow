@@ -14,6 +14,10 @@ interface WeightEntryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: WeightEntryEntity): Long
 
+    /** Inserts all rows in one transaction (used by CSV import). Returns the new row ids. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entries: List<WeightEntryEntity>): List<Long>
+
     @Delete
     suspend fun delete(entry: WeightEntryEntity): Int
 

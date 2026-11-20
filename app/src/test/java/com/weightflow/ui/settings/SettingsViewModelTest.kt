@@ -320,4 +320,79 @@ class SettingsViewModelTest {
             assertTrue(state.reminderEnabled)
         }
     }
+
+    // ── CSV import (slice A1a) ────────────────────────────────────────────────
+
+    private val weightFitCsv = """
+        Date,Weight (kg)
+        2024-01-15 07:30:00,85.8
+        2024-01-16 07:45:00,85.6
+    """.trimIndent()
+
+    @Test
+    fun `onImportCsv saves parsed entries and emits ImportCompleted`() = runTest {
+        coEvery { weightRepository.addEntries(any()) } answers { firstArg<List<WeightEntry>>().size }
+        val vm = makeViewModel()
+
+        vm.events.test {
+            vm.onImportCsv(weightFitCsv)
+            advanceUntilIdle()
+            val event = awaitItem()
+            assertEquals(
+                SettingsEvent.ImportCompleted(
+                    imported = 2,
+                    duplicatesSkipped = 0,
+                    format = com.weightflow.domain.CsvFormat.WEIGHT_FIT,
+                ),
+                event,
+            )
+        }
+        coVerify(exactly = 1) { weightRepository.addEntries(match { it.size == 2 }) }
+    }
+
+    @Test
+    fun `onImportCsv skips entries that already exist`() = runTest {
+        val first = (com.weightflow.domain.CsvImporter.import(weightFitCsv, emptyList())
+            as com.weightflow.domain.ParseResult.Success).entries.first()
+        entriesFlow.value = listOf(first.copy(id = 7))
+        coEvery { weightRepository.addEntries(any()) } answers { firstArg<List<WeightEntry>>().size }
+        val vm = makeViewModel()
+
+        vm.events.test {
+            vm.onImportCsv(weightFitCsv)
+            advanceUntilIdle()
+            val event = awaitItem() as SettingsEvent.ImportCompleted
+            assertEquals(1, event.imported)
+            assertEquals(1, event.duplicatesSkipped)
+        }
+    }
+
+    @Test
+    fun `onImportCsv with only duplicates does not write to the repository`() = runTest {
+        val all = (com.weightflow.domain.CsvImporter.import(weightFitCsv, emptyList())
+            as com.weightflow.domain.ParseResult.Success).entries
+        entriesFlow.value = all
+        val vm = makeViewModel()
+
+        vm.events.test {
+            vm.onImportCsv(weightFitCsv)
+            advanceUntilIdle()
+            val event = awaitItem() as SettingsEvent.ImportCompleted
+            assertEquals(0, event.imported)
+            assertEquals(2, event.duplicatesSkipped)
+        }
+        coVerify(exactly = 0) { weightRepository.addEntries(any()) }
+    }
+
+    @Test
+    fun `onImportCsv with unreadable file emits ImportFailed and writes nothing`() = runTest {
+        val vm = makeViewModel()
+
+        vm.events.test {
+            vm.onImportCsv("this is not a weight file")
+            advanceUntilIdle()
+            assertTrue(awaitItem() is SettingsEvent.ImportFailed)
+        }
+        coVerify(exactly = 0) { weightRepository.addEntries(any()) }
+    }
 }

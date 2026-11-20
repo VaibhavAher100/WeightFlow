@@ -80,6 +80,33 @@ class CsvImporterTest {
     }
 
     @Test
+    fun `CsvImporter returns Error when header matches but no row is readable`() {
+        val csv = """
+            Date,Weight
+            15/01/2024 at 7am,eighty
+        """.trimIndent()
+
+        val result = CsvImporter.import(csv, existingEntries = emptyList())
+
+        assertTrue("A file with no readable row must not report success", result is ParseResult.Error)
+    }
+
+    @Test
+    fun `CsvImporter reports success when every row is a duplicate`() {
+        val csv = """
+            Date,Weight
+            2024-01-01,80.5
+        """.trimIndent()
+        val existing = (CsvImporter.import(csv, emptyList()) as ParseResult.Success).entries
+
+        val result = CsvImporter.import(csv, existingEntries = existing)
+
+        assertTrue(result is ParseResult.Success)
+        assertEquals(0, (result as ParseResult.Success).entries.size)
+        assertEquals(1, result.duplicatesSkipped)
+    }
+
+    @Test
     fun `CsvImporter rejects file larger than 5MB`() {
         val csv = "x".repeat(5_000_001)
 

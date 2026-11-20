@@ -40,6 +40,29 @@ class WeightRepositoryTest {
     }
 
     @Test
+    fun addEntriesWritesAllValidRowsWithNewIds() = runTest {
+        val incoming = listOf(
+            com.weightflow.domain.WeightEntry(id = 99, timestamp = 1000L, weightKg = 80.0, note = "a"),
+            com.weightflow.domain.WeightEntry(id = 99, timestamp = 2000L, weightKg = 79.5, note = ""),
+            com.weightflow.domain.WeightEntry(id = 0, timestamp = 3000L, weightKg = -5.0, note = ""),
+        )
+
+        val written = repository.addEntries(incoming)
+
+        assertEquals(2, written)
+        val stored = repository.getEntriesOldestFirst().first()
+        assertEquals(listOf(1000L, 2000L), stored.map { it.timestamp })
+        assertTrue("Room must assign new ids", stored.map { it.id }.distinct().size == 2)
+        assertEquals("a", stored[0].note)
+    }
+
+    @Test
+    fun addEntriesWithEmptyListWritesNothing() = runTest {
+        assertEquals(0, repository.addEntries(emptyList()))
+        assertTrue(repository.getEntriesOldestFirst().first().isEmpty())
+    }
+
+    @Test
     fun addEntryAppearsInNewestFirstFlow() = runTest {
         repository.addEntry(weightKg = 80.0, timestamp = 1000L)
         val entries = repository.getEntriesNewestFirst().first()
