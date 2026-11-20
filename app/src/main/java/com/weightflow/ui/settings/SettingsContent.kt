@@ -68,19 +68,34 @@ internal fun SettingsNotificationsSection(
     }
 }
 
+/** User actions of the Data section (import and the three export paths). */
+internal data class DataSectionActions(
+    val onFormatChanged: (ExportFormat) -> Unit,
+    val onShowExportConfirm: () -> Unit,
+    val onShowEncryptedExportDialog: () -> Unit,
+    val onImportCsv: () -> Unit,
+)
+
+@Suppress("FunctionNaming") // PascalCase @Composable per Compose convention
 @Composable
 internal fun SettingsDataSection(
     selectedExportFormat: ExportFormat,
     accent: Color,
-    onFormatChanged: (ExportFormat) -> Unit,
-    onShowExportConfirm: () -> Unit,
-    onShowEncryptedExportDialog: () -> Unit,
+    actions: DataSectionActions,
 ) {
+    val onShowExportConfirm = actions.onShowExportConfirm
+    val onShowEncryptedExportDialog = actions.onShowEncryptedExportDialog
     SectionLabel(stringResource(R.string.settings_data_section))
+    SettingsActionRow(
+        stringResource(R.string.settings_data_import_title),
+        stringResource(R.string.settings_data_import_subtitle),
+    ) {
+        actions.onImportCsv()
+    }
     ExportFormatSelector(
         selected = selectedExportFormat,
         accent = accent,
-        onFormatChanged = onFormatChanged,
+        onFormatChanged = actions.onFormatChanged,
     )
     when (selectedExportFormat) {
         ExportFormat.PLAINTEXT -> {

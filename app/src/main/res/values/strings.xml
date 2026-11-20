@@ -134,6 +134,13 @@
     <string name="profile_title">Profile</string>
 
     <!-- Settings -->
+    <string name="settings_data_import_title">Import weight history</string>
+    <string name="settings_data_import_subtitle">CSV from WeightFlow, WeightFit, Happy Scale or Apple Health</string>
+    <string name="settings_import_done_title">Import complete</string>
+    <string name="settings_import_done_body">Added: %1$d · Already present: %2$d</string>
+    <string name="settings_import_failed_title">Import failed</string>
+    <string name="settings_import_failed_body">This file could not be read. Use a CSV export from WeightFlow, WeightFit, Happy Scale or Apple Health.</string>
+    <string name="settings_import_too_large">The file is larger than 5 MB.</string>
     <string name="settings_data_export_csv_subtitle">Download as CSV</string>
     <string name="settings_data_export_encrypt_subtitle">AES-256 protected ZIP</string>
     <string name="settings_data_export_encrypt_title">Export &amp; Encrypt</string>

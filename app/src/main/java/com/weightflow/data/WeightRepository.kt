@@ -12,6 +12,20 @@ class WeightRepository(private val dao: WeightEntryDao) {
         return dao.insert(WeightEntryEntity(timestamp = timestamp, weightKg = weightKg, note = note))
     }
 
+    /**
+     * Adds many entries in one transaction (CSV import). Entries with an invalid weight are
+     * dropped. Incoming ids are ignored, so Room assigns new ids.
+     *
+     * @return the number of rows written.
+     */
+    suspend fun addEntries(entries: List<WeightEntry>): Int {
+        val rows = entries
+            .filter { it.weightKg.isValidWeightKg() }
+            .map { WeightEntryEntity(timestamp = it.timestamp, weightKg = it.weightKg, note = it.note) }
+        if (rows.isEmpty()) return 0
+        return dao.insertAll(rows).size
+    }
+
     suspend fun removeEntry(id: Long): Int {
         val entity = dao.getById(id) ?: return 0
         return dao.delete(entity)

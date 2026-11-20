@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.weightflow.data.UserPrefsDataStore
 import com.weightflow.data.WeightRepository
 import com.weightflow.domain.CsvExporter
+import com.weightflow.domain.CsvImporter
+import com.weightflow.domain.ParseResult
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -98,6 +100,32 @@ class SettingsViewModel(
             } else {
                 userPrefsDataStore.setReminderEnabled(false)
                 _events.emit(SettingsEvent.NotificationPermissionDenied)
+            }
+        }
+    }
+
+    // ── Import actions ────────────────────────────────────────────────────────
+
+    /**
+     * Imports a CSV file from WeightFlow or another app (WeightFit, Happy Scale, Apple Health,
+     * generic). New rows are merged into the existing history; rows that already exist are
+     * skipped. Emits [SettingsEvent.ImportCompleted] or [SettingsEvent.ImportFailed].
+     */
+    fun onImportCsv(csv: String) {
+        viewModelScope.launch {
+            val existing = weightRepository.getEntriesOldestFirst().first()
+            when (val result = CsvImporter.import(csv, existing)) {
+                is ParseResult.Error -> _events.emit(SettingsEvent.ImportFailed(result.message))
+                is ParseResult.Success -> {
+                    val saved = if (result.entries.isEmpty()) 0 else weightRepository.addEntries(result.entries)
+                    _events.emit(
+                        SettingsEvent.ImportCompleted(
+                            imported = saved,
+                            duplicatesSkipped = result.duplicatesSkipped,
+                            format = result.format,
+                        )
+                    )
+                }
             }
         }
     }

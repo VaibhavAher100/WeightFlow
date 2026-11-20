@@ -48,6 +48,53 @@ class CsvParserTest {
         assertEquals(80.0, entries[0].weightKg, 0.1)
     }
 
+    // ── WeightFit 2.x export format (header "Date,Weight (<unit>)", observed in WeightFit 2.4.0) ──
+
+    @Test
+    fun `WeightFitParser keeps time of day from date-time rows`() {
+        val csv = """
+            Date,Weight (kg)
+            2024-01-15 07:30:00,85.8
+            2024-01-16 07:45:00,85.6
+        """.trimIndent()
+
+        val result = WeightFitParser.parse(csv, existingEntries = emptyList())
+
+        assertTrue(result is ParseResult.Success)
+        val entries = (result as ParseResult.Success).entries
+        assertEquals(2, entries.size)
+        val expected = java.time.LocalDateTime.of(2024, 1, 15, 7, 30)
+            .atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        assertEquals(expected, entries[0].timestamp)
+        assertEquals(85.8, entries[0].weightKg, 0.001)
+    }
+
+    @Test
+    fun `WeightFitParser accepts ISO date-time with T separator`() {
+        val csv = """
+            Date,Weight (kg)
+            2024-01-15T07:30:00,85.8
+        """.trimIndent()
+
+        val result = WeightFitParser.parse(csv, existingEntries = emptyList())
+
+        assertTrue(result is ParseResult.Success)
+        assertEquals(1, (result as ParseResult.Success).entries.size)
+    }
+
+    @Test
+    fun `WeightFitParser treats Weight (lb) header as pounds`() {
+        val csv = """
+            Date,Weight (lb)
+            2024-01-15,176.4
+        """.trimIndent()
+
+        val result = WeightFitParser.parse(csv, existingEntries = emptyList())
+
+        assertTrue(result is ParseResult.Success)
+        assertEquals(80.0, (result as ParseResult.Success).entries[0].weightKg, 0.1)
+    }
+
     @Test
     fun `WeightFitParser returns error for malformed CSV`() {
         val csv = "this is not a csv file at all !@#$"
