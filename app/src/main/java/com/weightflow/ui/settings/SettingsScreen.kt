@@ -51,6 +51,40 @@ import java.time.LocalDate
 internal const val PRIVACY_URL = "https://vaibhavaher100.github.io/WeightFlow/privacy-policy/"
 internal const val TERMS_URL   = "https://vaibhavaher100.github.io/WeightFlow/terms-of-service/"
 
+/** MIME types offered in the import picker. Some apps and file managers label CSV as text/plain. */
+internal val CSV_IMPORT_MIME_TYPES = arrayOf(
+    "text/csv",
+    "text/comma-separated-values",
+    "application/csv",
+    "text/plain",
+)
+
+/** Same limit as [com.weightflow.domain.CsvImporter]: larger files are refused before parsing. */
+private const val MAX_IMPORT_BYTES = 5_000_000
+private const val READ_CHUNK_BYTES = 8_192
+
+/** Byte-order mark that some apps (Excel, Windows tools) write at the start of a CSV file. */
+private const val UTF8_BOM = "\uFEFF"
+
+/**
+ * Reads a picked file as UTF-8 text. Returns null when the file is larger than
+ * [MAX_IMPORT_BYTES], so a huge file never loads fully into memory.
+ */
+private fun readCsvWithLimit(context: android.content.Context, uri: android.net.Uri): String? {
+    val buffer = java.io.ByteArrayOutputStream()
+    var tooLarge = false
+    context.contentResolver.openInputStream(uri)?.use { stream ->
+        val chunk = ByteArray(READ_CHUNK_BYTES)
+        var read = stream.read(chunk)
+        while (read >= 0 && !tooLarge) {
+            buffer.write(chunk, 0, read)
+            tooLarge = buffer.size() > MAX_IMPORT_BYTES
+            read = stream.read(chunk)
+        }
+    }
+    return if (tooLarge) null else buffer.toString(Charsets.UTF_8.name()).removePrefix(UTF8_BOM)
+}
+
 internal data class ThemeOption(
     val key: String,
     @param:androidx.annotation.StringRes val labelRes: Int,
@@ -131,6 +165,21 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
         }
     }
 
+    // ── CSV import state ──────────────────────────────────────────────────────
+    var importResult by remember { mutableStateOf<SettingsEvent.ImportCompleted?>(null) }
+    var importFailure by remember { mutableStateOf<String?>(null) }
+    val tooLargeMessage = stringResource(R.string.settings_import_too_large)
+
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            val csv = kotlinx.coroutines.withContext(Dispatchers.IO) { readCsvWithLimit(context, uri) }
+            if (csv == null) importFailure = tooLargeMessage else viewModel.onImportCsv(csv)
+        }
+    }
+
     // ── Event collection ──────────────────────────────────────────────────────
 
     LaunchedEffect(Unit) {
@@ -169,6 +218,10 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 SettingsEvent.NotificationPermissionDenied -> {
                     showPermissionDeniedBanner = true
                 }
+
+                is SettingsEvent.ImportCompleted -> importResult = event
+
+                is SettingsEvent.ImportFailed -> importFailure = event.reason
             }
         }
     }
@@ -205,6 +258,41 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
                 TextButton(onClick = { encryptionErrorMessage = null }) {
                     Text(stringResource(R.string.common_ok))
                 }
+            },
+        )
+    }
+
+    importResult?.let { result ->
+        AlertDialog(
+            onDismissRequest = { importResult = null },
+            title = { Text(stringResource(R.string.settings_import_done_title)) },
+            text = {
+                Text(
+                    stringResource(R.string.settings_import_done_body, result.imported, result.duplicatesSkipped),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { importResult = null }) { Text(stringResource(R.string.common_ok)) }
+            },
+        )
+    }
+
+    importFailure?.let { reason ->
+        AlertDialog(
+            onDismissRequest = { importFailure = null },
+            title = { Text(stringResource(R.string.settings_import_failed_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(R.string.settings_import_failed_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(reason, style = MaterialTheme.typography.bodySmall, color = WFTokens.Text2)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { importFailure = null }) { Text(stringResource(R.string.common_ok)) }
             },
         )
     }
@@ -272,9 +360,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
             SettingsDataSection(
                 selectedExportFormat = state.selectedExportFormat,
                 accent = accent,
-                onFormatChanged = viewModel::onExportFormatChanged,
-                onShowExportConfirm = { showExportConfirm = true },
-                onShowEncryptedExportDialog = { showEncryptedExportDialog = true },
+                actions = DataSectionActions(
+                    onFormatChanged = viewModel::onExportFormatChanged,
+                    onShowExportConfirm = { showExportConfirm = true },
+                    onShowEncryptedExportDialog = { showEncryptedExportDialog = true },
+                    onImportCsv = { csvImportLauncher.launch(CSV_IMPORT_MIME_TYPES) },
+                ),
             )
 
             SettingsLegalSection(

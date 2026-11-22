@@ -134,6 +134,13 @@
     <string name="profile_title">Profil</string>
 
     <!-- Settings -->
+    <string name="settings_data_import_title">Gewichtsverlauf importieren</string>
+    <string name="settings_data_import_subtitle">CSV aus WeightFlow, WeightFit, Happy Scale oder Apple Health</string>
+    <string name="settings_import_done_title">Import abgeschlossen</string>
+    <string name="settings_import_done_body">Hinzugefügt: %1$d · Bereits vorhanden: %2$d</string>
+    <string name="settings_import_failed_title">Import fehlgeschlagen</string>
+    <string name="settings_import_failed_body">Diese Datei konnte nicht gelesen werden. Verwende einen CSV-Export aus WeightFlow, WeightFit, Happy Scale oder Apple Health.</string>
+    <string name="settings_import_too_large">Die Datei ist größer als 5 MB.</string>
     <string name="settings_data_export_csv_subtitle">Als CSV herunterladen</string>
     <string name="settings_data_export_encrypt_subtitle">AES-256-geschütztes ZIP</string>
     <string name="settings_data_export_encrypt_title">Exportieren &amp; verschlüsseln</string>

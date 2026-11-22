@@ -52,3 +52,6 @@ _decisions.md
 *.session.md
 sessions/
 .firecrawl/
+
+# Craft Anything binaries (local tool, v0.6.1)
+.tools/

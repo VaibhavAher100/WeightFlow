@@ -54,6 +54,28 @@ private fun readAllRows(csv: String): List<List<String>>? = runCatching {
 
 // ── WeightFit ──────────────────────────────────────────────────────────────────
 
+/** Matches "lb" or "lbs" as a whole word in a header, e.g. "Weight (lb)". */
+private val POUND_HEADER = Regex("""\blbs?\b""", RegexOption.IGNORE_CASE)
+
+private val LOCAL_DATE_TIME_FORMATS = listOf(
+    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+    java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+)
+
+/**
+ * Parses a WeightFit date cell to epoch millis.
+ *
+ * A date-time cell keeps its time of day in the device zone. A date-only cell keeps the
+ * existing convention of [makeEntry] (UTC midnight), so older imports stay unchanged.
+ */
+private fun parseWeightFitTimestamp(cell: String): Long? =
+    LOCAL_DATE_TIME_FORMATS.firstNotNullOfOrNull { format ->
+        runCatching { java.time.LocalDateTime.parse(cell, format) }.getOrNull()
+    }?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        ?: runCatching { java.time.OffsetDateTime.parse(cell) }.getOrNull()?.toInstant()?.toEpochMilli()
+        ?: runCatching { LocalDate.parse(cell) }.getOrNull()?.let { makeEntry(it, 0.0).timestamp }
+
 object WeightFitParser {
 
     /**
@@ -73,18 +95,19 @@ object WeightFitParser {
             return ParseResult.Error("Unrecognized WeightFit format")
         }
 
-        val isLbs = header.contains("lbs", ignoreCase = true)
+        // WeightFit 2.x writes "Weight (kg)" or "Weight (lb)"; older exports used "Weight (lbs)".
+        val isLbs = POUND_HEADER.containsMatchIn(header)
         val entries = mutableListOf<WeightEntry>()
         var duplicates = 0
 
         for (i in 1 until rows.size) {
             val row = rows[i]
             if (row.size < 2) continue
-            val date = runCatching { LocalDate.parse(row[0].trim()) }.getOrNull() ?: continue
+            val timestamp = parseWeightFitTimestamp(row[0].trim()) ?: continue
             val raw = row[1].trim().toDoubleOrNull() ?: continue
             val weightKg = if (isLbs) WeightConverter.lbsToKg(raw) else raw
             if (!weightKg.isValidWeightKg()) continue
-            val entry = makeEntry(date, weightKg)
+            val entry = WeightEntry(id = 0, timestamp = timestamp, weightKg = weightKg, note = "")
             if (isDuplicate(entry, existingEntries)) duplicates++ else entries.add(entry)
         }
 
